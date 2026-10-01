@@ -20,7 +20,12 @@
 - `ProcessPayment(orderId, amount)`: orders → RabbitMQ `process_payment` → billing-worker.
 - `PaymentProcessed(orderId, approved)`: billing → `payment_processed` → orders-worker.
 - Классы сообщений дублируются в обоих приложениях с одинаковым FQCN (`App\Message\…`), сериализатор — `symfony_serializer` (JSON).
-- orders отправляет `ProcessPayment` внутри `wrapInTransaction`: упал AMQP — откатился заказ.
+- orders в `wrapInTransaction` делает `flush()` и только потом `dispatch(ProcessPayment)`: ошибка БД не публикует
+  сообщение, упавший AMQP откатывает заказ. Публикация всё равно раньше COMMIT → `PaymentProcessed` может обогнать
+  коммит: handler бросает `OrderNotVisibleYet`, транспорт `payment_processed` ретраит 5× (500 мс ×2, ~15 с).
+  Outbox/failure transport — не сделаны (отложено).
+- `amount` ограничен `CreateOrderRequest::MAX_AMOUNT` (INT4 Postgres) → 422, а не 500.
+- Сервисы и воркеры с `restart: unless-stopped`: `messenger:consume --time-limit=3600` штатно выходит раз в час.
 - Повторная доставка: billing отвечает сохранённым исходом (уникальность по `order_id`), orders не переводит уже `paid/declined` заказ.
 
 ## Redis
