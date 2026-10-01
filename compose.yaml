@@ -1,0 +1,21 @@
+name: bundles-showcase
+
+x-healthcheck: &liveliness
+  test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1:8080/_/healthcheck/liveliness') === false ? 1 : 0);"]
+  interval: 5s
+  retries: 20
+
+services:
+  gateway:
+    build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: gateway } }
+    environment: { APP_SECRET: showcase-demo-secret, APPLICATION_NAME: showcase, COMPONENT_NAME: gateway }
+    ports: ["${SHOWCASE_GATEWAY_PORT:-8080}:8080"]
+    healthcheck: *liveliness
+  orders:
+    build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: orders } }
+    environment: { APP_SECRET: showcase-demo-secret, APPLICATION_NAME: showcase, COMPONENT_NAME: orders }
+    healthcheck: *liveliness
+  billing:
+    build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: billing } }
+    environment: { APP_SECRET: showcase-demo-secret, APPLICATION_NAME: showcase, COMPONENT_NAME: billing }
+    healthcheck: *liveliness

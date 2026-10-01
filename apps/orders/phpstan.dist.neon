@@ -1,0 +1,9 @@
+parameters:
+    level: 9
+    treatPhpDocTypesAsCertain: false
+    phpVersion: 80400
+    paths:
+        - src/
+        - tests/
+    symfony:
+        containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml

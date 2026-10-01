@@ -1,0 +1,52 @@
+name: quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    name: PHPStan + PHPUnit (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [gateway, orders, billing]
+    defaults:
+      run:
+        working-directory: apps/${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: redis, amqp, intl, pdo_pgsql
+          coverage: none
+          tools: composer:v2
+      - run: composer install --prefer-dist --no-progress --no-interaction
+      - run: php bin/console cache:warmup
+      - run: vendor/bin/phpstan analyse --no-progress --memory-limit=512M
+      - run: vendor/bin/phpunit
+
+  style:
+    name: PHP-CS-Fixer + Rector
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+      - run: composer install --prefer-dist --no-progress --no-interaction
+      - run: |
+          for app in gateway orders billing; do
+            (cd apps/$app && composer install --prefer-dist --no-progress --no-interaction)
+          done
+      - run: vendor/bin/php-cs-fixer check
+      - run: vendor/bin/rector process --dry-run
