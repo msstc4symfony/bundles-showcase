@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 5s
+scrape_configs:
+  - job_name: showcase
+    metrics_path: /_/metrics
+    static_configs:
+      - targets: ['gateway:8080', 'orders:8080', 'billing:8080']
