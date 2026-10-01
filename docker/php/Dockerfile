@@ -29,4 +29,4 @@ WORKDIR /e2e
 COPY e2e/composer.json e2e/composer.lock ./
 RUN composer install --no-dev --no-interaction --prefer-dist
 COPY e2e/ ./
-ENTRYPOINT ["vendor/bin/behat", "--no-colors"]
+ENTRYPOINT ["vendor/bin/behat", "--no-colors", "--no-snippets", "--strict"]

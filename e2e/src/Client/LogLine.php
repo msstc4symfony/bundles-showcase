@@ -38,8 +38,23 @@ final readonly class LogLine
 
     public function requestFrom(): ?string
     {
-        $from = $this->extra['request_from'] ?? null;
+        return $this->extraString('request_from');
+    }
 
-        return is_string($from) ? $from : null;
+    public function requestId(): ?string
+    {
+        return $this->extraString('request_id');
+    }
+
+    public function runtimeId(): ?string
+    {
+        return $this->extraString('runtime_id');
+    }
+
+    private function extraString(string $key): ?string
+    {
+        $value = $this->extra[$key] ?? null;
+
+        return is_string($value) ? $value : null;
     }
 }

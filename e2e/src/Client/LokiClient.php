@@ -28,7 +28,17 @@ final readonly class LokiClient
      */
     public function linesFor(string $requestId, float $sinceUnix): array
     {
-        $query = sprintf('{service=~".+"} | json | extra_request_id=`%s`', $requestId);
+        return $this->linesWhere('request_id', $requestId, $sinceUnix);
+    }
+
+    /**
+     * @param 'request_id'|'runtime_id' $extraField
+     *
+     * @return list<LogLine>
+     */
+    public function linesWhere(string $extraField, string $value, float $sinceUnix): array
+    {
+        $query = sprintf('{service=~".+"} | json | extra_%s=`%s`', $extraField, $value);
         $data = $this->http->request('GET', '/loki/api/v1/query_range', ['query' => [
             'query' => $query,
             'start' => (string) (int) ($sinceUnix * 1e9),
