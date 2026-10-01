@@ -9,6 +9,7 @@ use App\E2e\Client\HealthClient;
 use App\E2e\Client\HealthReport;
 use App\E2e\Wait;
 use Behat\Behat\Context\Context;
+use Behat\Hook\AfterScenario;
 use Behat\Step\Then;
 use Behat\Step\When;
 use LogicException;
@@ -21,6 +22,9 @@ final class HealthContext implements Context
     private readonly DockerClient $docker;
 
     private ?HealthReport $lastReport = null;
+
+    /** @var list<string> services stopped by this scenario and not started again yet */
+    private array $stopped = [];
 
     public function __construct()
     {
@@ -55,12 +59,25 @@ final class HealthContext implements Context
     public function iStop(string $service): void
     {
         $this->docker->stop($service);
+        $this->stopped[] = $service;
     }
 
     #[When('I start :service')]
     public function iStart(string $service): void
     {
         $this->docker->start($service);
+        $this->stopped = array_values(array_diff($this->stopped, [$service]));
+    }
+
+    // A failed chaos step must not leave the stand without Redis or orders for the next run.
+    #[AfterScenario]
+    public function restartWhatWasStopped(): void
+    {
+        foreach ($this->stopped as $service) {
+            $this->docker->start($service);
+        }
+
+        $this->stopped = [];
     }
 
     #[Then('within :seconds seconds :service readiness is down')]

@@ -8,11 +8,12 @@ down: ## Stop the stack and drop its volumes
 
 check: ## Quality gate (needs Postgres on 127.0.0.1:5432: docker compose up -d postgres)
 	@for a in $(APPS); do \
-		(cd apps/$$a && php bin/console cache:warmup --env=test -q \
+		(cd apps/$$a && composer validate --strict --no-check-publish -q && composer audit --locked \
+			&& php bin/console cache:warmup --env=test -q \
 			&& { [ ! -d migrations ] || { php bin/console doctrine:database:create --env=test --if-not-exists -q && php bin/console doctrine:migrations:migrate --env=test -n -q; }; } \
 			&& vendor/bin/phpstan analyse --no-progress --memory-limit=512M && vendor/bin/phpunit) || exit 1; \
 	done
-	cd e2e && vendor/bin/phpstan analyse --no-progress
+	cd e2e && composer validate --strict --no-check-publish -q && composer audit --locked && vendor/bin/phpstan analyse --no-progress
 	vendor/bin/php-cs-fixer check
 	vendor/bin/rector process --dry-run
 

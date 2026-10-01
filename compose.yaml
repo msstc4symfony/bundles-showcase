@@ -41,6 +41,7 @@ x-infra: &infra
 
 services:
   gateway:
+    restart: unless-stopped
     build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: gateway } }
     environment: *gateway-env
     ports: ["127.0.0.1:${SHOWCASE_GATEWAY_PORT:-8080}:8080"]
@@ -57,6 +58,7 @@ services:
       postgres: { condition: service_healthy }
 
   orders:
+    restart: unless-stopped
     build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: orders } }
     environment: *orders-env
     healthcheck: *liveliness
@@ -65,6 +67,8 @@ services:
       orders-migrate: { condition: service_completed_successfully }
 
   orders-worker:
+    # Workers exit after --time-limit or a broker disconnect; the stand must keep consuming.
+    restart: unless-stopped
     build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: orders } }
     command: ["php", "bin/console", "messenger:consume", "payment_processed", "--time-limit=3600", "-vv"]
     environment: *orders-env
@@ -79,6 +83,7 @@ services:
       postgres: { condition: service_healthy }
 
   billing:
+    restart: unless-stopped
     build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: billing } }
     environment: *billing-env
     healthcheck: *liveliness
@@ -87,6 +92,7 @@ services:
       billing-migrate: { condition: service_completed_successfully }
 
   billing-worker:
+    restart: unless-stopped
     build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: billing } }
     command: ["php", "bin/console", "messenger:consume", "process_payment", "--time-limit=3600", "-vv"]
     environment: *billing-env

@@ -37,6 +37,7 @@ final class CreateOrderControllerTest extends WebTestCase
     #[TestWith([['amount' => -5]])]
     #[TestWith([['amount' => '12']])]
     #[TestWith([['amount' => 12.5]])]
+    #[TestWith([['amount' => 2147483648]])]
     #[TestWith([[]])]
     public function testRejectsInvalidAmount(array $payload): void
     {

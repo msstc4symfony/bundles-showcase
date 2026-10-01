@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 concurrency:
   group: quality-${{ github.ref }}
   cancel-in-progress: true
@@ -34,6 +37,8 @@ jobs:
           extensions: redis, amqp, intl, pdo_pgsql
           coverage: none
           tools: composer:v2
+      - run: composer validate --strict --no-check-publish
+      - run: composer audit --locked
       - run: composer install --prefer-dist --no-progress --no-interaction
       - run: php bin/console cache:warmup --env=test
       - if: hashFiles(format('apps/{0}/migrations', matrix.app)) != ''
@@ -56,6 +61,8 @@ jobs:
           php-version: '8.4'
           coverage: none
           tools: composer:v2
+      - run: composer validate --strict --no-check-publish
+      - run: composer audit --locked
       - run: composer install --prefer-dist --no-progress --no-interaction
       - run: vendor/bin/phpstan analyse --no-progress
 

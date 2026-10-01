@@ -7,6 +7,7 @@ RUN apt-get update \
     && docker-php-ext-enable redis amqp \
     && docker-php-ext-install pdo_pgsql intl opcache sockets \
     && rm -rf /var/lib/apt/lists/*
+RUN printf 'date.timezone=UTC\nopcache.enable_cli=1\n' > /usr/local/etc/php/conf.d/showcase.ini
 COPY --from=roadrunner /usr/bin/rr /usr/local/bin/rr
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 

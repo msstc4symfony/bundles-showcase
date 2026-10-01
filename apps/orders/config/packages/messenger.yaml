@@ -14,5 +14,7 @@ framework:
       payment_processed:
         dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
         options: { exchange: { name: payment_processed }, queues: { payment_processed: ~ } }
+        # Covers a result that outruns the commit of its order (OrderNotVisibleYet): ~15 s in total.
+        retry_strategy: { max_retries: 5, delay: 500, multiplier: 2 }
     routing:
       'App\Message\ProcessPayment': process_payment

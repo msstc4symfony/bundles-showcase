@@ -13,6 +13,8 @@ framework:
             orders.client:
                 base_uri: '%env(ORDERS_URL)%'
                 timeout: 5
+                # Must stay below IdempotencyStore's 30 s lock TTL, or a slow call lets a duplicate in.
+                max_duration: 10
 
 when@test:
     framework:

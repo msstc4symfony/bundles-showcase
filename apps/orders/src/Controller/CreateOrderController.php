@@ -32,9 +32,12 @@ final readonly class CreateOrderController
         Assert::integer($request->amount);
         $order = new Order($request->amount);
 
-        // A failed AMQP send throws inside the transaction and rolls the order back.
+        // Flush before dispatch so a database error never publishes a payment for a missing order;
+        // a failed AMQP send still rolls the order back.
         $this->entityManager->wrapInTransaction(function () use ($order): void {
             $this->entityManager->persist($order);
+            $this->entityManager->flush();
+
             $this->bus->dispatch(new ProcessPayment($order->id(), $order->amount()));
         });
 

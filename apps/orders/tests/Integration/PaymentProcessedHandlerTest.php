@@ -7,10 +7,9 @@ namespace App\Tests\Integration;
 use App\Entity\Order;
 use App\Entity\OrderStatus;
 use App\Message\PaymentProcessed;
+use App\MessageHandler\OrderNotVisibleYet;
 use App\MessageHandler\PaymentProcessedHandler;
 use Doctrine\ORM\EntityManagerInterface;
-use Monolog\Handler\TestHandler;
-use Monolog\LogRecord;
 use PHPUnit\Framework\Attributes\TestWith;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Uid\Uuid;
@@ -38,17 +37,12 @@ final class PaymentProcessedHandlerTest extends KernelTestCase
         self::assertSame(OrderStatus::Paid, $this->reload($order)->status());
     }
 
-    public function testAResultForAnUnknownOrderIsIgnored(): void
+    public function testAResultForAnOrderNotVisibleYetIsRetried(): void
     {
-        $orderId = Uuid::v7()->toRfc4122();
+        // ProcessPayment is published before the order commits, so the answer can outrun the commit.
+        $this->expectException(OrderNotVisibleYet::class);
 
-        $this->handler()(new PaymentProcessed($orderId, true));
-
-        $logs = self::getContainer()->get('monolog.handler.main');
-        self::assertInstanceOf(TestHandler::class, $logs);
-        self::assertTrue($logs->hasWarningThatPasses(
-            static fn (LogRecord $record): bool => $record->context === ['order_id' => $orderId],
-        ));
+        $this->handler()(new PaymentProcessed(Uuid::v7()->toRfc4122(), true));
     }
 
     private function persistedOrder(): Order
