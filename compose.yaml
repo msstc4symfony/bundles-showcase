@@ -96,9 +96,14 @@ services:
   postgres:
     image: postgres:17
     ports: ["127.0.0.1:${SHOWCASE_POSTGRES_PORT:-5432}:5432"]
-    environment: { POSTGRES_USER: showcase, POSTGRES_PASSWORD: showcase, POSTGRES_DB: postgres }
+    environment: { POSTGRES_USER: showcase, POSTGRES_PASSWORD: showcase, POSTGRES_DB: postgres, PGPASSWORD: showcase }
     volumes: ["./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro"]
-    healthcheck: { test: ["CMD", "pg_isready", "-U", "showcase"], interval: 3s, retries: 30 }
+    # Over TCP and against both databases: during the image's init phase the temporary server
+    # answers on the unix socket only and init.sql has not created the databases yet.
+    healthcheck:
+      test: ["CMD-SHELL", "psql -h 127.0.0.1 -U showcase -d orders -tAc 'select 1' && psql -h 127.0.0.1 -U showcase -d billing -tAc 'select 1'"]
+      interval: 3s
+      retries: 30
 
   redis:
     image: redis:7
