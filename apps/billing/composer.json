@@ -14,7 +14,7 @@
         "msstc4symfony/healthcheck-bundle": "^1.1.1",
         "msstc4symfony/logger-bundle": "^1.1.2",
         "msstc4symfony/metrics-bridge-profiling": "^1.0",
-        "msstc4symfony/metrics-bundle": "^1.2",
+        "msstc4symfony/metrics-bundle": "^1.2.1",
         "msstc4symfony/profiling-bundle": "^1.0",
         "msstc4symfony/tracing-bundle": "^1.0",
         "symfony/amqp-messenger": "8.1.*",

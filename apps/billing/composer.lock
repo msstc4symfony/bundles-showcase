@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "181e1263e517dd4777bb0557d691d011",
+    "content-hash": "a1824de763111bfb88688db0f4e487ba",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -1598,16 +1598,16 @@
         },
         {
             "name": "msstc4symfony/metrics-bundle",
-            "version": "v1.2.0",
+            "version": "v1.2.1",
             "source": {
                 "type": "git",
                 "url": "git@github.com:msstc4symfony/metrics-bundle.git",
-                "reference": "6b73e8095814e86cd92d13e207c9ded05a37583f"
+                "reference": "ca8fffc0d03ef1875ba70308bfa2fb1ca55eb916"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/metrics-bundle/zipball/6b73e8095814e86cd92d13e207c9ded05a37583f",
-                "reference": "6b73e8095814e86cd92d13e207c9ded05a37583f",
+                "url": "https://api.github.com/repos/msstc4symfony/metrics-bundle/zipball/ca8fffc0d03ef1875ba70308bfa2fb1ca55eb916",
+                "reference": "ca8fffc0d03ef1875ba70308bfa2fb1ca55eb916",
                 "shasum": ""
             },
             "require": {
@@ -1641,6 +1641,7 @@
             },
             "suggest": {
                 "doctrine/dbal": "To collect Doctrine DBAL query metrics",
+                "doctrine/doctrine-bundle": "To register the DBAL query metrics middleware on its connections",
                 "ext-apcu": "To store metrics in APCu (apc:// and apcng:// storage DSNs)",
                 "ext-mongodb": "To collect MongoDB driver command metrics",
                 "mongodb/mongodb": "To use MongoDB ODM TimingSubscriber",
@@ -1661,8 +1662,7 @@
             },
             "autoload-dev": {
                 "psr-4": {
-                    "Msstc4Symfony\\MetricsBundle\\Test\\Unit\\": "tests/unit/",
-                    "Msstc4Symfony\\MetricsBundle\\Test\\Integration\\": "tests/integration/"
+                    "Msstc4Symfony\\MetricsBundle\\Test\\": "tests/"
                 }
             },
             "license": [
@@ -1680,7 +1680,7 @@
                 "php",
                 "symfony"
             ],
-            "time": "2026-10-01T12:04:01+00:00"
+            "time": "2026-10-01T19:41:05+00:00"
         },
         {
             "name": "msstc4symfony/profiling-bundle",
