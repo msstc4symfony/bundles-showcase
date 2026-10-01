@@ -1,6 +1,8 @@
 // Only this compose project: the docker socket also exposes unrelated containers on the host.
 discovery.docker "containers" {
   host = "unix:///var/run/docker.sock"
+  // The 60s default misses workers started right after Alloy, and e2e runs right after "up --wait".
+  refresh_interval = "5s"
 
   filter {
     name   = "label"
