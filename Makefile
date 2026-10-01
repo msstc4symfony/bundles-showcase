@@ -24,8 +24,11 @@ e2e: ## Behat scenarios against the running stack (make up first); @chaos runs l
 	docker compose run --rm --build e2e --tags='~@chaos'
 	docker compose run --rm e2e --tags='@chaos' --allow-no-tests
 
+demo-traffic: ## About 60 orders over a minute, then a request id to follow in Loki
+	docker compose run --rm --build --entrypoint php e2e bin/demo-traffic
+
 help: ## List targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "%-14s %s\n", $$1, $$2}'
 
 .DEFAULT_GOAL := help
-.PHONY: up down check fix e2e help
+.PHONY: up down check fix e2e demo-traffic help

@@ -3,3 +3,4 @@ parameters:
     paths:
         - src
         - behat.php
+        - bin/demo-traffic

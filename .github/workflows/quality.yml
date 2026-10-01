@@ -27,7 +27,7 @@ jobs:
         ports: ['5432:5432']
         options: --health-cmd "pg_isready -U showcase" --health-interval 3s --health-retries 30
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
@@ -50,7 +50,7 @@ jobs:
       run:
         working-directory: e2e
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
@@ -63,7 +63,7 @@ jobs:
     name: PHP-CS-Fixer + Rector
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'

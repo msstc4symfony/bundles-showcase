@@ -1,0 +1,40 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use App\E2e\Client\GatewayClient;
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+const ORDERS = 60;
+const DECLINE_ABOVE = 100_000;
+
+$gateway = new GatewayClient();
+$keys = [];
+$sampleRequestId = null;
+$statuses = [];
+
+for ($i = 1; $i <= ORDERS; ++$i) {
+    $requestId = sprintf('demo-%s-%02d', date('His'), $i);
+    $sampleRequestId ??= $requestId;
+    $headers = ['Request-Id' => $requestId];
+
+    $amount = random_int(1, 5) === 1 ? random_int(DECLINE_ABOVE + 1, 3 * DECLINE_ABOVE) : random_int(100, DECLINE_ABOVE);
+    if (random_int(1, 10) === 1) {
+        $amount = 0;
+    }
+
+    // Replays an earlier key now and then: the gateway must answer with the original order.
+    $key = $keys !== [] && random_int(1, 6) === 1 ? $keys[array_rand($keys)] : bin2hex(random_bytes(8));
+    $keys[] = $key;
+
+    $status = $gateway->createOrder($amount, $key, $headers)->status;
+    $statuses[$status] = ($statuses[$status] ?? 0) + 1;
+    usleep(1_000_000);
+}
+
+ksort($statuses);
+echo 'Responses by status: ', json_encode($statuses), PHP_EOL;
+echo 'Follow one request in Grafana → Explore → Loki:', PHP_EOL;
+printf('  {service=~".+"} | json | extra_request_id="%s"%s', $sampleRequestId, PHP_EOL);

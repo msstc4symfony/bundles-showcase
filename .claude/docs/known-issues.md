@@ -1,0 +1,63 @@
+# Известные проблемы и грабли
+
+Пополнять, не переписывать целиком. Баги бандлов чинятся в самих бандлах (тест + патч-релиз), здесь — только след.
+
+## Найденные полигоном баги бандлов (все исправлены)
+
+- **logger-bundle ≤1.1.1**: `JsonFormatter` без `appendNewline` — в stream-хендлерах (CLI-воркеры) JSON-записи
+  склеивались в одну строку `…}{…`, Loki видел мусор. Под RoadRunner маскировалось. Исправлено в **v1.1.2**.
+- **metrics-bundle ≤1.2.0**: DBAL-middleware не подключался вообще (пасс не матчил `ChildDefinition` соединений
+  DoctrineBundle, не было тега `doctrine.middleware`, порядок пассов зависел от порядка бандлов) + запросы без
+  параметров (`query/exec`) не считались → ноль Doctrine-метрик. Исправлено в **v1.2.1**. Правки ревью (ленивая
+  регулярка таблицы — сейчас бывает `table="partitioned"` на системных запросах Postgres, fallback без DoctrineBundle)
+  — коммит `be83f03` в metrics-bundle, релиз v1.2.2 ждёт push (2026-10-02 UTC).
+- **healthcheck-bundle ≤1.1.1**: `LockStoreDetector` проверял предопределённые FrameworkBundle 8.1 `.lock.semaphore.store`
+  / `.lock.flock.store`; `SemaphoreStore` без `ext-sysvsem` бросал в конструкторе при сборке списка чекеров →
+  **liveliness 500** (readiness-зависимость ломала liveness). Исправлено в **v1.1.2** (ленивые readiness-цели +
+  только `lock.store`-теги), маскирование кредов в сообщениях проб — **v1.1.3**.
+- **healthcheck-bundle**: `?_format=json` игнорируется (контроллер берёт `_format` маршрута) → e2e парсит текст
+  (`Result: up`, строки `... passed`). Кандидат этапа B. В текстовом выводе нет `warnings` non-critical чекеров.
+
+## Окружение и инструменты
+
+- Песочница Claude не пускает TCP на `127.0.0.1:5432` → `make check` и тесты приложений запускать вне песочницы.
+- `cache:warmup` при сборке образа требует все env, на которые ссылается конфиг на этапе компиляции → дефолты
+  `REDIS_CACHE_DSN` в закоммиченных `.env` (compose их переопределяет).
+- Без `.dockerignore` `COPY apps/<app>/` затирал `--no-dev` vendor хостовым (с dev-зависимостями).
+- Composer в приложениях бампит ограничения (`^1.1` → `^1.1.2`) при `composer update` — это нормально.
+- PHPStan анализирует против **test**-контейнера: `container->get()` есть только в тестах, test-only сервисы
+  (`OrdersStub`) в dev-контейнере отсутствуют.
+- `make fix` = Rector, потом cs-fixer (Rector добавляет импорты, которые cs-fixer должен отсортировать).
+
+## Symfony / RoadRunner
+
+- Symfony 8 падает на Messenger routing к несуществующим классам — классы сообщений создаются вместе с конфигом.
+- `messenger.transport.symfony_serializer` требует `symfony/serializer` + `property-access`.
+- Рецепт `baldinof/roadrunner-bundle` лежит в recipes-contrib → `allow-contrib` + `recipes:install`.
+- `services_resetter` очищает `ArrayAdapter` между запросами (и в `KernelBrowser` без reboot) → в тестах gateway
+  `cache.app` = filesystem; в проде Redis reset не трогает.
+- Приватный scoped `orders.client` нельзя подменить в тестах → `framework.http_client.mock_response_factory` (`OrdersStub`).
+- Без `format: 'json'` на маршрутах orders ошибки валидации рендерились HTML (gateway выдавал их как JSON).
+- phpstan-doctrine запрещает `positive-int` на `int`-колонке → инвариант `amount > 0` проверяется в конструкторе `Order`.
+
+## Observability
+
+- Alloy без фильтра по compose-проекту тащил логи **всех** контейнеров хоста и бэкфилл старых строк
+  (Loki: `entry too far behind`).
+- В Loki поле request id — `extra_request_id` (не `request_id`).
+- Метрики: `symfony_http_request`, `symfony_http_response{status}`, `symfony_request_duration_histogram_seconds`,
+  `symfony_http_connection_request/response{host,method,path,status}`, `symfony_doctrine_query_execute{connection,type,table}`
+  (`connection` = `host:dbname`, не имя соединения — этап B), `symfony_profiling_span_duration_histogram_seconds{message}`,
+  `symfony_error{level}`. У billing HTTP-метрик маршрутов нет (только служебные маршруты).
+
+## e2e (Behat 4)
+
+- Behat 4 читает только `behat.php`; YAML-конфиг не поддерживается.
+- Без `--no-snippets --strict` неопределённый шаг переводит Behat в интерактивный выбор контекста → прогон висит.
+  С `--strict` прогон без сценариев (`--tags=@chaos` до появления chaos) — exit 1.
+- `\"` внутри кавычек параметра шага не матчится → PromQL в фичах с одинарными кавычками.
+- Ключи идемпотентности и request id в фичах получают суффикс прогона (`RunScoped`) — иначе повторный прогон за 24 ч
+  проходит concurrent-сценарий тривиально.
+- «Метрика выросла на N»: перед снимком ждём свежий scrape всех таргетов, иначе в рост попадает трафик прошлых сценариев.
+- Исходящий HTTP gateway → orders считать с `method='POST'`: шаг «становится paid» опрашивает GET через gateway.
+- В e2e-образе только docker CLI без compose-плагина → `DockerClient` ищет контейнеры по compose-меткам.
