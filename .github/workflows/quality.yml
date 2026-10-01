@@ -43,6 +43,22 @@ jobs:
       - run: vendor/bin/phpstan analyse --no-progress --memory-limit=512M
       - run: vendor/bin/phpunit
 
+  e2e-static:
+    name: PHPStan (e2e)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: e2e
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+      - run: composer install --prefer-dist --no-progress --no-interaction
+      - run: vendor/bin/phpstan analyse --no-progress
+
   style:
     name: PHP-CS-Fixer + Rector
     runs-on: ubuntu-latest
@@ -55,8 +71,8 @@ jobs:
           tools: composer:v2
       - run: composer install --prefer-dist --no-progress --no-interaction
       - run: |
-          for app in gateway orders billing; do
-            (cd apps/$app && composer install --prefer-dist --no-progress --no-interaction)
+          for project in apps/gateway apps/orders apps/billing e2e; do
+            (cd $project && composer install --prefer-dist --no-progress --no-interaction)
           done
       - run: vendor/bin/php-cs-fixer check
       - run: vendor/bin/rector process --dry-run

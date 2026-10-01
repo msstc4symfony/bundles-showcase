@@ -20,3 +20,13 @@ COPY apps/${APP}/ ./
 RUN composer dump-autoload --classmap-authoritative --no-dev \
     && php bin/console cache:warmup
 CMD ["rr", "serve", "-c", ".rr.yaml"]
+
+FROM base AS e2e
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends docker-cli \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /e2e
+COPY e2e/composer.json e2e/composer.lock ./
+RUN composer install --no-dev --no-interaction --prefer-dist
+COPY e2e/ ./
+ENTRYPOINT ["vendor/bin/behat", "--no-colors"]

@@ -1,0 +1,8 @@
+.git
+.superpowers
+.claude
+**/vendor
+**/var
+**/.env.local
+**/.env.*.local
+**/.phpunit.cache

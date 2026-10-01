@@ -19,6 +19,7 @@ return RectorConfig::configure()
         __DIR__ . '/apps/orders/tests',
         __DIR__ . '/apps/billing/src',
         __DIR__ . '/apps/billing/tests',
+        __DIR__ . '/e2e/src',
     ])
     ->withoutParallel()
     ->withPhpSets(php84: true)
