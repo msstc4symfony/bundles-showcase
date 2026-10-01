@@ -20,6 +20,12 @@ jobs:
     defaults:
       run:
         working-directory: apps/${{ matrix.app }}
+    services:
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_USER: showcase, POSTGRES_PASSWORD: showcase, POSTGRES_DB: postgres }
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U showcase" --health-interval 3s --health-retries 30
     steps:
       - uses: actions/checkout@v5
       - uses: shivammathur/setup-php@v2
@@ -30,6 +36,10 @@ jobs:
           tools: composer:v2
       - run: composer install --prefer-dist --no-progress --no-interaction
       - run: php bin/console cache:warmup
+      - if: hashFiles(format('apps/{0}/migrations', matrix.app)) != ''
+        run: |
+          php bin/console doctrine:database:create --env=test --if-not-exists
+          php bin/console doctrine:migrations:migrate --env=test -n
       - run: vendor/bin/phpstan analyse --no-progress --memory-limit=512M
       - run: vendor/bin/phpunit
 

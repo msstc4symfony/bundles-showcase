@@ -8,6 +8,9 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "baldinof/roadrunner-bundle": "^3.4",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/doctrine-migrations-bundle": "^4.0",
+        "doctrine/orm": "^3.7",
         "msstc4symfony/healthcheck-bundle": "^1.1.1",
         "msstc4symfony/logger-bundle": "^1.1",
         "msstc4symfony/metrics-bridge-profiling": "^1.0",
@@ -108,6 +111,7 @@
     "require-dev": {
         "phpstan/extension-installer": "^1.4",
         "phpstan/phpstan": "^2.2",
+        "phpstan/phpstan-doctrine": "^2.0",
         "phpstan/phpstan-strict-rules": "^2.0",
         "phpstan/phpstan-symfony": "^2.0",
         "phpunit/phpunit": "^13.3",
