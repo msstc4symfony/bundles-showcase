@@ -15,6 +15,7 @@ x-gateway-env: &gateway-env
   REDIS_CACHE_DSN: redis://redis:6379/0
   METRICS_STORAGE_DSN: redis://redis:6379?database=1
   ORDERS_URL: http://orders:8080
+  LOCK_DSN: redis://redis:6379/0
 
 x-orders-env: &orders-env
   <<: *common-env

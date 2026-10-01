@@ -25,7 +25,7 @@ final readonly class CreateOrderController
     ) {
     }
 
-    #[Route('/orders', name: 'orders_create', methods: ['POST'])]
+    #[Route('/orders', name: 'orders_create', methods: ['POST'], format: 'json')]
     public function __invoke(#[MapRequestPayload(validationFailedStatusCode: 422)] CreateOrderRequest $request): JsonResponse
     {
         // Already validated by the request constraints; the assertion narrows mixed to int.

@@ -8,8 +8,16 @@ framework:
     #esi: true
     #fragments: true
 
+    http_client:
+        scoped_clients:
+            orders.client:
+                base_uri: '%env(ORDERS_URL)%'
+                timeout: 5
+
 when@test:
     framework:
         test: true
         session:
             storage_factory_id: session.storage.factory.mock_file
+        http_client:
+            mock_response_factory: App\Tests\Support\OrdersStub

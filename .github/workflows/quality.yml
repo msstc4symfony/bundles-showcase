@@ -35,7 +35,7 @@ jobs:
           coverage: none
           tools: composer:v2
       - run: composer install --prefer-dist --no-progress --no-interaction
-      - run: php bin/console cache:warmup
+      - run: php bin/console cache:warmup --env=test
       - if: hashFiles(format('apps/{0}/migrations', matrix.app)) != ''
         run: |
           php bin/console doctrine:database:create --env=test --if-not-exists

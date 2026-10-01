@@ -20,7 +20,7 @@ final readonly class ShowOrderController
     ) {
     }
 
-    #[Route('/orders/{id}', name: 'orders_show', requirements: ['id' => Requirement::UUID], methods: ['GET'])]
+    #[Route('/orders/{id}', name: 'orders_show', requirements: ['id' => Requirement::UUID], methods: ['GET'], format: 'json')]
     public function __invoke(string $id): JsonResponse
     {
         $order = $this->orders->find($id);

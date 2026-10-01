@@ -48,4 +48,14 @@ final class CreateOrderControllerTest extends WebTestCase
         self::assertInstanceOf(InMemoryTransport::class, $transport);
         self::assertSame([], $transport->getSent());
     }
+
+    public function testValidationErrorsAreJsonWhateverTheClientAccepts(): void
+    {
+        $client = self::createClient();
+        $client->request('POST', '/orders', server: ['CONTENT_TYPE' => 'application/json'], content: '{"amount":0}');
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertResponseHeaderSame('Content-Type', 'application/json');
+        self::assertJson((string) $client->getResponse()->getContent());
+    }
 }
