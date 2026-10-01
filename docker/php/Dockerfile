@@ -1,6 +1,6 @@
 FROM ghcr.io/roadrunner-server/roadrunner:2025.1 AS roadrunner
 
-FROM php:8.4-cli AS base
+FROM php:8.5-cli AS base
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libpq-dev librabbitmq-dev libicu-dev unzip git \
     && pecl install redis amqp \
