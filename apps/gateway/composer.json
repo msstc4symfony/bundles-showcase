@@ -9,7 +9,7 @@
         "ext-iconv": "*",
         "baldinof/roadrunner-bundle": "^3.4",
         "msstc4symfony/healthcheck-bundle": "^1.1.1",
-        "msstc4symfony/logger-bundle": "^1.1",
+        "msstc4symfony/logger-bundle": "^1.1.2",
         "msstc4symfony/metrics-bridge-profiling": "^1.0",
         "msstc4symfony/metrics-bundle": "^1.2",
         "msstc4symfony/profiling-bundle": "^1.0",

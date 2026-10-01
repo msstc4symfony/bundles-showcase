@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "737be9b9d72b99d92208a866f69d9dc6",
+    "content-hash": "812bd8a4aef400bb57e1f97a95541a53",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -332,16 +332,16 @@
         },
         {
             "name": "msstc4symfony/logger-bundle",
-            "version": "v1.1.1",
+            "version": "v1.1.2",
             "source": {
                 "type": "git",
                 "url": "git@github.com:msstc4symfony/logger-bundle.git",
-                "reference": "73cdeda95bb590368c598dfa21d2182107fbc1e8"
+                "reference": "eca05d5f5d6ddb552e9d3f870b87566459274989"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/logger-bundle/zipball/73cdeda95bb590368c598dfa21d2182107fbc1e8",
-                "reference": "73cdeda95bb590368c598dfa21d2182107fbc1e8",
+                "url": "https://api.github.com/repos/msstc4symfony/logger-bundle/zipball/eca05d5f5d6ddb552e9d3f870b87566459274989",
+                "reference": "eca05d5f5d6ddb552e9d3f870b87566459274989",
                 "shasum": ""
             },
             "require": {
@@ -383,7 +383,7 @@
             },
             "autoload-dev": {
                 "psr-4": {
-                    "Msstc4Symfony\\LoggerBundle\\Test\\Unit\\": "tests/unit/"
+                    "Msstc4Symfony\\LoggerBundle\\Test\\": "tests/"
                 }
             },
             "license": [
@@ -401,7 +401,7 @@
                 "php",
                 "symfony"
             ],
-            "time": "2026-09-30T15:05:40+00:00"
+            "time": "2026-10-01T19:04:11+00:00"
         },
         {
             "name": "msstc4symfony/metrics-bridge-profiling",
