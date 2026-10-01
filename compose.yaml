@@ -1,21 +1,90 @@
 name: bundles-showcase
 
-x-healthcheck: &liveliness
+x-liveliness: &liveliness
   test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1:8080/_/healthcheck/liveliness') === false ? 1 : 0);"]
   interval: 5s
   retries: 20
 
+x-common-env: &common-env
+  APP_SECRET: showcase-demo-secret
+  APPLICATION_NAME: showcase
+
+x-gateway-env: &gateway-env
+  <<: *common-env
+  COMPONENT_NAME: gateway
+  REDIS_CACHE_DSN: redis://redis:6379/0
+  METRICS_STORAGE_DSN: redis://redis:6379?database=1
+  ORDERS_URL: http://orders:8080
+
+x-orders-env: &orders-env
+  <<: *common-env
+  COMPONENT_NAME: orders
+  DATABASE_URL: postgresql://showcase:showcase@postgres:5432/orders?serverVersion=17&charset=utf8
+  REDIS_CACHE_DSN: redis://redis:6379/2
+  METRICS_STORAGE_DSN: redis://redis:6379?database=3
+  MESSENGER_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f
+
+x-billing-env: &billing-env
+  <<: *common-env
+  COMPONENT_NAME: billing
+  DATABASE_URL: postgresql://showcase:showcase@postgres:5432/billing?serverVersion=17&charset=utf8
+  REDIS_CACHE_DSN: redis://redis:6379/4
+  METRICS_STORAGE_DSN: redis://redis:6379?database=5
+  MESSENGER_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f
+  BILLING_DECLINE_ABOVE: "100000"
+
+x-infra: &infra
+  postgres: { condition: service_healthy }
+  redis: { condition: service_healthy }
+  rabbitmq: { condition: service_healthy }
+
 services:
   gateway:
     build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: gateway } }
-    environment: { APP_SECRET: showcase-demo-secret, APPLICATION_NAME: showcase, COMPONENT_NAME: gateway }
+    environment: *gateway-env
     ports: ["${SHOWCASE_GATEWAY_PORT:-8080}:8080"]
     healthcheck: *liveliness
+    depends_on:
+      redis: { condition: service_healthy }
+      orders: { condition: service_healthy }
+
   orders:
     build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: orders } }
-    environment: { APP_SECRET: showcase-demo-secret, APPLICATION_NAME: showcase, COMPONENT_NAME: orders }
+    environment: *orders-env
     healthcheck: *liveliness
+    depends_on: *infra
+
+  orders-worker:
+    build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: orders } }
+    command: ["php", "bin/console", "messenger:consume", "payment_processed", "--time-limit=3600", "-vv"]
+    environment: *orders-env
+    depends_on:
+      orders: { condition: service_healthy }
+
   billing:
     build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: billing } }
-    environment: { APP_SECRET: showcase-demo-secret, APPLICATION_NAME: showcase, COMPONENT_NAME: billing }
+    environment: *billing-env
     healthcheck: *liveliness
+    depends_on: *infra
+
+  billing-worker:
+    build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: billing } }
+    command: ["php", "bin/console", "messenger:consume", "process_payment", "--time-limit=3600", "-vv"]
+    environment: *billing-env
+    depends_on:
+      billing: { condition: service_healthy }
+
+  postgres:
+    image: postgres:17
+    environment: { POSTGRES_USER: showcase, POSTGRES_PASSWORD: showcase, POSTGRES_DB: postgres }
+    volumes: ["./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro"]
+    healthcheck: { test: ["CMD", "pg_isready", "-U", "showcase"], interval: 3s, retries: 30 }
+
+  redis:
+    image: redis:7
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 3s, retries: 30 }
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    ports: ["${SHOWCASE_RABBITMQ_PORT:-15672}:15672"]
+    healthcheck: { test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"], interval: 5s, retries: 30 }

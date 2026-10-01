@@ -1,0 +1,2 @@
+msstc4symfony_profiling:
+  routes: ['gateway_create_order', 'gateway_show_order']

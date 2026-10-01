@@ -1,0 +1,3 @@
+metrics:
+  resource: '@MetricsBundle/Presentation/Controller/'
+  type: attribute

@@ -8,3 +8,9 @@
 /e2e/vendor/
 /.php-cs-fixer.cache
 /compose-logs.txt
+
+# Local agent tooling (only the knowledge base is versioned)
+.mcp.json
+/apps/**/.claude/
+/.claude/*
+!/.claude/docs/

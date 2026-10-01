@@ -1,0 +1,3 @@
+msstc4symfony_profiling:
+  routes: ['orders_create', 'orders_show']
+  messages: ['App\Message\PaymentProcessed']

@@ -1,0 +1,18 @@
+framework:
+  messenger:
+    serializer:
+      default_serializer: messenger.transport.symfony_serializer
+    buses:
+      messenger.bus.default:
+        middleware:
+          - Msstc4Symfony\TracingBundle\Messenger\Middleware\OutgoingStampMiddleware
+          - Msstc4Symfony\TracingBundle\Messenger\Middleware\IncomingStampMiddleware
+    transports:
+      process_payment:
+        dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+        options: { exchange: { name: process_payment }, queues: { process_payment: ~ } }
+      payment_processed:
+        dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+        options: { exchange: { name: payment_processed }, queues: { payment_processed: ~ } }
+    routing:
+      'App\Message\ProcessPayment': process_payment
