@@ -1,0 +1,10 @@
+/.superpowers/
+/vendor/
+/apps/*/vendor/
+/apps/*/var/
+/apps/*/.env.local
+/apps/*/.env.*.local
+/apps/*/.phpunit.cache/
+/e2e/vendor/
+/.php-cs-fixer.cache
+/compose-logs.txt
