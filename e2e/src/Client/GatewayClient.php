@@ -34,6 +34,26 @@ final readonly class GatewayClient
     }
 
     /**
+     * Requests are sent before any response is read, so HttpClient keeps them in flight together.
+     *
+     * @param positive-int $count
+     *
+     * @return list<GatewayResponse>
+     */
+    public function createOrdersConcurrently(int $count, int $amount, string $idempotencyKey): array
+    {
+        $pending = [];
+        for ($i = 0; $i < $count; $i++) {
+            $pending[] = $this->http->request('POST', '/orders', [
+                'json' => ['amount' => $amount],
+                'headers' => ['Idempotency-Key' => $idempotencyKey],
+            ]);
+        }
+
+        return array_map($this->read(...), $pending);
+    }
+
+    /**
      * @param array<string, string> $headers
      */
     public function showOrder(string $id, array $headers = []): GatewayResponse
