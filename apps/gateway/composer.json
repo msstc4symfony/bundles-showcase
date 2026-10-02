@@ -13,7 +13,7 @@
         "msstc4symfony/metrics-bridge-profiling": "^1.0",
         "msstc4symfony/metrics-bundle": "^1.3.3",
         "msstc4symfony/profiling-bundle": "^1.0",
-        "msstc4symfony/tracing-bundle": "^1.1",
+        "msstc4symfony/tracing-bundle": "^1.2",
         "symfony/console": "8.1.*",
         "symfony/dotenv": "8.1.*",
         "symfony/flex": "^2",
