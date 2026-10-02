@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Bundle-update PRs are opened with GITHUB_TOKEN, which does not trigger pull_request runs.
+  workflow_dispatch:
 
 permissions:
   contents: read
