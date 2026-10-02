@@ -21,7 +21,9 @@
         "symfony/http-client": "8.1.*",
         "symfony/lock": "8.1.*",
         "symfony/monolog-bundle": "^4.1",
+        "symfony/property-access": "8.1.*",
         "symfony/runtime": "8.1.*",
+        "symfony/serializer": "8.1.*",
         "symfony/yaml": "8.1.*",
         "webmozart/assert": "^2.4"
     },

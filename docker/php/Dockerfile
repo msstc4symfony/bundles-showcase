@@ -1,17 +1,22 @@
 FROM ghcr.io/roadrunner-server/roadrunner:2025.1 AS roadrunner
+FROM mlocati/php-extension-installer:2.12 AS extension-installer
+FROM composer:2 AS composer
 
-FROM php:8.4-cli AS base
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends libpq-dev librabbitmq-dev libicu-dev unzip git \
-    && pecl install redis amqp \
-    && docker-php-ext-enable redis amqp \
-    && docker-php-ext-install pdo_pgsql intl opcache sockets \
-    && rm -rf /var/lib/apt/lists/*
+FROM php:8.4-cli AS runtime
+COPY --from=extension-installer /usr/bin/install-php-extensions /usr/local/bin/
+# The installer removes build-only packages (-dev headers, compilers) after compiling.
+RUN install-php-extensions redis-6.3.0 amqp-2.2.0 pdo_pgsql intl opcache sockets \
+    && rm /usr/local/bin/install-php-extensions
 RUN printf 'date.timezone=UTC\nopcache.enable_cli=1\n' > /usr/local/etc/php/conf.d/showcase.ini
 COPY --from=roadrunner /usr/bin/rr /usr/local/bin/rr
-COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 
-FROM base AS app
+FROM runtime AS tools
+COPY --from=composer /usr/bin/composer /usr/local/bin/composer
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends unzip git \
+    && rm -rf /var/lib/apt/lists/*
+
+FROM tools AS build
 ARG APP
 WORKDIR /app
 ENV APP_ENV=prod APP_DEBUG=0
@@ -20,9 +25,16 @@ RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-in
 COPY apps/${APP}/ ./
 RUN composer dump-autoload --classmap-authoritative --no-dev \
     && php bin/console cache:warmup
+
+FROM runtime AS app
+WORKDIR /app
+ENV APP_ENV=prod APP_DEBUG=0
+COPY --from=build --chown=www-data:www-data /app /app
+USER www-data
 CMD ["rr", "serve", "-c", ".rr.yaml"]
 
-FROM base AS e2e
+# Stays root: the @chaos scenarios drive the docker socket.
+FROM tools AS e2e
 RUN apt-get update \
     && apt-get install -y --no-install-recommends docker-cli \
     && rm -rf /var/lib/apt/lists/*

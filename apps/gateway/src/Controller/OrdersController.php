@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Idempotency\IdempotencyKeyReused;
 use App\Idempotency\IdempotencyStore;
+use App\Idempotency\IdempotencyUnavailable;
 use App\Orders\OrdersClient;
 use App\Orders\OrdersResponse;
 use App\Orders\OrdersUnavailable;
@@ -35,6 +37,7 @@ final readonly class OrdersController
             ? $this->orders->create($payload)
             : OrdersResponse::fromJson($this->idempotency->remember(
                 $key,
+                hash('sha256', $payload),
                 fn (): string => $this->orders->create($payload)->toJson(),
             )));
     }
@@ -54,6 +57,10 @@ final readonly class OrdersController
             $answer = $call();
         } catch (OrdersUnavailable) {
             return new JsonResponse(['error' => 'orders_unavailable'], Response::HTTP_BAD_GATEWAY);
+        } catch (IdempotencyKeyReused) {
+            return new JsonResponse(['error' => 'idempotency_key_reused'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (IdempotencyUnavailable) {
+            return new JsonResponse(['error' => 'idempotency_unavailable'], Response::HTTP_SERVICE_UNAVAILABLE);
         }
 
         return new Response($answer->body, $answer->status, ['Content-Type' => 'application/json']);

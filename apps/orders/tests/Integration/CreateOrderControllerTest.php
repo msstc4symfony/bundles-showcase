@@ -50,6 +50,29 @@ final class CreateOrderControllerTest extends WebTestCase
         self::assertSame([], $transport->getSent());
     }
 
+    #[TestWith(['not json', 400])]
+    #[TestWith(['[5000]', 422])]
+    #[TestWith(['5000', 422])]
+    #[TestWith(['{"amount":null}', 422])]
+    public function testMalformedBodiesAreRejectedWithoutAnOrder(string $body, int $status): void
+    {
+        $client = self::createClient();
+        $client->request('POST', '/orders', server: ['CONTENT_TYPE' => 'application/json'], content: $body);
+
+        self::assertResponseStatusCodeSame($status);
+        $transport = self::getContainer()->get('messenger.transport.process_payment');
+        self::assertInstanceOf(InMemoryTransport::class, $transport);
+        self::assertSame([], $transport->getSent());
+    }
+
+    public function testAnotherContentTypeIsUnsupported(): void
+    {
+        $client = self::createClient();
+        $client->request('POST', '/orders', ['amount' => 5000]);
+
+        self::assertResponseStatusCodeSame(415);
+    }
+
     public function testValidationErrorsAreJsonWhateverTheClientAccepts(): void
     {
         $client = self::createClient();

@@ -23,7 +23,8 @@
 - orders в `wrapInTransaction` делает `flush()` и только потом `dispatch(ProcessPayment)`: ошибка БД не публикует
   сообщение, упавший AMQP откатывает заказ. Публикация всё равно раньше COMMIT → `PaymentProcessed` может обогнать
   коммит: handler бросает `OrderNotVisibleYet`, транспорт `payment_processed` ретраит 5× (500 мс ×2, ~15 с).
-  Outbox/failure transport — не сделаны (отложено).
+  Исчерпавшие ретраи сообщения уходят в failure transport `failed` (Doctrine, таблица `messenger_messages`,
+  `FAILED_TRANSPORT_DSN`; в тестах in-memory) — `messenger:failed:show|retry`. Outbox не сделан.
 - `amount` ограничен `CreateOrderRequest::MAX_AMOUNT` (INT4 Postgres) → 422, а не 500.
 - Сервисы и воркеры с `restart: unless-stopped`: `messenger:consume --time-limit=3600` штатно выходит раз в час.
 - Повторная доставка: billing отвечает сохранённым исходом (уникальность по `order_id`), orders не переводит уже `paid/declined` заказ.
@@ -43,6 +44,20 @@ HTTP-процесс и воркер одного приложения пишут
 `IdempotencyStore::remember()` = `symfony/lock` (Redis) вокруг `cache.app->get()`. Lock нужен, т.к. stampede-lock кеша
 работает только внутри процесса, а воркеров RoadRunner два. Хранится `{status, body}` ответа orders; 5xx/недоступность
 orders → `OrdersUnavailable` → 502 и **не** запоминается.
+
+## Ответы gateway
+
+- Ключ идемпотентности хранит отпечаток тела (sha256): тот же ключ с другим телом → 422 `idempotency_key_reused`.
+- Redis/lock недоступен → 503 `idempotency_unavailable` (POST без ключа идёт мимо хранилища).
+- `JsonApiListener` ставит формат запроса `json` для всего, кроме `/_/…`: ошибки роутера (404/405) — problem JSON;
+  служебные маршруты healthcheck/metrics сохраняют свой текстовый формат.
+- orders принимает только JSON (`acceptFormat: 'json'`): form → 415, битый JSON → 400, скаляр/массив/null → 422.
+
+## Образ
+
+Multi-stage: `runtime` (расширения через install-php-extensions с закреплёнными redis-6.3.0 / amqp-2.2.0, build-зависимости
+удаляются), `tools` (+composer, git, unzip), `build` (composer install + cache:warmup), `app` (копия из build, `USER www-data`),
+`e2e` (от `tools`, root — нужен docker socket).
 
 ## Логи
 

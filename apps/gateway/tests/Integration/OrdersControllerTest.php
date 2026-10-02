@@ -32,6 +32,39 @@ final class OrdersControllerTest extends WebTestCase
         self::assertSame(1, $this->orders()->calls);
     }
 
+    public function testReusingAKeyForAnotherBodyIsUnprocessable(): void
+    {
+        $browser = $this->browserWithOrders(static fn (): MockResponse => new MockResponse(self::CREATED, ['http_code' => 201]));
+        $key = Uuid::v7()->toRfc4122();
+
+        $this->postOrder($browser, $key);
+        $this->postOrder($browser, $key, '{"amount":6000}');
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSame('{"error":"idempotency_key_reused"}', $browser->getResponse()->getContent());
+        self::assertSame(1, $this->orders()->calls);
+    }
+
+    public function testRouterErrorsAreJson(): void
+    {
+        $browser = $this->browserWithOrders(static fn (): MockResponse => new MockResponse('{}'));
+
+        $browser->request('GET', '/orders/not-a-uuid');
+
+        self::assertResponseStatusCodeSame(404);
+        self::assertStringContainsString('json', (string) $browser->getResponse()->headers->get('Content-Type'));
+        self::assertJson((string) $browser->getResponse()->getContent());
+    }
+
+    public function testServiceRoutesKeepTheirOwnFormat(): void
+    {
+        $browser = self::createClient();
+
+        $browser->request('GET', '/_/healthcheck/liveliness');
+
+        self::assertStringContainsString('Result: up', (string) $browser->getResponse()->getContent());
+    }
+
     public function testWithoutAKeyEveryPostReachesOrders(): void
     {
         $browser = $this->browserWithOrders(static fn (): MockResponse => new MockResponse(self::CREATED, ['http_code' => 201]));
@@ -103,13 +136,13 @@ final class OrdersControllerTest extends WebTestCase
         return $stub;
     }
 
-    private function postOrder(KernelBrowser $browser, ?string $idempotencyKey): void
+    private function postOrder(KernelBrowser $browser, ?string $idempotencyKey, string $body = '{"amount":5000}'): void
     {
         $headers = ['CONTENT_TYPE' => 'application/json'];
         if ($idempotencyKey !== null) {
             $headers['HTTP_IDEMPOTENCY_KEY'] = $idempotencyKey;
         }
 
-        $browser->request('POST', '/orders', server: $headers, content: '{"amount":5000}');
+        $browser->request('POST', '/orders', server: $headers, content: $body);
     }
 }

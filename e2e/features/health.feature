@@ -16,6 +16,8 @@ Feature: Readiness reflects real dependencies
     When I stop "redis"
     Then within 20 seconds "orders" readiness is down
     And "orders" liveliness is up
+    When I create an order for 5000 with idempotency key "chaos-key"
+    Then the response status is 503
     When I start "redis"
     Then within 30 seconds "orders" readiness is up
 

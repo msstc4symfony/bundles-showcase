@@ -61,3 +61,13 @@
 - «Метрика выросла на N»: перед снимком ждём свежий scrape всех таргетов, иначе в рост попадает трафик прошлых сценариев.
 - Исходящий HTTP gateway → orders считать с `method='POST'`: шаг «становится paid» опрашивает GET через gateway.
 - В e2e-образе только docker CLI без compose-плагина → `DockerClient` ищет контейнеры по compose-меткам.
+
+## Решения по ревью этапа C (2026-10-02 UTC)
+
+- `?int $amount` вместо `mixed` + `Type('integer')` **хуже**: денормализатор приводит 12.5 к 12 (deprecation
+  «Implicit conversion from float»). Оставлен `mixed` + `Type('integer')`.
+- Без `acceptFormat: 'json'` MapRequestPayload принимал form-данные (`amount=5000` → 201).
+- `JsonApiListener` на все пути ломал текстовый healthcheck → исключение для `/_/`.
+- PHPStan не видит by-ref присваивание в замыкании → ошибка `$create` проносится через `@internal CreationFailed`.
+- PHPUnit 13.4 объявил `executionOrder="depends"` и старую схему deprecated → `failOnPhpunitDeprecation` ронял
+  minimal-джоб бандлов; bundle-standard v1.7.2 (`resolveDependencies="true"`), все бандлы переведены.

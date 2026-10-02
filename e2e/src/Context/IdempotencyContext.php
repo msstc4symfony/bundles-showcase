@@ -28,7 +28,9 @@ final class IdempotencyContext implements Context
     #[When('I create an order for :amount with idempotency key :key')]
     public function iCreateAnOrderWithIdempotencyKey(int $amount, string $key): void
     {
-        $this->responses[] = $this->orders->gateway->createOrder($amount, RunScoped::id($key));
+        $response = $this->orders->gateway->createOrder($amount, RunScoped::id($key));
+        $this->responses[] = $response;
+        $this->orders->recordCreation($response);
     }
 
     #[When('I send :count concurrent order requests for :amount with idempotency key :key')]

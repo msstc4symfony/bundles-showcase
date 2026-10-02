@@ -1,5 +1,7 @@
 framework:
   messenger:
+    # Messages that exhaust their retries stay here (messenger:failed:show / retry) instead of being dropped.
+    failure_transport: failed
     serializer:
       default_serializer: messenger.transport.symfony_serializer
     buses:
@@ -8,6 +10,7 @@ framework:
           - Msstc4Symfony\TracingBundle\Messenger\Middleware\OutgoingStampMiddleware
           - Msstc4Symfony\TracingBundle\Messenger\Middleware\IncomingStampMiddleware
     transports:
+      failed: '%env(FAILED_TRANSPORT_DSN)%'
       process_payment:
         dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
         options: { exchange: { name: process_payment }, queues: { process_payment: ~ } }
