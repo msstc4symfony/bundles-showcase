@@ -1771,16 +1771,16 @@
         },
         {
             "name": "msstc4symfony/tracing-bundle",
-            "version": "v1.1.0",
+            "version": "v1.2.0",
             "source": {
                 "type": "git",
-                "url": "git@github.com:msstc4symfony/tracing-bundle.git",
-                "reference": "29b56438ab16937411b529322e146345d527e0e6"
+                "url": "https://github.com/msstc4symfony/tracing-bundle.git",
+                "reference": "b829a047b7d070593e6c4c41c182774d51aa38c2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/tracing-bundle/zipball/29b56438ab16937411b529322e146345d527e0e6",
-                "reference": "29b56438ab16937411b529322e146345d527e0e6",
+                "url": "https://api.github.com/repos/msstc4symfony/tracing-bundle/zipball/b829a047b7d070593e6c4c41c182774d51aa38c2",
+                "reference": "b829a047b7d070593e6c4c41c182774d51aa38c2",
                 "shasum": ""
             },
             "require": {
@@ -1844,7 +1844,10 @@
                 "symfony",
                 "tracing"
             ],
-            "time": "2026-10-02T04:27:29+00:00"
+            "support": {
+                "source": "https://github.com/msstc4symfony/tracing-bundle/tree/v1.2.0"
+            },
+            "time": "2026-10-02T08:39:48+00:00"
         },
         {
             "name": "promphp/prometheus_client_php",
