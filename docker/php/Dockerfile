@@ -2,7 +2,7 @@ FROM ghcr.io/roadrunner-server/roadrunner:2025.1.15 AS roadrunner
 FROM mlocati/php-extension-installer:2.12 AS extension-installer
 FROM composer:2.10.3 AS composer
 
-FROM php:8.4.26-cli AS runtime
+FROM php:8.5.11-cli AS runtime
 COPY --from=extension-installer /usr/bin/install-php-extensions /usr/local/bin/
 # The installer removes build-only packages (-dev headers, compilers) after compiling.
 RUN install-php-extensions redis-6.3.0 amqp-2.2.0 pdo_pgsql intl opcache sockets \
