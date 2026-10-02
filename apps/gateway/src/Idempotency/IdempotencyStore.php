@@ -20,6 +20,8 @@ final readonly class IdempotencyStore
 
     private const int TTL_SECONDS = 86400;
 
+    private const int PENDING_TTL_SECONDS = 60;
+
     private const float LOCK_TTL_SECONDS = 30.0;
 
     public function __construct(
@@ -72,17 +74,22 @@ final readonly class IdempotencyStore
     {
         $item = $this->cache->getItem($id);
         $entry = $item->isHit() ? IdempotencyEntry::fromStored($item->get()) : null;
-        if ($entry instanceof IdempotencyEntry && $entry->value !== null) {
-            if ($entry->fingerprint !== $fingerprint) {
+        if ($entry instanceof IdempotencyEntry) {
+            if (!$entry->matches($fingerprint)) {
                 throw new IdempotencyKeyReused('The idempotency key was already used for another request.');
             }
 
-            return $entry->value;
+            if ($entry->isPending()) {
+                throw new IdempotencyInProgress('The outcome of an earlier request with this key is unknown.');
+            }
+
+            return $entry->value();
         }
 
-        // Cache adapters swallow storage errors (a failed read looks like a miss), so writing a marker is
-        // the only way to learn the store works before the irreversible call.
-        $item->set(new IdempotencyEntry($fingerprint, null)->toStored())->expiresAfter(self::TTL_SECONDS);
+        // Cache adapters swallow storage errors (a failed read looks like a miss), so writing the marker is
+        // the only way to learn the store works before the irreversible call. The marker expires soon, so a
+        // key whose outcome was lost becomes usable again instead of blocking for a day.
+        $item->set(IdempotencyEntry::pending($fingerprint)->toStored())->expiresAfter(self::PENDING_TTL_SECONDS);
         if (!$this->cache->save($item)) {
             throw new IdempotencyUnavailable('The idempotency cache is unavailable.');
         }
@@ -90,12 +97,14 @@ final readonly class IdempotencyStore
         try {
             $value = $create();
         } catch (Throwable $exception) {
+            // Upstream answered with a failure or did not answer: a retry is allowed. A timed-out call may
+            // still have succeeded upstream; orders has no idempotency of its own (see known-issues).
             $this->cache->deleteItem($id);
 
             throw $exception;
         }
 
-        $item->set(new IdempotencyEntry($fingerprint, $value)->toStored());
+        $item->set(IdempotencyEntry::completed($fingerprint, $value)->toStored())->expiresAfter(self::TTL_SECONDS);
         if (!$this->cache->save($item)) {
             $this->logger->warning('Could not remember an idempotent response', ['key_id' => $id]);
         }

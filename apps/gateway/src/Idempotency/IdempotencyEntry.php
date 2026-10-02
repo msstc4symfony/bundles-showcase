@@ -5,16 +5,27 @@ declare(strict_types=1);
 namespace App\Idempotency;
 
 use JsonException;
+use LogicException;
 
 /**
  * @internal stored form of one idempotency key: the request fingerprint and, once created, the answer
  */
 final readonly class IdempotencyEntry
 {
-    public function __construct(
-        public string $fingerprint,
-        public ?string $value,
+    private function __construct(
+        private string $fingerprint,
+        private ?string $value,
     ) {
+    }
+
+    public static function pending(string $fingerprint): self
+    {
+        return new self($fingerprint, null);
+    }
+
+    public static function completed(string $fingerprint, string $value): self
+    {
+        return new self($fingerprint, $value);
     }
 
     /**
@@ -39,6 +50,21 @@ final readonly class IdempotencyEntry
         $value = $decoded['value'] ?? null;
 
         return new self($decoded['fingerprint'], is_string($value) ? $value : null);
+    }
+
+    public function isPending(): bool
+    {
+        return $this->value === null;
+    }
+
+    public function matches(string $fingerprint): bool
+    {
+        return $this->fingerprint === $fingerprint;
+    }
+
+    public function value(): string
+    {
+        return $this->value ?? throw new LogicException('A pending idempotency entry has no value.');
     }
 
     public function toStored(): string

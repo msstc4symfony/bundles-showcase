@@ -20,6 +20,8 @@ final class MetricsContext implements Context
 
     private const int SCRAPED_SERVICES = 3;
 
+    private const int RABBITMQ_STATS_INTERVAL_SECONDS = 6;
+
     private readonly PrometheusClient $prometheus;
 
     private readonly RabbitMqClient $rabbitMq;
@@ -37,8 +39,20 @@ final class MetricsContext implements Context
     {
         // Values are read later "as of" this moment: earlier scenarios' messages must be consumed and
         // every target scraped after that, otherwise their traffic counts as growth.
+        // Idle must hold longer than the management API's statistics interval, or a stale "0" passes.
+        $idleSince = null;
         Wait::until(
-            $this->rabbitMq->isIdle(...),
+            function () use (&$idleSince): bool {
+                if (!$this->rabbitMq->isIdle()) {
+                    $idleSince = null;
+
+                    return false;
+                }
+
+                $idleSince ??= microtime(true);
+
+                return microtime(true) - $idleSince >= self::RABBITMQ_STATS_INTERVAL_SECONDS;
+            },
             self::SCRAPE_WAIT_SECONDS,
             'RabbitMQ queues did not drain in time.',
         );

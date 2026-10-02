@@ -9,6 +9,7 @@ use App\E2e\Client\LokiClient;
 use App\E2e\Wait;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
+use Behat\Gherkin\Node\TableNode;
 use Behat\Hook\BeforeScenario;
 use Behat\Step\Then;
 use Behat\Step\When;
@@ -24,6 +25,8 @@ final class TracingContext implements Context
     private LokiClient $loki;
 
     private float $startedAt;
+
+    private ?string $traceId = null;
 
     #[BeforeScenario]
     public function gatherContexts(BeforeScenarioScope $scope): void
@@ -43,8 +46,6 @@ final class TracingContext implements Context
         ));
     }
 
-    private ?string $traceId = null;
-
     #[When('I create an order for :amount with a traceparent')]
     public function iCreateAnOrderWithATraceparent(int $amount): void
     {
@@ -55,12 +56,11 @@ final class TracingContext implements Context
         ));
     }
 
-    #[Then('within :seconds seconds logs with that trace id come from :first, :second, :third and :fourth')]
-    public function logsWithThatTraceIdComeFrom(int $seconds, string $first, string $second, string $third, string $fourth): void
+    #[Then('within :seconds seconds logs with that trace id come from:')]
+    public function logsWithThatTraceIdComeFrom(int $seconds, TableNode $services): void
     {
         $traceId = $this->traceId ?? throw new LogicException('Send a traceparent first.');
-        $expected = [$first, $second, $third, $fourth];
-        sort($expected);
+        $expected = $this->serviceNames($services);
 
         Wait::until(
             function () use ($traceId, $expected): bool {
@@ -89,11 +89,10 @@ final class TracingContext implements Context
         Assert::stringNotEmpty($this->orders->scenario->lastResponse()->header($name));
     }
 
-    #[Then('within :seconds seconds logs with request id :requestId come from :first, :second, :third and :fourth')]
-    public function logsComeFrom(int $seconds, string $requestId, string $first, string $second, string $third, string $fourth): void
+    #[Then('within :seconds seconds logs with request id :requestId come from:')]
+    public function logsComeFrom(int $seconds, string $requestId, TableNode $services): void
     {
-        $expected = [$first, $second, $third, $fourth];
-        sort($expected);
+        $expected = $this->serviceNames($services);
         $seen = [];
 
         Wait::until(
@@ -123,5 +122,16 @@ final class TracingContext implements Context
         foreach ($lines as $line) {
             Assert::same($line->requestFrom(), $caller, sprintf('"%s" log "%s" has the wrong request_from.', $service, $line->message));
         }
+    }
+
+    /**
+     * @return list<string> sorted
+     */
+    private function serviceNames(TableNode $services): array
+    {
+        $names = array_map(static fn (array $row): string => (string) $row[0], $services->getRows());
+        sort($names);
+
+        return $names;
     }
 }

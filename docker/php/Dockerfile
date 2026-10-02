@@ -1,8 +1,8 @@
-FROM ghcr.io/roadrunner-server/roadrunner:2025.1 AS roadrunner
+FROM ghcr.io/roadrunner-server/roadrunner:2025.1.15 AS roadrunner
 FROM mlocati/php-extension-installer:2.12 AS extension-installer
-FROM composer:2.10 AS composer
+FROM composer:2.10.3 AS composer
 
-FROM php:8.4-cli AS runtime
+FROM php:8.4.26-cli AS runtime
 COPY --from=extension-installer /usr/bin/install-php-extensions /usr/local/bin/
 # The installer removes build-only packages (-dev headers, compilers) after compiling.
 RUN install-php-extensions redis-6.3.0 amqp-2.2.0 pdo_pgsql intl opcache sockets \
@@ -31,7 +31,7 @@ WORKDIR /app
 ENV APP_ENV=prod APP_DEBUG=0
 # Code stays root-owned; the worker may write only its cache and logs.
 COPY --from=build /app /app
-RUN chown -R www-data:www-data /app/var
+COPY --from=build --chown=www-data:www-data /app/var /app/var
 USER www-data
 CMD ["rr", "serve", "-c", ".rr.yaml"]
 

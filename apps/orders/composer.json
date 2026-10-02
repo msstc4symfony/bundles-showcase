@@ -18,6 +18,7 @@
         "msstc4symfony/profiling-bundle": "^1.0",
         "msstc4symfony/tracing-bundle": "^1.1",
         "symfony/amqp-messenger": "8.1.*",
+        "symfony/clock": "8.1.*",
         "symfony/console": "8.1.*",
         "symfony/doctrine-messenger": "8.1.*",
         "symfony/dotenv": "8.1.*",

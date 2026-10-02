@@ -5,7 +5,11 @@ Feature: One trace across HTTP and RabbitMQ
     When I create an order for 5000 with request id "trace-showcase-1"
     Then the response header "request-id" is the request id "trace-showcase-1"
     And the order becomes "paid" within 15 seconds
-    And within 15 seconds logs with request id "trace-showcase-1" come from "gateway", "orders", "billing-worker" and "orders-worker"
+    And within 15 seconds logs with request id "trace-showcase-1" come from:
+      | gateway        |
+      | orders         |
+      | billing-worker |
+      | orders-worker  |
     And the "orders" logs for request id "trace-showcase-1" have request from "showcase:gateway"
 
   Scenario: A request without a request id gets one
@@ -15,4 +19,8 @@ Feature: One trace across HTTP and RabbitMQ
   Scenario: A W3C traceparent from the client continues through every process
     When I create an order for 5000 with a traceparent
     Then the order becomes "paid" within 15 seconds
-    And within 15 seconds logs with that trace id come from "gateway", "orders", "billing-worker" and "orders-worker"
+    And within 15 seconds logs with that trace id come from:
+      | gateway        |
+      | orders         |
+      | billing-worker |
+      | orders-worker  |

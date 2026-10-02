@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Idempotency\IdempotencyInProgress;
 use App\Idempotency\IdempotencyKeyReused;
 use App\Idempotency\IdempotencyStore;
 use App\Idempotency\IdempotencyUnavailable;
@@ -57,6 +58,8 @@ final readonly class OrdersController
             $answer = $call();
         } catch (OrdersUnavailable) {
             return new JsonResponse(['error' => 'orders_unavailable'], Response::HTTP_BAD_GATEWAY);
+        } catch (IdempotencyInProgress) {
+            return new JsonResponse(['error' => 'idempotency_in_progress'], Response::HTTP_CONFLICT);
         } catch (IdempotencyKeyReused) {
             return new JsonResponse(['error' => 'idempotency_key_reused'], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (IdempotencyUnavailable) {

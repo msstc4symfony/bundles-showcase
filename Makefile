@@ -15,10 +15,10 @@ check: ## Quality gate (needs Postgres on 127.0.0.1:5432: docker compose up -d p
 	done
 	cd e2e && composer validate --strict --no-check-publish -q && composer audit --locked && vendor/bin/phpstan analyse --no-progress
 	vendor/bin/php-cs-fixer check
-	vendor/bin/rector process --dry-run
+	$(MAKE) --no-print-directory rector RECTOR_FLAGS=--dry-run
 
 fix: ## Apply Rector, then cs-fixer (Rector's imports must be re-sorted)
-	vendor/bin/rector process
+	$(MAKE) --no-print-directory rector
 	vendor/bin/php-cs-fixer fix
 
 e2e: ## Behat scenarios against the running stack (make up first); @chaos runs last
@@ -28,8 +28,15 @@ e2e: ## Behat scenarios against the running stack (make up first); @chaos runs l
 demo-traffic: ## About 60 orders over a minute, then a request id to follow in Loki
 	docker compose run --rm --build --entrypoint php e2e bin/demo-traffic
 
+# Per project with its own autoloader: the apps share class names (App\\...) with different signatures,
+# so one Rector run over all of them resolves a class to the wrong app.
+rector:
+	@for p in $(APPS:%=apps/%) e2e; do \
+		vendor/bin/rector process $(RECTOR_FLAGS) --no-progress-bar --autoload-file $$p/vendor/autoload.php $$p/src $$([ -d $$p/tests ] && echo $$p/tests) || exit 1; \
+	done
+
 help: ## List targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "%-14s %s\n", $$1, $$2}'
 
 .DEFAULT_GOAL := help
-.PHONY: up down check fix e2e demo-traffic help
+.PHONY: up down check fix rector e2e demo-traffic help

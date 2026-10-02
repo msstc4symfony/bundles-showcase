@@ -17,7 +17,10 @@ use Throwable;
  * phpredis 6 leaves a client whose command hit a Redis outage failed for good ("went away"), and
  * Symfony never re-creates its Redis connections (cache, lock). Long-running processes therefore
  * rebuild them: RoadRunner reboots the kernel after the response, a Messenger worker exits and
- * is restarted by the orchestrator.
+ * is restarted by the orchestrator. While Redis stays down this repeats after every request.
+ *
+ * Only the cache connection is probed: it shares the Redis server with the lock store here, so it
+ * breaks together with it. A lock store on another server would need its own probe.
  */
 #[WhenNot(env: 'test')]
 final readonly class RedisConnectionGuard

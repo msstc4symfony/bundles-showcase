@@ -1,6 +1,6 @@
-// Only this compose project: the docker socket also exposes unrelated containers on the host.
+// Only this compose project: the Docker API also exposes unrelated containers on the host.
 discovery.docker "containers" {
-  host = "unix:///var/run/docker.sock"
+  host = "tcp://docker-proxy:2375"
   // The 60s default misses workers started right after Alloy, and e2e runs right after "up --wait".
   refresh_interval = "5s"
 
@@ -20,7 +20,7 @@ discovery.relabel "services" {
 }
 
 loki.source.docker "logs" {
-  host       = "unix:///var/run/docker.sock"
+  host       = "tcp://docker-proxy:2375"
   targets    = discovery.relabel.services.output
   forward_to = [loki.write.local.receiver]
 }

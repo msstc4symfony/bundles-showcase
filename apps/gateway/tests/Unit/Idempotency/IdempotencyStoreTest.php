@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Idempotency;
 
+use App\Idempotency\IdempotencyInProgress;
 use App\Idempotency\IdempotencyKeyReused;
 use App\Idempotency\IdempotencyStore;
 use App\Idempotency\IdempotencyUnavailable;
+use App\Tests\Support\RecordingLogger;
 use Closure;
 use ErrorException;
 use Exception;
@@ -43,15 +45,16 @@ final class IdempotencyStoreTest extends TestCase
         $store = $this->store();
         $store->remember('key-a', 'body-1', $this->create('order-1'));
 
+        $this->expectException(IdempotencyKeyReused::class);
+
         try {
             $store->remember('key-a', 'body-2', $this->create('order-2'));
-            self::fail('A reused key must be rejected.');
-        } catch (IdempotencyKeyReused) {
+        } finally {
             self::assertSame(1, $this->creations);
         }
     }
 
-    public function testAFailedCreationIsNotRememberedAndReleasesTheKey(): void
+    public function testAFailedCreationIsNotRememberedSoTheKeyCanBeRetried(): void
     {
         $store = $this->store();
 
@@ -74,53 +77,54 @@ final class IdempotencyStoreTest extends TestCase
 
     public function testAnUnreachableLockStoreMakesIdempotencyUnavailable(): void
     {
-        $store = new IdempotencyStore(new ArrayAdapter(), new LockFactory($this->lockStore(saveFailure: new LockStorageException('Connection refused'))), new NullLogger());
-
-        try {
-            $store->remember('key-a', 'body-1', $this->create('order-1'));
-            self::fail('An unreachable lock store must be reported.');
-        } catch (IdempotencyUnavailable) {
-            self::assertSame(0, $this->creations);
-        }
+        $this->assertUnavailable(new IdempotencyStore(new ArrayAdapter(), new LockFactory($this->lockStore(saveFailure: new LockStorageException('Connection refused'))), new NullLogger()));
     }
 
     public function testAnIoWarningFromTheLockStoreMakesIdempotencyUnavailable(): void
     {
         // phpredis reports an unresolvable host as a warning, which the error handler turns into ErrorException.
-        $store = new IdempotencyStore(new ArrayAdapter(), new LockFactory($this->lockStore(saveFailure: new ErrorException('getaddrinfo for redis failed'))), new NullLogger());
-
-        try {
-            $store->remember('key-a', 'body-1', $this->create('order-1'));
-            self::fail('An unreachable lock store must be reported.');
-        } catch (IdempotencyUnavailable) {
-            self::assertSame(0, $this->creations);
-        }
+        $this->assertUnavailable(new IdempotencyStore(new ArrayAdapter(), new LockFactory($this->lockStore(saveFailure: new ErrorException('getaddrinfo for redis failed'))), new NullLogger()));
     }
 
     public function testACacheThatCannotSaveMakesIdempotencyUnavailableBeforeCreating(): void
     {
-        $cache = new class extends ArrayAdapter {
-            #[Override]
-            public function save(CacheItemInterface $item): bool
-            {
-                return false;
-            }
-        };
-        $store = new IdempotencyStore($cache, new LockFactory(new InMemoryStore()), new NullLogger());
+        $this->assertUnavailable(new IdempotencyStore($this->cacheFailingFromSave(1), new LockFactory(new InMemoryStore()), new NullLogger()));
+    }
+
+    public function testWhenTheAnswerCannotBeRememberedItIsStillReturnedAndRepeatsWaitInsteadOfCreatingAgain(): void
+    {
+        $logger = new RecordingLogger();
+        $store = new IdempotencyStore($this->cacheFailingFromSave(2), new LockFactory(new InMemoryStore()), $logger);
+
+        self::assertSame('order-1', $store->remember('key-a', 'body-1', $this->create('order-1')));
+        self::assertTrue($logger->has('warning'));
+
+        $this->expectException(IdempotencyInProgress::class);
 
         try {
-            $store->remember('key-a', 'body-1', $this->create('order-1'));
-            self::fail('A cache that cannot save must be reported.');
-        } catch (IdempotencyUnavailable) {
-            self::assertSame(0, $this->creations);
+            $store->remember('key-a', 'body-1', $this->create('order-duplicate'));
+        } finally {
+            self::assertSame(1, $this->creations);
         }
     }
 
-    public function testAFailingLockReleaseDoesNotHideTheResult(): void
+    public function testAnUnfinishedRequestWithAnotherBodyIsAReusedKey(): void
     {
-        $store = new IdempotencyStore(new ArrayAdapter(), new LockFactory($this->lockStore(failOnDelete: true)), new NullLogger());
+        $store = new IdempotencyStore($this->cacheFailingFromSave(2), new LockFactory(new InMemoryStore()), new NullLogger());
+        $store->remember('key-a', 'body-1', $this->create('order-1'));
+
+        $this->expectException(IdempotencyKeyReused::class);
+
+        $store->remember('key-a', 'body-2', $this->create('order-2'));
+    }
+
+    public function testAFailingLockReleaseDoesNotHideTheResultAndIsLogged(): void
+    {
+        $logger = new RecordingLogger();
+        $store = new IdempotencyStore(new ArrayAdapter(), new LockFactory($this->lockStore(failOnDelete: true)), $logger);
 
         self::assertSame('order-1', $store->remember('key-a', 'body-1', $this->create('order-1')));
+        self::assertTrue($logger->has('warning'));
     }
 
     public function testAnUnreadableEntryIsTreatedAsMissing(): void
@@ -128,15 +132,25 @@ final class IdempotencyStoreTest extends TestCase
         $cache = new ArrayAdapter();
         $store = new IdempotencyStore($cache, new LockFactory(new InMemoryStore()), new NullLogger());
         $store->remember('key-a', 'body-1', $this->create('order-1'));
-        foreach ($cache->getValues() as $id => $value) {
+        foreach (array_keys($cache->getValues()) as $id) {
             $cache->save($cache->getItem($id)->set('not json'));
         }
 
         self::assertSame('order-again', $store->remember('key-a', 'body-1', $this->create('order-again')));
     }
 
+    private function assertUnavailable(IdempotencyStore $store): void
+    {
+        try {
+            $store->remember('key-a', 'body-1', $this->create('order-1'));
+            self::fail('The unavailable storage must be reported.');
+        } catch (IdempotencyUnavailable) {
+            self::assertSame(0, $this->creations);
+        }
+    }
+
     /**
-     * @return Closure():string
+     * @return Closure(): string
      */
     private function create(string $value): Closure
     {
@@ -152,6 +166,27 @@ final class IdempotencyStoreTest extends TestCase
         return new IdempotencyStore(new ArrayAdapter(), new LockFactory(new InMemoryStore()), new NullLogger());
     }
 
+    /**
+     * @param positive-int $failingSave the first save() call that returns false, counted from 1
+     */
+    private function cacheFailingFromSave(int $failingSave): ArrayAdapter
+    {
+        return new class($failingSave) extends ArrayAdapter {
+            private int $saves = 0;
+
+            public function __construct(private readonly int $failingSave)
+            {
+                parent::__construct();
+            }
+
+            #[Override]
+            public function save(CacheItemInterface $item): bool
+            {
+                return ++$this->saves < $this->failingSave && parent::save($item);
+            }
+        };
+    }
+
     private function lockStore(?Exception $saveFailure = null, bool $failOnDelete = false): PersistingStoreInterface
     {
         return new readonly class($saveFailure, $failOnDelete) implements PersistingStoreInterface {
@@ -161,6 +196,7 @@ final class IdempotencyStoreTest extends TestCase
             ) {
             }
 
+            #[Override]
             public function save(Key $key): void
             {
                 if ($this->saveFailure instanceof Exception) {
@@ -168,6 +204,7 @@ final class IdempotencyStoreTest extends TestCase
                 }
             }
 
+            #[Override]
             public function delete(Key $key): void
             {
                 if ($this->failOnDelete) {
@@ -175,11 +212,14 @@ final class IdempotencyStoreTest extends TestCase
                 }
             }
 
+            // Lock::release() checks exists() after delete(): a held-forever key would fail every release.
+            #[Override]
             public function exists(Key $key): bool
             {
-                return true;
+                return false;
             }
 
+            #[Override]
             public function putOffExpiration(Key $key, float $ttl): void
             {
             }
