@@ -87,3 +87,18 @@
 - tracing-bundle 1.1: корень конфига `msstc4symfony_tracing`; `w3c_trace_context.messenger: true` безопасно только
   когда все консьюмеры на ≥ 1.1 (в showcase — да).
 - healthcheck-bundle 1.2: системные кеш-пулы больше не пробуются; в тексте появилась секция `Warnings:` в конце.
+
+## Redis-рестарт в долгоживущих процессах (2026-10-02 UTC)
+
+- phpredis 6.3: клиент, чья команда попала на простой Redis, остаётся FAILED («went away») навсегда — нужен
+  явный `connect()`. Symfony свои Redis-соединения (cache, lock) не пересоздаёт. `App\Infrastructure\RedisConnectionGuard`
+  (не в test-окружении) пингует `cache.default_redis_provider`: после HTTP-ответа при ошибке шлёт
+  `ForceKernelRebootEvent` (RoadRunner пересоздаёт ядро), в Messenger-воркере останавливает воркер
+  (compose `restart: unless-stopped` поднимает заново). Проверено chaos-сценарием (readiness и метрики оживают).
+- metrics-bundle 1.3.0 «восстанавливался» только побочно: 500 на `/_/metrics` при скрейпе перезагружал ядро.
+  1.3.1–1.3.2 пропускать: без backoff запросы во время простоя Redis тормозили до 6–14 с. 1.3.3: circuit breaker
+  (`metrics.storage.reconnect_backoff_seconds`, по умолчанию 5 с), `/_/metrics` → 503 при недоступном хранилище.
+- Prometheus со статическими таргетами `gateway:8080` после пересоздания контейнеров скрейпил старые IP —
+  под именем gateway отвечал billing. Теперь `docker_sd_configs` (через docker socket, `user: root`).
+- Очередь метрик в e2e: снимок «до» берётся только после опустошения очередей RabbitMQ (management API) и
+  свежего скрейпа — иначе асинхронные сообщения прошлых сценариев засчитываются как рост.

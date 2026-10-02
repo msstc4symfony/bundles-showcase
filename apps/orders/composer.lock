@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5c0a0ac47951de4f36987964adf1fe65",
+    "content-hash": "8217e58e2b5f5afadf338ef939ad95ec",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -1601,16 +1601,16 @@
         },
         {
             "name": "msstc4symfony/metrics-bundle",
-            "version": "v1.3.0",
+            "version": "v1.3.3",
             "source": {
                 "type": "git",
                 "url": "git@github.com:msstc4symfony/metrics-bundle.git",
-                "reference": "4f03d022adc0dce824bb476ebee3770fa40f34ea"
+                "reference": "0f520095a02713dcdf745e66ba12991a74b1c573"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/metrics-bundle/zipball/4f03d022adc0dce824bb476ebee3770fa40f34ea",
-                "reference": "4f03d022adc0dce824bb476ebee3770fa40f34ea",
+                "url": "https://api.github.com/repos/msstc4symfony/metrics-bundle/zipball/0f520095a02713dcdf745e66ba12991a74b1c573",
+                "reference": "0f520095a02713dcdf745e66ba12991a74b1c573",
                 "shasum": ""
             },
             "require": {
@@ -1684,7 +1684,7 @@
                 "php",
                 "symfony"
             ],
-            "time": "2026-10-02T04:46:23+00:00"
+            "time": "2026-10-02T07:02:48+00:00"
         },
         {
             "name": "msstc4symfony/profiling-bundle",

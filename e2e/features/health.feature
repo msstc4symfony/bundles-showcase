@@ -20,6 +20,11 @@ Feature: Readiness reflects real dependencies
     Then the response status is 503
     When I start "redis"
     Then within 30 seconds "orders" readiness is up
+    # Long-running workers must reconnect their metrics storage, not stay silent until a restart.
+    Given I remember the current metric values
+    When I create an order for 5000
+    Then the order becomes "paid" within 15 seconds
+    And within 20 seconds "symfony_messenger_message_handled{component='billing',status='handled'}" grows by 1
 
   @chaos
   Scenario: Gateway survives orders being down

@@ -3,5 +3,19 @@ global:
 scrape_configs:
   - job_name: showcase
     metrics_path: /_/metrics
-    static_configs:
-      - targets: ['gateway:8080', 'orders:8080', 'billing:8080']
+    # Discovered through the docker socket: static DNS targets kept scraping the previous containers' IPs
+    # after "make up" recreated the apps (another service answered as "gateway").
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        port: 8080
+        filters:
+          - name: label
+            values: ["com.docker.compose.project=bundles-showcase"]
+    relabel_configs:
+      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
+        regex: gateway|orders|billing
+        action: keep
+      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
+        target_label: instance
+        replacement: $1:8080

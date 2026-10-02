@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\E2e\Context;
 
 use App\E2e\Client\PrometheusClient;
+use App\E2e\Client\RabbitMqClient;
 use App\E2e\Wait;
 use Behat\Behat\Context\Context;
 use Behat\Step\Given;
@@ -19,18 +20,26 @@ final class MetricsContext implements Context
 
     private readonly PrometheusClient $prometheus;
 
+    private readonly RabbitMqClient $rabbitMq;
+
     private ?float $rememberedAt = null;
 
     public function __construct()
     {
         $this->prometheus = new PrometheusClient();
+        $this->rabbitMq = new RabbitMqClient();
     }
 
     #[Given('I remember the current metric values')]
     public function iRememberTheCurrentMetricValues(): void
     {
-        // Values are read later "as of" this moment, so every target must have been scraped
-        // after the previous scenarios' traffic; otherwise their requests count as growth.
+        // Values are read later "as of" this moment: earlier scenarios' messages must be consumed and
+        // every target scraped after that, otherwise their traffic counts as growth.
+        Wait::until(
+            $this->rabbitMq->isIdle(...),
+            self::SCRAPE_WAIT_SECONDS,
+            'RabbitMQ queues did not drain in time.',
+        );
         $requestedAt = microtime(true);
         Wait::until(
             fn (): bool => $this->prometheus->oldestScrape() > $requestedAt,

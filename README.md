@@ -97,7 +97,7 @@ make fix                        # Rector, then cs-fixer
 ## Security notes
 
 This is a local stand. Grafana grants anonymous Admin access, RabbitMQ uses `guest/guest`, and
-Loki has no authentication; Loki's port is not published. The `alloy` and `e2e` containers mount
+Loki has no authentication; Loki's port is not published. The `alloy`, `prometheus` and `e2e` containers mount
 the docker socket: Alloy uses it to discover the showcase containers, and e2e uses it for the
 `@chaos` scenarios. A read-only mount does not limit the Docker API, so do not run this stack on
 a shared host.

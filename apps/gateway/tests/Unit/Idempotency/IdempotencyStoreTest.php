@@ -8,6 +8,8 @@ use App\Idempotency\IdempotencyKeyReused;
 use App\Idempotency\IdempotencyStore;
 use App\Idempotency\IdempotencyUnavailable;
 use Closure;
+use ErrorException;
+use Exception;
 use Override;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemInterface;
@@ -72,7 +74,20 @@ final class IdempotencyStoreTest extends TestCase
 
     public function testAnUnreachableLockStoreMakesIdempotencyUnavailable(): void
     {
-        $store = new IdempotencyStore(new ArrayAdapter(), new LockFactory($this->lockStore(failOnSave: true)), new NullLogger());
+        $store = new IdempotencyStore(new ArrayAdapter(), new LockFactory($this->lockStore(saveFailure: new LockStorageException('Connection refused'))), new NullLogger());
+
+        try {
+            $store->remember('key-a', 'body-1', $this->create('order-1'));
+            self::fail('An unreachable lock store must be reported.');
+        } catch (IdempotencyUnavailable) {
+            self::assertSame(0, $this->creations);
+        }
+    }
+
+    public function testAnIoWarningFromTheLockStoreMakesIdempotencyUnavailable(): void
+    {
+        // phpredis reports an unresolvable host as a warning, which the error handler turns into ErrorException.
+        $store = new IdempotencyStore(new ArrayAdapter(), new LockFactory($this->lockStore(saveFailure: new ErrorException('getaddrinfo for redis failed'))), new NullLogger());
 
         try {
             $store->remember('key-a', 'body-1', $this->create('order-1'));
@@ -137,19 +152,19 @@ final class IdempotencyStoreTest extends TestCase
         return new IdempotencyStore(new ArrayAdapter(), new LockFactory(new InMemoryStore()), new NullLogger());
     }
 
-    private function lockStore(bool $failOnSave = false, bool $failOnDelete = false): PersistingStoreInterface
+    private function lockStore(?Exception $saveFailure = null, bool $failOnDelete = false): PersistingStoreInterface
     {
-        return new readonly class($failOnSave, $failOnDelete) implements PersistingStoreInterface {
+        return new readonly class($saveFailure, $failOnDelete) implements PersistingStoreInterface {
             public function __construct(
-                private bool $failOnSave,
+                private ?Exception $saveFailure,
                 private bool $failOnDelete,
             ) {
             }
 
             public function save(Key $key): void
             {
-                if ($this->failOnSave) {
-                    throw new LockStorageException('Connection refused');
+                if ($this->saveFailure instanceof Exception) {
+                    throw $this->saveFailure;
                 }
             }
 

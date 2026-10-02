@@ -1188,6 +1188,9 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     doctrine?: array{
  *         connection_label?: "host_dbname"|"name"|Param, // Value of the "connection" label of DBAL metrics: "host_dbname" (host:dbname) or "name" (DoctrineBundle connection name). // Default: "host_dbname"
  *     },
+ *     storage?: array{
+ *         reconnect_backoff_seconds?: float|Param, // After a Redis connection failure, metric writes are dropped and reads fail without reconnecting for this long. 0 reconnects on every operation. // Default: 5.0
+ *     },
  * }
  * @psalm-type Msstc4symfonyTracingConfig = array{
  *     w3c_trace_context?: bool|array{ // W3C Trace Context (traceparent / tracestate) next to request-id, for OpenTelemetry interop. Adds headers and log extras only.
