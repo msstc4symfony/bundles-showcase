@@ -5,8 +5,10 @@ updates:
     schedule:
       interval: daily
     groups:
+      # One PR per bundle release across all apps: e2e gates exactly that release on the whole stack.
       msstc4symfony:
         patterns: ["msstc4symfony/*"]
+        group-by: dependency-name
       symfony:
         patterns: ["symfony/*"]
   - package-ecosystem: docker
