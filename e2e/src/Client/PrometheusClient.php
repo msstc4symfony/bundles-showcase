@@ -20,11 +20,18 @@ final readonly class PrometheusClient
     }
 
     /**
-     * Unix time of the oldest last scrape across the showcase targets.
+     * Unix time of the oldest last successful scrape across the showcase targets; 0.0 while any target is down.
+     *
+     * @param positive-int $targets
      */
-    public function oldestScrape(): float
+    public function oldestSuccessfulScrape(int $targets): float
     {
-        return $this->scalar('min(timestamp(up{job="showcase"}))', null);
+        // A failed scrape still records up=0 with a fresh timestamp, but brings no samples.
+        if ($this->scalar('count(up{job="showcase"} == 1)', null) < $targets) {
+            return 0.0;
+        }
+
+        return $this->scalar('min(timestamp(up{job="showcase"} == 1))', null);
     }
 
     /**

@@ -18,6 +18,8 @@ final class MetricsContext implements Context
 {
     private const int SCRAPE_WAIT_SECONDS = 20;
 
+    private const int SCRAPED_SERVICES = 3;
+
     private readonly PrometheusClient $prometheus;
 
     private readonly RabbitMqClient $rabbitMq;
@@ -42,9 +44,9 @@ final class MetricsContext implements Context
         );
         $requestedAt = microtime(true);
         Wait::until(
-            fn (): bool => $this->prometheus->oldestScrape() > $requestedAt,
+            fn (): bool => $this->prometheus->oldestSuccessfulScrape(self::SCRAPED_SERVICES) > $requestedAt,
             self::SCRAPE_WAIT_SECONDS,
-            'Prometheus did not scrape every showcase target in time.',
+            'Prometheus did not scrape every showcase target successfully in time.',
         );
         $this->rememberedAt = microtime(true);
     }
