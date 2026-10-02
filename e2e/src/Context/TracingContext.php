@@ -12,6 +12,7 @@ use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Hook\BeforeScenario;
 use Behat\Step\Then;
 use Behat\Step\When;
+use LogicException;
 use Webmozart\Assert\Assert;
 
 final class TracingContext implements Context
@@ -40,6 +41,40 @@ final class TracingContext implements Context
             $amount,
             headers: [self::REQUEST_ID_HEADER => RunScoped::id($requestId)],
         ));
+    }
+
+    private ?string $traceId = null;
+
+    #[When('I create an order for :amount with a traceparent')]
+    public function iCreateAnOrderWithATraceparent(int $amount): void
+    {
+        $this->traceId = bin2hex(random_bytes(16));
+        $this->orders->recordCreation($this->orders->gateway->createOrder(
+            $amount,
+            headers: ['traceparent' => sprintf('00-%s-%s-01', $this->traceId, bin2hex(random_bytes(8)))],
+        ));
+    }
+
+    #[Then('within :seconds seconds logs with that trace id come from :first, :second, :third and :fourth')]
+    public function logsWithThatTraceIdComeFrom(int $seconds, string $first, string $second, string $third, string $fourth): void
+    {
+        $traceId = $this->traceId ?? throw new LogicException('Send a traceparent first.');
+        $expected = [$first, $second, $third, $fourth];
+        sort($expected);
+
+        Wait::until(
+            function () use ($traceId, $expected): bool {
+                $seen = array_values(array_unique(array_map(
+                    static fn (LogLine $line): string => $line->service,
+                    $this->loki->linesWhere('trace_id', $traceId, $this->startedAt),
+                )));
+                sort($seen);
+
+                return array_values(array_intersect($expected, $seen)) === $expected;
+            },
+            $seconds,
+            sprintf('Logs for trace id %s did not reach every process in time.', $traceId),
+        );
     }
 
     #[Then('the response header :name is the request id :requestId')]

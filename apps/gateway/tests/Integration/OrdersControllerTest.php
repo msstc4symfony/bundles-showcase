@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration;
 
+use App\Idempotency\IdempotencyStore;
 use App\Tests\Support\OrdersStub;
+use App\Tests\Support\UnreachableLockStore;
 use Closure;
+use Psr\Log\NullLogger;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\HttpClient\Exception\TransportException;
 use Symfony\Component\HttpClient\Response\MockResponse;
+use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Uid\Uuid;
 
 final class OrdersControllerTest extends WebTestCase
@@ -43,6 +48,22 @@ final class OrdersControllerTest extends WebTestCase
         self::assertResponseStatusCodeSame(422);
         self::assertSame('{"error":"idempotency_key_reused"}', $browser->getResponse()->getContent());
         self::assertSame(1, $this->orders()->calls);
+    }
+
+    public function testAnUnreachableIdempotencyStoreIsServiceUnavailable(): void
+    {
+        $browser = $this->browserWithOrders(static fn (): MockResponse => new MockResponse(self::CREATED, ['http_code' => 201]));
+        self::getContainer()->set(IdempotencyStore::class, new IdempotencyStore(
+            new ArrayAdapter(),
+            new LockFactory(new UnreachableLockStore()),
+            new NullLogger(),
+        ));
+
+        $this->postOrder($browser, Uuid::v7()->toRfc4122());
+
+        self::assertResponseStatusCodeSame(503);
+        self::assertSame('{"error":"idempotency_unavailable"}', $browser->getResponse()->getContent());
+        self::assertSame(0, $this->orders()->calls);
     }
 
     public function testRouterErrorsAreJson(): void

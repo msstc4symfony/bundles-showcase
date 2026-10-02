@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6221c0d25bfc9d86bfb8d38ff91f9379",
+    "content-hash": "5c0a0ac47951de4f36987964adf1fe65",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -1365,16 +1365,16 @@
         },
         {
             "name": "msstc4symfony/healthcheck-bundle",
-            "version": "v1.1.3",
+            "version": "v1.2.0",
             "source": {
                 "type": "git",
                 "url": "git@github.com:msstc4symfony/healthcheck-bundle.git",
-                "reference": "2e9114efefdbf8ad241a03f3654cc2f688f40d0e"
+                "reference": "52551afac06506006f5a8a76f3f2d6d2d3ec9731"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/healthcheck-bundle/zipball/2e9114efefdbf8ad241a03f3654cc2f688f40d0e",
-                "reference": "2e9114efefdbf8ad241a03f3654cc2f688f40d0e",
+                "url": "https://api.github.com/repos/msstc4symfony/healthcheck-bundle/zipball/52551afac06506006f5a8a76f3f2d6d2d3ec9731",
+                "reference": "52551afac06506006f5a8a76f3f2d6d2d3ec9731",
                 "shasum": ""
             },
             "require": {
@@ -1445,7 +1445,7 @@
                 "php",
                 "symfony"
             ],
-            "time": "2026-10-01T20:10:29+00:00"
+            "time": "2026-10-02T04:36:37+00:00"
         },
         {
             "name": "msstc4symfony/logger-bundle",
@@ -1525,7 +1525,7 @@
             "version": "v1.0.0",
             "source": {
                 "type": "git",
-                "url": "git@github.com:msstc4symfony/metrics-bridge-profiling.git",
+                "url": "https://github.com/msstc4symfony/metrics-bridge-profiling.git",
                 "reference": "fef5644dae651d4ec626e075675b21c60633a8a8"
             },
             "dist": {
@@ -1594,20 +1594,23 @@
                 "prometheus",
                 "symfony"
             ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/metrics-bridge-profiling/tree/v1.0.0"
+            },
             "time": "2026-10-01T12:08:55+00:00"
         },
         {
             "name": "msstc4symfony/metrics-bundle",
-            "version": "v1.2.1",
+            "version": "v1.3.0",
             "source": {
                 "type": "git",
                 "url": "git@github.com:msstc4symfony/metrics-bundle.git",
-                "reference": "ca8fffc0d03ef1875ba70308bfa2fb1ca55eb916"
+                "reference": "4f03d022adc0dce824bb476ebee3770fa40f34ea"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/metrics-bundle/zipball/ca8fffc0d03ef1875ba70308bfa2fb1ca55eb916",
-                "reference": "ca8fffc0d03ef1875ba70308bfa2fb1ca55eb916",
+                "url": "https://api.github.com/repos/msstc4symfony/metrics-bundle/zipball/4f03d022adc0dce824bb476ebee3770fa40f34ea",
+                "reference": "4f03d022adc0dce824bb476ebee3770fa40f34ea",
                 "shasum": ""
             },
             "require": {
@@ -1646,7 +1649,8 @@
                 "ext-mongodb": "To collect MongoDB driver command metrics",
                 "mongodb/mongodb": "To use MongoDB ODM TimingSubscriber",
                 "ruflin/elastica": "To collect Elastica request metrics",
-                "symfony/http-client": "To collect outbound HTTP request metrics"
+                "symfony/http-client": "To collect outbound HTTP request metrics",
+                "symfony/messenger": "To collect Messenger sent/consumed message metrics"
             },
             "type": "symfony-bundle",
             "extra": {
@@ -1680,14 +1684,14 @@
                 "php",
                 "symfony"
             ],
-            "time": "2026-10-01T19:41:05+00:00"
+            "time": "2026-10-02T04:46:23+00:00"
         },
         {
             "name": "msstc4symfony/profiling-bundle",
             "version": "v1.0.0",
             "source": {
                 "type": "git",
-                "url": "git@github.com:msstc4symfony/profiling-bundle.git",
+                "url": "https://github.com/msstc4symfony/profiling-bundle.git",
                 "reference": "c50118626903e6246856c690aba9fd23e3c1c8bb"
             },
             "dist": {
@@ -1760,20 +1764,23 @@
                 "profiling",
                 "symfony"
             ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/profiling-bundle/tree/v1.0.0"
+            },
             "time": "2026-10-01T08:59:26+00:00"
         },
         {
             "name": "msstc4symfony/tracing-bundle",
-            "version": "v1.0.0",
+            "version": "v1.1.0",
             "source": {
                 "type": "git",
                 "url": "git@github.com:msstc4symfony/tracing-bundle.git",
-                "reference": "9e08ea6d560bee032d4bb2bf11822e66d2b0a4fa"
+                "reference": "29b56438ab16937411b529322e146345d527e0e6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/tracing-bundle/zipball/9e08ea6d560bee032d4bb2bf11822e66d2b0a4fa",
-                "reference": "9e08ea6d560bee032d4bb2bf11822e66d2b0a4fa",
+                "url": "https://api.github.com/repos/msstc4symfony/tracing-bundle/zipball/29b56438ab16937411b529322e146345d527e0e6",
+                "reference": "29b56438ab16937411b529322e146345d527e0e6",
                 "shasum": ""
             },
             "require": {
@@ -1837,7 +1844,7 @@
                 "symfony",
                 "tracing"
             ],
-            "time": "2026-10-01T08:28:15+00:00"
+            "time": "2026-10-02T04:27:29+00:00"
         },
         {
             "name": "promphp/prometheus_client_php",

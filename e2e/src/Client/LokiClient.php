@@ -32,7 +32,7 @@ final readonly class LokiClient
     }
 
     /**
-     * @param 'request_id'|'runtime_id' $extraField
+     * @param 'request_id'|'runtime_id'|'trace_id' $extraField
      *
      * @return list<LogLine>
      */

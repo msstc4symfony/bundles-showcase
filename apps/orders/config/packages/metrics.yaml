@@ -1,0 +1,4 @@
+metrics:
+  doctrine:
+    # Label queries by the DoctrineBundle connection name ("default") instead of host:dbname.
+    connection_label: name

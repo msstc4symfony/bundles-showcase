@@ -15,10 +15,16 @@ use Symfony\Component\HttpKernel\KernelEvents;
 #[AsEventListener(event: KernelEvents::REQUEST, priority: 256)]
 final readonly class JsonApiListener
 {
+    private const string SERVICE_PATH_PREFIX = '/_/';
+
     public function __invoke(RequestEvent $event): void
     {
+        if (!$event->isMainRequest()) {
+            return;
+        }
+
         $request = $event->getRequest();
-        if (!str_starts_with($request->getPathInfo(), '/_/')) {
+        if (!str_starts_with($request->getPathInfo(), self::SERVICE_PATH_PREFIX)) {
             $request->setRequestFormat('json');
         }
     }

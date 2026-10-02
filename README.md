@@ -57,6 +57,8 @@ In Grafana, open Explore → Loki and run:
 {service=~".+"} | json | extra_request_id="my-first-order"
 ```
 
+A W3C `traceparent` header works too: search Loki with `extra_trace_id="<trace-id>"`.
+
 The same request id shows up in four processes: `gateway`, `orders`, `billing-worker` and
 `orders-worker`. In each of them, `extra_request_from` names the caller
 (`showcase:gateway`, `showcase:orders`, `showcase:billing`).
@@ -66,9 +68,9 @@ The same request id shows up in four processes: `gateway`, `orders`, `billing-wo
 | Bundle | Seen here as |
 |---|---|
 | [logger-bundle](https://github.com/msstc4symfony/logger-bundle) | One JSON log record per line on stderr, with `request_id`, `runtime_id`, `request_from` and the container id in `extra` |
-| [tracing-bundle](https://github.com/msstc4symfony/tracing-bundle) | `Request-Id` carried across HTTP and RabbitMQ in both directions; a fresh runtime id for every request and message on reused workers |
-| [metrics-bundle](https://github.com/msstc4symfony/metrics-bundle) | `/_/metrics` on every service: routes, statuses, latency, outbound HTTP, Doctrine queries, errors |
-| [healthcheck-bundle](https://github.com/msstc4symfony/healthcheck-bundle) | `/_/healthcheck/liveliness` (used by the compose healthchecks) and `/_/healthcheck/readiness` (Redis, Postgres, RabbitMQ, lock store) |
+| [tracing-bundle](https://github.com/msstc4symfony/tracing-bundle) | `Request-Id` carried across HTTP and RabbitMQ in both directions; a fresh runtime id for every request and message on reused workers; W3C `traceparent`/`tracestate` continued end to end (`extra_trace_id` in Loki) |
+| [metrics-bundle](https://github.com/msstc4symfony/metrics-bundle) | `/_/metrics` on every service: routes, statuses, latency, outbound HTTP, Doctrine queries per connection name, Messenger messages sent and handled, errors |
+| [healthcheck-bundle](https://github.com/msstc4symfony/healthcheck-bundle) | `/_/healthcheck/liveliness` (used by the compose healthchecks) and `/_/healthcheck/readiness` (Redis, Postgres, RabbitMQ, lock store; `?_format=json` for JSON) |
 | [profiling-bundle](https://github.com/msstc4symfony/profiling-bundle) | A span for every request and consumed message |
 | [metrics-bridge-profiling](https://github.com/msstc4symfony/metrics-bridge-profiling) | Span durations exported as the `symfony_profiling_span_duration_histogram_seconds` metric |
 

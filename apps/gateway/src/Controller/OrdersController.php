@@ -37,7 +37,7 @@ final readonly class OrdersController
             ? $this->orders->create($payload)
             : OrdersResponse::fromJson($this->idempotency->remember(
                 $key,
-                hash('sha256', $payload),
+                $payload,
                 fn (): string => $this->orders->create($payload)->toJson(),
             )));
     }

@@ -100,7 +100,7 @@ services:
       billing: { condition: service_healthy }
 
   postgres:
-    image: postgres:17
+    image: postgres:17.11
     ports: ["127.0.0.1:${SHOWCASE_POSTGRES_PORT:-5432}:5432"]
     environment: { POSTGRES_USER: showcase, POSTGRES_PASSWORD: showcase, POSTGRES_DB: postgres, PGPASSWORD: showcase }
     volumes: ["./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro"]
@@ -112,11 +112,11 @@ services:
       retries: 30
 
   redis:
-    image: redis:7
+    image: redis:7.4.11
     healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 3s, retries: 30 }
 
   rabbitmq:
-    image: rabbitmq:4-management
+    image: rabbitmq:4.3.6-management
     ports: ["127.0.0.1:${SHOWCASE_RABBITMQ_PORT:-15672}:15672"]
     healthcheck: { test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"], interval: 5s, retries: 30 }
 

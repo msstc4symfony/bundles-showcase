@@ -26,3 +26,7 @@ when@test:
     services:
         App\Tests\Support\OrdersStub:
             public: true
+        # Replaceable in tests to simulate an unreachable Redis.
+        App\Idempotency\IdempotencyStore:
+            autowire: true
+            public: true

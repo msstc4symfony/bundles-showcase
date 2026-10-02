@@ -11,3 +11,8 @@ Feature: One trace across HTTP and RabbitMQ
   Scenario: A request without a request id gets one
     When I create an order for 5000
     Then the response has a non-empty "request-id" header
+
+  Scenario: A W3C traceparent from the client continues through every process
+    When I create an order for 5000 with a traceparent
+    Then the order becomes "paid" within 15 seconds
+    And within 15 seconds logs with that trace id come from "gateway", "orders", "billing-worker" and "orders-worker"

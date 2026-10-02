@@ -1189,6 +1189,17 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         blacklist?: mixed, // Default: null
  *     },
  * }
+ * @psalm-type MetricsConfig = array{
+ *     doctrine?: array{
+ *         connection_label?: "host_dbname"|"name"|Param, // Value of the "connection" label of DBAL metrics: "host_dbname" (host:dbname) or "name" (DoctrineBundle connection name). // Default: "host_dbname"
+ *     },
+ * }
+ * @psalm-type Msstc4symfonyTracingConfig = array{
+ *     w3c_trace_context?: bool|array{ // W3C Trace Context (traceparent / tracestate) next to request-id, for OpenTelemetry interop. Adds headers and log extras only.
+ *         enabled?: bool|Param, // Default: true
+ *         messenger?: bool|Param, // Also stamp dispatched messages. Enable once every consumer runs tracing-bundle >= 1.1: older ones cannot decode the stamp. // Default: false
+ *     },
+ * }
  * @psalm-type BaldinofRoadRunnerConfig = array{
  *     kernel_reboot?: array{
  *         strategy?: list<scalar|Param|null>,
@@ -1438,6 +1449,8 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     security?: SecurityConfig,
  *     monolog?: MonologConfig,
  *     msstc4symfony_profiling?: Msstc4symfonyProfilingConfig,
+ *     metrics?: MetricsConfig,
+ *     msstc4symfony_tracing?: Msstc4symfonyTracingConfig,
  *     baldinof_road_runner?: BaldinofRoadRunnerConfig,
  *     doctrine?: DoctrineConfig,
  *     doctrine_migrations?: DoctrineMigrationsConfig,
@@ -1450,6 +1463,8 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         security?: SecurityConfig,
  *         monolog?: MonologConfig,
  *         msstc4symfony_profiling?: Msstc4symfonyProfilingConfig,
+ *         metrics?: MetricsConfig,
+ *         msstc4symfony_tracing?: Msstc4symfonyTracingConfig,
  *         baldinof_road_runner?: BaldinofRoadRunnerConfig,
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
@@ -1463,6 +1478,8 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         security?: SecurityConfig,
  *         monolog?: MonologConfig,
  *         msstc4symfony_profiling?: Msstc4symfonyProfilingConfig,
+ *         metrics?: MetricsConfig,
+ *         msstc4symfony_tracing?: Msstc4symfonyTracingConfig,
  *         baldinof_road_runner?: BaldinofRoadRunnerConfig,
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
@@ -1476,6 +1493,8 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         security?: SecurityConfig,
  *         monolog?: MonologConfig,
  *         msstc4symfony_profiling?: Msstc4symfonyProfilingConfig,
+ *         metrics?: MetricsConfig,
+ *         msstc4symfony_tracing?: Msstc4symfonyTracingConfig,
  *         baldinof_road_runner?: BaldinofRoadRunnerConfig,
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,

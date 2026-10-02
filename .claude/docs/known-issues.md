@@ -71,3 +71,19 @@
 - PHPStan не видит by-ref присваивание в замыкании → ошибка `$create` проносится через `@internal CreationFailed`.
 - PHPUnit 13.4 объявил `executionOrder="depends"` и старую схему deprecated → `failOnPhpunitDeprecation` ронял
   minimal-джоб бандлов; bundle-standard v1.7.2 (`resolveDependencies="true"`), все бандлы переведены.
+
+## Этап B в showcase (2026-10-02 UTC)
+
+- `Lock` с `autoRelease: true` повторяет неудавшийся `release()` из деструктора — вне любого catch, фатал при GC
+  (в тестах всплывал в чужом тесте). `IdempotencyStore` создаёт lock с `autoRelease: false` и сам освобождает его.
+- Кеш-адаптеры Symfony глотают ошибки хранилища (чтение → промах, `save()` → false). Поэтому `IdempotencyStore`
+  пишет маркер до необратимого вызова и даёт 503, если `save()` вернул false.
+- Rector в `make fix` удаляет «пустые» методы реализаций интерфейсов в тестовых даблах → методы должны иметь тело
+  и `#[Override]`.
+- RabbitMQ `.erlang.cookie: eacces` после прерванного `down -v` (остался старый том) → пересоздать тома.
+  Образы инфраструктуры закреплены точными версиями (rabbitmq 4.3.6-management, redis 7.4.11, postgres 17.11).
+- metrics-bundle 1.3: маршрут `/_/metrics` грузится через `routing.controllers` (Symfony ≥ 7.4) — ручной
+  `routes/metrics.yaml` удалён. `metrics.doctrine.connection_label: name` → `connection="default"`.
+- tracing-bundle 1.1: корень конфига `msstc4symfony_tracing`; `w3c_trace_context.messenger: true` безопасно только
+  когда все консьюмеры на ≥ 1.1 (в showcase — да).
+- healthcheck-bundle 1.2: системные кеш-пулы больше не пробуются; в тексте появилась секция `Warnings:` в конце.
