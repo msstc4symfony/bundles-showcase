@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "04aebd766d0d2a2d2e73e7c890d85e8e",
+    "content-hash": "74cb5fae473cab8fb0a6ba15f3fc3607",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -1365,16 +1365,16 @@
         },
         {
             "name": "msstc4symfony/healthcheck-bundle",
-            "version": "v1.2.0",
+            "version": "v1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/healthcheck-bundle.git",
-                "reference": "52551afac06506006f5a8a76f3f2d6d2d3ec9731"
+                "reference": "0eee155e13a30ad0191b2da0170f6b6e774862a6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/healthcheck-bundle/zipball/52551afac06506006f5a8a76f3f2d6d2d3ec9731",
-                "reference": "52551afac06506006f5a8a76f3f2d6d2d3ec9731",
+                "url": "https://api.github.com/repos/msstc4symfony/healthcheck-bundle/zipball/0eee155e13a30ad0191b2da0170f6b6e774862a6",
+                "reference": "0eee155e13a30ad0191b2da0170f6b6e774862a6",
                 "shasum": ""
             },
             "require": {
@@ -1387,6 +1387,7 @@
                 "symfony/yaml": "^6.4|^7.0|^8.0"
             },
             "conflict": {
+                "symfony/error-handler": "<6.4.10|>=7.0,<7.0.10|>=7.1,<7.1.3",
                 "symfony/symfony": "*"
             },
             "require-dev": {
@@ -1397,7 +1398,7 @@
                 "phpstan/phpstan-doctrine": "^2.0",
                 "phpstan/phpstan-strict-rules": "^2.0",
                 "phpstan/phpstan-symfony": "^2.0",
-                "phpunit/phpunit": ">=10.5",
+                "phpunit/phpunit": ">=11.5",
                 "rector/rector": "^2.1",
                 "roave/security-advisories": "dev-latest",
                 "spaze/phpstan-disallowed-calls": "^v4.0"
@@ -1446,27 +1447,28 @@
                 "symfony"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/healthcheck-bundle/tree/v1.2.0"
+                "source": "https://github.com/msstc4symfony/healthcheck-bundle/tree/v1.3.0"
             },
-            "time": "2026-10-02T04:36:37+00:00"
+            "time": "2026-10-02T10:24:11+00:00"
         },
         {
             "name": "msstc4symfony/logger-bundle",
-            "version": "v1.1.2",
+            "version": "v1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/logger-bundle.git",
-                "reference": "eca05d5f5d6ddb552e9d3f870b87566459274989"
+                "reference": "7aeb2b8114c29a6756a73687c3132e41f8d29595"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/logger-bundle/zipball/eca05d5f5d6ddb552e9d3f870b87566459274989",
-                "reference": "eca05d5f5d6ddb552e9d3f870b87566459274989",
+                "url": "https://api.github.com/repos/msstc4symfony/logger-bundle/zipball/7aeb2b8114c29a6756a73687c3132e41f8d29595",
+                "reference": "7aeb2b8114c29a6756a73687c3132e41f8d29595",
                 "shasum": ""
             },
             "require": {
                 "composer-runtime-api": ">=2.2",
                 "ext-json": "*",
+                "monolog/monolog": "^3.0",
                 "php": ">=8.4",
                 "symfony/framework-bundle": "^6.4|^7.0|^8.0",
                 "symfony/monolog-bundle": "^3.10|^4.0",
@@ -1483,7 +1485,7 @@
                 "phpstan/phpstan-beberlei-assert": "^2.0",
                 "phpstan/phpstan-strict-rules": "^2.0",
                 "phpstan/phpstan-symfony": "^2.0",
-                "phpunit/phpunit": ">=10.5",
+                "phpunit/phpunit": ">=11.5.50",
                 "rector/rector": "^2.1",
                 "roave/security-advisories": "dev-latest",
                 "sentry/sentry": "^4.0",
@@ -1522,22 +1524,22 @@
                 "symfony"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/logger-bundle/tree/v1.1.2"
+                "source": "https://github.com/msstc4symfony/logger-bundle/tree/v1.2.0"
             },
-            "time": "2026-10-01T19:04:11+00:00"
+            "time": "2026-10-02T10:24:37+00:00"
         },
         {
             "name": "msstc4symfony/metrics-bridge-profiling",
-            "version": "v1.0.0",
+            "version": "v1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/metrics-bridge-profiling.git",
-                "reference": "fef5644dae651d4ec626e075675b21c60633a8a8"
+                "reference": "f0ea5331aa66e2ae4eeb5feb08c9515b3224b568"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/metrics-bridge-profiling/zipball/fef5644dae651d4ec626e075675b21c60633a8a8",
-                "reference": "fef5644dae651d4ec626e075675b21c60633a8a8",
+                "url": "https://api.github.com/repos/msstc4symfony/metrics-bridge-profiling/zipball/f0ea5331aa66e2ae4eeb5feb08c9515b3224b568",
+                "reference": "f0ea5331aa66e2ae4eeb5feb08c9515b3224b568",
                 "shasum": ""
             },
             "require": {
@@ -1601,22 +1603,22 @@
                 "symfony"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/metrics-bridge-profiling/tree/v1.0.0"
+                "source": "https://github.com/msstc4symfony/metrics-bridge-profiling/tree/v1.1.0"
             },
-            "time": "2026-10-01T12:08:55+00:00"
+            "time": "2026-10-02T10:10:30+00:00"
         },
         {
             "name": "msstc4symfony/metrics-bundle",
-            "version": "v1.3.3",
+            "version": "v1.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/metrics-bundle.git",
-                "reference": "0f520095a02713dcdf745e66ba12991a74b1c573"
+                "reference": "2048ec40d96b44db574301b3b82b0bfc331cea71"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/metrics-bundle/zipball/0f520095a02713dcdf745e66ba12991a74b1c573",
-                "reference": "0f520095a02713dcdf745e66ba12991a74b1c573",
+                "url": "https://api.github.com/repos/msstc4symfony/metrics-bundle/zipball/2048ec40d96b44db574301b3b82b0bfc331cea71",
+                "reference": "2048ec40d96b44db574301b3b82b0bfc331cea71",
                 "shasum": ""
             },
             "require": {
@@ -1624,8 +1626,9 @@
                 "ext-redis": "*",
                 "monolog/monolog": "^3.5",
                 "php": ">=8.4",
-                "promphp/prometheus_client_php": "^2.6",
+                "promphp/prometheus_client_php": "^2.13",
                 "symfony/console": "^6.4|^7.0|^8.0",
+                "symfony/deprecation-contracts": "^2.5|^3",
                 "symfony/event-dispatcher": "^6.4|^7.0|^8.0",
                 "symfony/framework-bundle": "^6.4|^7.0|^8.0",
                 "symfony/monolog-bundle": "^3.11|^4.0",
@@ -1633,6 +1636,7 @@
             },
             "conflict": {
                 "msstc4symfony/profiling-bundle": "<1.0",
+                "symfony/error-handler": "<6.4.10",
                 "symfony/symfony": "*"
             },
             "require-dev": {
@@ -1643,7 +1647,7 @@
                 "phpstan/phpstan-doctrine": "^2.0",
                 "phpstan/phpstan-strict-rules": "^2.0",
                 "phpstan/phpstan-symfony": "^2.0",
-                "phpunit/phpunit": ">=10.5",
+                "phpunit/phpunit": ">=11.4",
                 "rector/rector": "^2.1",
                 "roave/security-advisories": "dev-latest",
                 "spaze/phpstan-disallowed-calls": "^v4.0"
@@ -1691,22 +1695,22 @@
                 "symfony"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/metrics-bundle/tree/v1.3.3"
+                "source": "https://github.com/msstc4symfony/metrics-bundle/tree/v1.4.0"
             },
-            "time": "2026-10-02T07:02:48+00:00"
+            "time": "2026-10-02T10:36:23+00:00"
         },
         {
             "name": "msstc4symfony/profiling-bundle",
-            "version": "v1.0.0",
+            "version": "v1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/profiling-bundle.git",
-                "reference": "c50118626903e6246856c690aba9fd23e3c1c8bb"
+                "reference": "6f7502d775f38bb5210caa7b497bb9f6322c1745"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/profiling-bundle/zipball/c50118626903e6246856c690aba9fd23e3c1c8bb",
-                "reference": "c50118626903e6246856c690aba9fd23e3c1c8bb",
+                "url": "https://api.github.com/repos/msstc4symfony/profiling-bundle/zipball/6f7502d775f38bb5210caa7b497bb9f6322c1745",
+                "reference": "6f7502d775f38bb5210caa7b497bb9f6322c1745",
                 "shasum": ""
             },
             "require": {
@@ -1720,7 +1724,8 @@
                 "symfony/event-dispatcher": "^6.4|^7.0|^8.0",
                 "symfony/framework-bundle": "^6.4|^7.0|^8.0",
                 "symfony/http-foundation": "^6.4|^7.0|^8.0",
-                "symfony/http-kernel": "^6.4|^7.0|^8.0"
+                "symfony/http-kernel": "^6.4|^7.0|^8.0",
+                "symfony/service-contracts": "^2.5|^3"
             },
             "conflict": {
                 "symfony/monolog-bundle": "<3.10",
@@ -1737,7 +1742,7 @@
                 "roave/security-advisories": "dev-latest"
             },
             "suggest": {
-                "msstc4symfony/metrics-bundle": "To export span durations as Prometheus metrics (MetricProcessor)",
+                "msstc4symfony/metrics-bridge-profiling": "To export span durations as Prometheus metrics",
                 "symfony/messenger": "To profile consumed messages (messages option)",
                 "symfony/monolog-bundle": "To write finished spans to the \"profiling\" log channel"
             },
@@ -1774,22 +1779,22 @@
                 "symfony"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/profiling-bundle/tree/v1.0.0"
+                "source": "https://github.com/msstc4symfony/profiling-bundle/tree/v1.1.0"
             },
-            "time": "2026-10-01T08:59:26+00:00"
+            "time": "2026-10-02T10:15:54+00:00"
         },
         {
             "name": "msstc4symfony/tracing-bundle",
-            "version": "v1.2.0",
+            "version": "v1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/tracing-bundle.git",
-                "reference": "b829a047b7d070593e6c4c41c182774d51aa38c2"
+                "reference": "225e2b1d509049c9021be3a7064a907974ff2c11"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/tracing-bundle/zipball/b829a047b7d070593e6c4c41c182774d51aa38c2",
-                "reference": "b829a047b7d070593e6c4c41c182774d51aa38c2",
+                "url": "https://api.github.com/repos/msstc4symfony/tracing-bundle/zipball/225e2b1d509049c9021be3a7064a907974ff2c11",
+                "reference": "225e2b1d509049c9021be3a7064a907974ff2c11",
                 "shasum": ""
             },
             "require": {
@@ -1799,6 +1804,7 @@
                 "symfony/console": "^6.4|^7.0|^8.0",
                 "symfony/event-dispatcher": "^6.4|^7.0|^8.0",
                 "symfony/framework-bundle": "^6.4|^7.0|^8.0",
+                "symfony/service-contracts": "^2.5|^3",
                 "symfony/uid": "^6.4|^7.0|^8.0"
             },
             "conflict": {
@@ -1854,9 +1860,9 @@
                 "tracing"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/tracing-bundle/tree/v1.2.0"
+                "source": "https://github.com/msstc4symfony/tracing-bundle/tree/v1.3.0"
             },
-            "time": "2026-10-02T08:39:48+00:00"
+            "time": "2026-10-02T10:27:43+00:00"
         },
         {
             "name": "promphp/prometheus_client_php",
