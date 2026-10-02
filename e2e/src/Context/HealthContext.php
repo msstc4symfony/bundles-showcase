@@ -42,7 +42,7 @@ final class HealthContext implements Context
     public function readinessIsUp(): void
     {
         $report = $this->lastReport();
-        Assert::true($report->isUp(), sprintf("Readiness is not up (HTTP %d):\n%s", $report->status, $report->body));
+        Assert::true($report->isUp(), sprintf("Readiness is not up (HTTP %d):\n%s", $report->status, $report->raw));
     }
 
     #[Then('/^readiness mentions ((?:"[^"]+"(?:, )?)+)$/')]
@@ -51,7 +51,7 @@ final class HealthContext implements Context
         preg_match_all('/"([^"]+)"/', $quotedList, $matches);
         Assert::notEmpty($matches[1]);
         foreach ($matches[1] as $expected) {
-            Assert::contains($this->lastReport()->body, $expected);
+            Assert::true($this->lastReport()->mentions($expected), sprintf('Readiness does not mention "%s".', $expected));
         }
     }
 
@@ -104,7 +104,7 @@ final class HealthContext implements Context
     public function livelinessIsUp(string $service): void
     {
         $report = $this->health->liveliness($service);
-        Assert::true($report->isUp(), sprintf("\"%s\" liveliness is not up (HTTP %d):\n%s", $service, $report->status, $report->body));
+        Assert::true($report->isUp(), sprintf("\"%s\" liveliness is not up (HTTP %d):\n%s", $service, $report->status, $report->raw));
     }
 
     private function lastReport(): HealthReport

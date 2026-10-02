@@ -10,13 +10,13 @@
   DoctrineBundle, не было тега `doctrine.middleware`, порядок пассов зависел от порядка бандлов) + запросы без
   параметров (`query/exec`) не считались → ноль Doctrine-метрик. Исправлено в **v1.2.1**. Правки ревью (ленивая
   регулярка таблицы — сейчас бывает `table="partitioned"` на системных запросах Postgres, fallback без DoctrineBundle)
-  — коммит `be83f03` в metrics-bundle, релиз v1.2.2 ждёт push (2026-10-02 UTC).
+  — выпущены в **v1.2.2**; `table="partitioned"` на системных запросах Postgres остаётся (регулярка берёт первый FROM).
 - **healthcheck-bundle ≤1.1.1**: `LockStoreDetector` проверял предопределённые FrameworkBundle 8.1 `.lock.semaphore.store`
   / `.lock.flock.store`; `SemaphoreStore` без `ext-sysvsem` бросал в конструкторе при сборке списка чекеров →
   **liveliness 500** (readiness-зависимость ломала liveness). Исправлено в **v1.1.2** (ленивые readiness-цели +
   только `lock.store`-теги), маскирование кредов в сообщениях проб — **v1.1.3**.
-- **healthcheck-bundle**: `?_format=json` игнорируется (контроллер берёт `_format` маршрута) → e2e парсит текст
-  (`Result: up`, строки `... passed`). Кандидат этапа B. В текстовом выводе нет `warnings` non-critical чекеров.
+- **healthcheck-bundle ≤1.1.3**: `?_format=json` игнорировался, в тексте не было `warnings`. С **v1.2.0** JSON
+  доступен — e2e читает readiness/liveliness как JSON (`HealthReport::fromResponse`).
 
 ## Окружение и инструменты
 
@@ -47,7 +47,7 @@
 - В Loki поле request id — `extra_request_id` (не `request_id`).
 - Метрики: `symfony_http_request`, `symfony_http_response{status}`, `symfony_request_duration_histogram_seconds`,
   `symfony_http_connection_request/response{host,method,path,status}`, `symfony_doctrine_query_execute{connection,type,table}`
-  (`connection` = `host:dbname`, не имя соединения — этап B), `symfony_profiling_span_duration_histogram_seconds{message}`,
+  (`connection="default"` при `metrics.doctrine.connection_label: name`), `symfony_profiling_span_duration_histogram_seconds{message}`,
   `symfony_error{level}`. У billing HTTP-метрик маршрутов нет (только служебные маршруты).
 
 ## e2e (Behat 4)
