@@ -126,3 +126,13 @@
   `--autoload-file`; CI использует ту же цель.
 - Prometheus/Alloy ходят в Docker через `tecnativa/docker-socket-proxy` (только GET containers и networks):
   `docker_sd` и `discovery.docker` без `NETWORKS=1` получают 403 и молча не находят ни одного таргета.
+
+## Обновления бандлов: Dependabot не видит vcs-релизы (2026-10-02 UTC)
+
+- Dependabot отработал после релиза tracing-bundle v1.2.0 (run 2026-10-02T08:42Z, success), но PR не открыл —
+  риск 4 спека подтвердился. Обновления бандлов делает `.github/workflows/bundle-updates.yml`.
+- PR от `GITHUB_TOKEN` не запускает `pull_request`-workflow → `quality.yml`/`e2e.yml` получили `workflow_dispatch`,
+  и bundle-updates сам запускает их на ветке.
+- Создание PR требует настройки репозитория «Allow GitHub Actions to create and approve pull requests»
+  (сейчас выключена: `Resource not accessible by integration`). Без неё ветка пушится и гейт гоняется, мёрж —
+  вручную (fast-forward в main). Первый прогон: tracing 1.2.0, quality и e2e зелёные, влит в main.

@@ -77,9 +77,14 @@ The same request id shows up in four processes: `gateway`, `orders`, `billing-wo
 ## How bundle releases flow
 
 1. A bundle tags a release (`vX.Y.Z`).
-2. Dependabot opens a PR here: one group for `msstc4symfony/*` and one for `symfony/*`.
-3. The `quality` workflow (PHPStan and PHPUnit per app) and the `e2e` workflow (the full stack plus Behat) run on that PR.
-4. Merge when both are green.
+2. The `bundle-updates` workflow (daily at 06:00 UTC, or run by hand) runs `composer update 'msstc4symfony/*'`
+   in every app, pushes the `bundle-updates` branch and opens a PR. Dependabot cannot do this: it does not see
+   releases of packages installed from `vcs` repositories. It still handles Symfony, Docker images and actions.
+3. The workflow starts `quality` (PHPStan and PHPUnit per app) and `e2e` (the full stack plus Behat, chaos
+   included) on that branch; merge when both are green.
+
+Opening the PR needs the repository setting "Allow GitHub Actions to create and approve pull requests".
+Without it the workflow still pushes the branch and runs the gate, and the branch is merged by hand.
 
 A major release goes through an rc tag first (`vX.0.0-rc.N`). It gets its final tag only after e2e is green here.
 
