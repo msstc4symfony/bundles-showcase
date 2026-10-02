@@ -39,6 +39,7 @@ final readonly class IdempotencyStore
      * @param Closure(): string $create
      *
      * @throws IdempotencyKeyReused the key already answered a request with another payload
+     * @throws IdempotencyInProgress an earlier request with this key has no recorded outcome yet
      * @throws IdempotencyUnavailable the lock or the cache cannot be used, so $create was not called
      */
     public function remember(string $key, string $payload, Closure $create): string

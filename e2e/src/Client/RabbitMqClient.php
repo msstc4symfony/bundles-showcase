@@ -20,7 +20,10 @@ final readonly class RabbitMqClient
         $password = getenv('RABBITMQ_PASSWORD');
         $this->http = HttpClient::createForBaseUri($baseUri, [
             'timeout' => 10,
-            'auth_basic' => [is_string($user) && $user !== '' ? $user : 'guest', is_string($password) ? $password : 'guest'],
+            'auth_basic' => [
+                is_string($user) && $user !== '' ? $user : 'guest',
+                is_string($password) && $password !== '' ? $password : 'guest',
+            ],
         ]);
     }
 

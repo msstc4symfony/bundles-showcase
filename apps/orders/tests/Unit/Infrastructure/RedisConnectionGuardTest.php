@@ -50,13 +50,20 @@ final class RedisConnectionGuardTest extends TestCase
         $redis = new FakeRedis(true);
         $clock = new MockClock();
         $guard = $this->guard($redis, $clock);
+        $pingsAfter = [];
 
         $this->workerLoops($guard);
-        self::assertSame(1, $redis->pings);
+        $pingsAfter[] = $redis->pingCount();
 
-        $clock->sleep(RedisConnectionGuard::WORKER_PING_INTERVAL_SECONDS);
+        $clock->sleep(RedisConnectionGuard::WORKER_PING_INTERVAL_SECONDS - 0.5);
         $this->workerLoops($guard);
-        self::assertSame(2, $redis->pings);
+        $pingsAfter[] = $redis->pingCount();
+
+        $clock->sleep(0.5);
+        $this->workerLoops($guard);
+        $pingsAfter[] = $redis->pingCount();
+
+        self::assertSame([1, 1, 2], $pingsAfter);
     }
 
     /**

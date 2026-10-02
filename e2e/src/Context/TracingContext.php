@@ -129,7 +129,13 @@ final class TracingContext implements Context
      */
     private function serviceNames(TableNode $services): array
     {
-        $names = array_map(static fn (array $row): string => (string) $row[0], $services->getRows());
+        $names = [];
+        foreach ($services->getRows() as $row) {
+            Assert::count($row, 1, 'Each row names exactly one service.');
+            $names[] = (string) $row[0];
+        }
+
+        Assert::notEmpty($names, 'Name at least one service.');
         sort($names);
 
         return $names;

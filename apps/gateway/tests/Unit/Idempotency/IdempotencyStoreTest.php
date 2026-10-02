@@ -8,6 +8,7 @@ use App\Idempotency\IdempotencyInProgress;
 use App\Idempotency\IdempotencyKeyReused;
 use App\Idempotency\IdempotencyStore;
 use App\Idempotency\IdempotencyUnavailable;
+use App\Tests\Support\FailingSaveCache;
 use App\Tests\Support\RecordingLogger;
 use Closure;
 use ErrorException;
@@ -16,6 +17,7 @@ use Override;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemInterface;
 use Psr\Log\NullLogger;
+use ReflectionProperty;
 use RuntimeException;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Lock\Exception\LockReleasingException;
@@ -88,16 +90,16 @@ final class IdempotencyStoreTest extends TestCase
 
     public function testACacheThatCannotSaveMakesIdempotencyUnavailableBeforeCreating(): void
     {
-        $this->assertUnavailable(new IdempotencyStore($this->cacheFailingFromSave(1), new LockFactory(new InMemoryStore()), new NullLogger()));
+        $this->assertUnavailable(new IdempotencyStore(new FailingSaveCache(1), new LockFactory(new InMemoryStore()), new NullLogger()));
     }
 
     public function testWhenTheAnswerCannotBeRememberedItIsStillReturnedAndRepeatsWaitInsteadOfCreatingAgain(): void
     {
         $logger = new RecordingLogger();
-        $store = new IdempotencyStore($this->cacheFailingFromSave(2), new LockFactory(new InMemoryStore()), $logger);
+        $store = new IdempotencyStore(new FailingSaveCache(2), new LockFactory(new InMemoryStore()), $logger);
 
         self::assertSame('order-1', $store->remember('key-a', 'body-1', $this->create('order-1')));
-        self::assertTrue($logger->has('warning'));
+        self::assertTrue($logger->has('warning', 'Could not remember an idempotent response'));
 
         $this->expectException(IdempotencyInProgress::class);
 
@@ -110,12 +112,16 @@ final class IdempotencyStoreTest extends TestCase
 
     public function testAnUnfinishedRequestWithAnotherBodyIsAReusedKey(): void
     {
-        $store = new IdempotencyStore($this->cacheFailingFromSave(2), new LockFactory(new InMemoryStore()), new NullLogger());
+        $store = new IdempotencyStore(new FailingSaveCache(2), new LockFactory(new InMemoryStore()), new NullLogger());
         $store->remember('key-a', 'body-1', $this->create('order-1'));
 
         $this->expectException(IdempotencyKeyReused::class);
 
-        $store->remember('key-a', 'body-2', $this->create('order-2'));
+        try {
+            $store->remember('key-a', 'body-2', $this->create('order-2'));
+        } finally {
+            self::assertSame(1, $this->creations);
+        }
     }
 
     public function testAFailingLockReleaseDoesNotHideTheResultAndIsLogged(): void
@@ -124,7 +130,28 @@ final class IdempotencyStoreTest extends TestCase
         $store = new IdempotencyStore(new ArrayAdapter(), new LockFactory($this->lockStore(failOnDelete: true)), $logger);
 
         self::assertSame('order-1', $store->remember('key-a', 'body-1', $this->create('order-1')));
-        self::assertTrue($logger->has('warning'));
+        self::assertTrue($logger->has('warning', 'Could not release the idempotency lock'));
+    }
+
+    public function testThePendingMarkerExpiresSoonAndTheAnswerAfterADay(): void
+    {
+        $cache = new class extends ArrayAdapter {
+            /** @var list<int> lifetimes in seconds, in save order */
+            public array $lifetimes = [];
+
+            #[Override]
+            public function save(CacheItemInterface $item): bool
+            {
+                $expiry = new ReflectionProperty($item, 'expiry')->getValue($item);
+                $this->lifetimes[] = is_numeric($expiry) ? (int) round((float) $expiry - microtime(true)) : 0;
+
+                return parent::save($item);
+            }
+        };
+
+        new IdempotencyStore($cache, new LockFactory(new InMemoryStore()), new NullLogger())->remember('key-a', 'body-1', $this->create('order-1'));
+
+        self::assertSame([60, 86400], $cache->lifetimes);
     }
 
     public function testAnUnreadableEntryIsTreatedAsMissing(): void
@@ -164,27 +191,6 @@ final class IdempotencyStoreTest extends TestCase
     private function store(): IdempotencyStore
     {
         return new IdempotencyStore(new ArrayAdapter(), new LockFactory(new InMemoryStore()), new NullLogger());
-    }
-
-    /**
-     * @param positive-int $failingSave the first save() call that returns false, counted from 1
-     */
-    private function cacheFailingFromSave(int $failingSave): ArrayAdapter
-    {
-        return new class($failingSave) extends ArrayAdapter {
-            private int $saves = 0;
-
-            public function __construct(private readonly int $failingSave)
-            {
-                parent::__construct();
-            }
-
-            #[Override]
-            public function save(CacheItemInterface $item): bool
-            {
-                return ++$this->saves < $this->failingSave && parent::save($item);
-            }
-        };
     }
 
     private function lockStore(?Exception $saveFailure = null, bool $failOnDelete = false): PersistingStoreInterface

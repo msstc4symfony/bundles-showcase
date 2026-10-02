@@ -22,8 +22,11 @@ final class RecordingLogger extends AbstractLogger
         $this->records[] = ['level' => is_string($level) ? $level : 'unknown', 'message' => (string) $message];
     }
 
-    public function has(string $level): bool
+    public function has(string $level, string $message): bool
     {
-        return array_filter($this->records, static fn (array $record): bool => $record['level'] === $level) !== [];
+        return array_filter(
+            $this->records,
+            static fn (array $record): bool => $record['level'] === $level && $record['message'] === $message,
+        ) !== [];
     }
 }

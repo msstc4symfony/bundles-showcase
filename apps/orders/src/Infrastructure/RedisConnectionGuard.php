@@ -54,7 +54,7 @@ final class RedisConnectionGuard
         // The worker loop runs every second or faster; a ping per loop would be pure overhead.
         $now = $this->clock->now();
         if ($this->lastWorkerPing instanceof DateTimeImmutable
-            && $now->getTimestamp() - $this->lastWorkerPing->getTimestamp() < self::WORKER_PING_INTERVAL_SECONDS) {
+            && (float) $now->format('U.u') - (float) $this->lastWorkerPing->format('U.u') < self::WORKER_PING_INTERVAL_SECONDS) {
             return;
         }
 

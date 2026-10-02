@@ -138,11 +138,14 @@ services:
     image: tecnativa/docker-socket-proxy:v0.5.0
     environment: { CONTAINERS: 1, NETWORKS: 1 }
     volumes: ["/var/run/docker.sock:/var/run/docker.sock:ro"]
+    # Container inspection exposes their environment (passwords): only the two consumers can reach it.
+    networks: [docker-api]
 
   prometheus:
     image: prom/prometheus:v3.15.0
     ports: ["127.0.0.1:${SHOWCASE_PROMETHEUS_PORT:-9090}:9090"]
     volumes: ["./docker/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+    networks: [default, docker-api]
     depends_on: [docker-proxy]
 
   loki:
@@ -155,6 +158,7 @@ services:
     image: grafana/alloy:v1.20.1
     command: ["run", "/etc/alloy/config.alloy"]
     volumes: ["./docker/observability/alloy.alloy:/etc/alloy/config.alloy:ro"]
+    networks: [default, docker-api]
     depends_on: [loki, docker-proxy]
 
   grafana:
@@ -168,3 +172,7 @@ services:
       - ./docker/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
     mem_limit: 512m
     depends_on: [prometheus, loki]
+
+networks:
+  default: {}
+  docker-api: { internal: true }

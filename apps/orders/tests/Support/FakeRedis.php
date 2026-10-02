@@ -13,7 +13,7 @@ use RedisException;
  */
 final class FakeRedis extends Redis
 {
-    public int $pings = 0;
+    private int $pings = 0;
 
     public function __construct(private readonly bool $alive)
     {
@@ -30,5 +30,10 @@ final class FakeRedis extends Redis
         }
 
         return $message ?? 'PONG';
+    }
+
+    public function pingCount(): int
+    {
+        return $this->pings;
     }
 }

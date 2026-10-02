@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Integration;
 
 use App\Idempotency\IdempotencyStore;
+use App\Tests\Support\FailingSaveCache;
 use App\Tests\Support\OrdersStub;
 use App\Tests\Support\UnreachableLockStore;
 use Closure;
@@ -15,6 +16,7 @@ use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\HttpClient\Exception\TransportException;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\InMemoryStore;
 use Symfony\Component\Uid\Uuid;
 
 final class OrdersControllerTest extends WebTestCase
@@ -64,6 +66,24 @@ final class OrdersControllerTest extends WebTestCase
         self::assertResponseStatusCodeSame(503);
         self::assertSame('{"error":"idempotency_unavailable"}', $browser->getResponse()->getContent());
         self::assertSame(0, $this->orders()->calls);
+    }
+
+    public function testARepeatWhoseFirstAnswerWasNotStoredIsAConflict(): void
+    {
+        $browser = $this->browserWithOrders(static fn (): MockResponse => new MockResponse(self::CREATED, ['http_code' => 201]));
+        self::getContainer()->set(IdempotencyStore::class, new IdempotencyStore(
+            new FailingSaveCache(failingSave: 2),
+            new LockFactory(new InMemoryStore()),
+            new NullLogger(),
+        ));
+        $key = Uuid::v7()->toRfc4122();
+
+        $this->postOrder($browser, $key);
+        $this->postOrder($browser, $key);
+
+        self::assertResponseStatusCodeSame(409);
+        self::assertSame('{"error":"idempotency_in_progress"}', $browser->getResponse()->getContent());
+        self::assertSame(1, $this->orders()->calls);
     }
 
     public function testRouterErrorsAreJson(): void
