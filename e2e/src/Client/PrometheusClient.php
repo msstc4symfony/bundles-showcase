@@ -27,11 +27,13 @@ final readonly class PrometheusClient
     public function oldestSuccessfulScrape(int $targets): float
     {
         // A failed scrape still records up=0 with a fresh timestamp, but brings no samples.
-        if ($this->scalar('count(up{job="showcase"} == 1)', null) < $targets) {
+        // Counted per instance: right after "make up" a recreated container can briefly appear twice.
+        if ($this->scalar('count(max by (instance) (up{job="showcase"} == 1))', null) < $targets) {
             return 0.0;
         }
 
-        return $this->scalar('min(timestamp(up{job="showcase"} == 1))', null);
+        // timestamp() must wrap the raw selector: after a comparison it reports the evaluation time instead.
+        return $this->scalar('min(max by (instance) (timestamp(up{job="showcase"}) and up{job="showcase"} == 1))', null);
     }
 
     /**
