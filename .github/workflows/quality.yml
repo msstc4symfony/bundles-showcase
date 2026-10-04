@@ -1,0 +1,87 @@
+name: quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # Bundle-update PRs are opened with GITHUB_TOKEN, which does not trigger pull_request runs.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    name: PHPStan + PHPUnit (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [gateway, orders, billing]
+    defaults:
+      run:
+        working-directory: apps/${{ matrix.app }}
+    services:
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_USER: showcase, POSTGRES_PASSWORD: showcase, POSTGRES_DB: postgres }
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U showcase" --health-interval 3s --health-retries 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: redis, amqp, intl, pdo_pgsql
+          coverage: none
+          tools: composer:v2
+      - run: composer validate --strict --no-check-publish
+      - run: composer audit --locked
+      - run: composer install --prefer-dist --no-progress --no-interaction
+      - run: php bin/console cache:warmup --env=test
+      - if: hashFiles(format('apps/{0}/migrations', matrix.app)) != ''
+        run: |
+          php bin/console doctrine:database:create --env=test --if-not-exists
+          php bin/console doctrine:migrations:migrate --env=test -n
+      - run: vendor/bin/phpstan analyse --no-progress --memory-limit=512M
+      - run: vendor/bin/phpunit
+
+  e2e-static:
+    name: PHPStan (e2e)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: e2e
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+      - run: composer validate --strict --no-check-publish
+      - run: composer audit --locked
+      - run: composer install --prefer-dist --no-progress --no-interaction
+      - run: vendor/bin/phpstan analyse --no-progress
+
+  style:
+    name: PHP-CS-Fixer + Rector
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+      - run: composer install --prefer-dist --no-progress --no-interaction
+      - run: |
+          for project in apps/gateway apps/orders apps/billing e2e; do
+            (cd $project && composer install --prefer-dist --no-progress --no-interaction)
+          done
+      - run: vendor/bin/php-cs-fixer check
+      - run: make rector RECTOR_FLAGS=--dry-run

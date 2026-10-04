@@ -1,0 +1,29 @@
+{
+    "name": "msstc4symfony/bundles-showcase-e2e",
+    "description": "Behat end-to-end scenarios for the bundles showcase",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.4",
+        "behat/behat": "^4.0",
+        "symfony/http-client": "^8.1",
+        "symfony/process": "^8.1",
+        "webmozart/assert": "^2.0"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-webmozart-assert": "^2.0",
+        "phpstan/extension-installer": "^1.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\E2e\\": "src/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "phpstan/extension-installer": true
+        }
+    }
+}

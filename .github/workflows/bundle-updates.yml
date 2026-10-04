@@ -1,0 +1,61 @@
+name: bundle-updates
+
+# Dependabot does not see releases of the msstc4symfony bundles (they come from vcs repositories),
+# so this job opens the release-gate PR itself.
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+concurrency:
+  group: bundle-updates
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: redis, amqp, intl, pdo_pgsql
+          coverage: none
+          tools: composer:v2
+      - name: Update msstc4symfony bundles in every app
+        id: update
+        run: |
+          {
+            echo 'summary<<EOF'
+            for app in apps/gateway apps/orders apps/billing; do
+              before=$(composer --working-dir=$app show 'msstc4symfony/*' --locked --format=json | jq -r '.installed[] | "\(.name) \(.version)"' | sort)
+              composer --working-dir=$app update 'msstc4symfony/*' --with-dependencies --no-interaction --no-scripts --no-progress
+              after=$(composer --working-dir=$app show 'msstc4symfony/*' --locked --format=json | jq -r '.installed[] | "\(.name) \(.version)"' | sort)
+              diff <(echo "$before") <(echo "$after") | sed -n "s|^> |- $app: |p"
+            done
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+      - uses: peter-evans/create-pull-request@v8
+        id: pr
+        with:
+          branch: bundle-updates
+          delete-branch: true
+          commit-message: Update msstc4symfony bundles
+          title: Update msstc4symfony bundles
+          body: |
+            New releases of the msstc4symfony bundles. The quality and e2e workflows run on this branch;
+            merge when both are green.
+
+            ${{ steps.update.outputs.summary }}
+          labels: dependencies
+      - if: steps.pr.outputs.pull-request-operation == 'created' || steps.pr.outputs.pull-request-operation == 'updated'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run quality.yml --ref bundle-updates
+          gh workflow run e2e.yml --ref bundle-updates

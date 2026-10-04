@@ -1,0 +1,22 @@
+global:
+  scrape_interval: 5s
+scrape_configs:
+  - job_name: showcase
+    metrics_path: /_/metrics
+    # Discovered through the Docker API: static DNS targets kept scraping the previous containers' IPs
+    # after "make up" recreated the apps (another service answered as "gateway").
+    # The project label matches "name:" in compose.yaml; a "-p" override needs the same change here.
+    docker_sd_configs:
+      - host: tcp://docker-proxy:2375
+        refresh_interval: 5s
+        port: 8080
+        filters:
+          - name: label
+            values: ["com.docker.compose.project=bundles-showcase"]
+    relabel_configs:
+      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
+        regex: gateway|orders|billing
+        action: keep
+      # instance stays the container address: two containers of one service never share a series.
+      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
+        target_label: service

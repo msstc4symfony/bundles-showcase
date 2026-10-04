@@ -1,0 +1,2 @@
+msstc4symfony_profiling:
+  messages: ['App\Message\ProcessPayment']

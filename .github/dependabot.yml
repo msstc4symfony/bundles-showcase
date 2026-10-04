@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: composer
+    directories: ["/apps/gateway", "/apps/orders", "/apps/billing", "/e2e", "/"]
+    schedule:
+      interval: daily
+    groups:
+      # One PR per bundle release across all apps: e2e gates exactly that release on the whole stack.
+      msstc4symfony:
+        patterns: ["msstc4symfony/*"]
+        group-by: dependency-name
+      symfony:
+        patterns: ["symfony/*"]
+  - package-ecosystem: docker
+    directories: ["/docker/php"]
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker-compose
+    directories: ["/"]
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly

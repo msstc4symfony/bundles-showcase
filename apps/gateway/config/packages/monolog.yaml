@@ -1,0 +1,15 @@
+monolog:
+  handlers:
+    # stdout is the RoadRunner worker protocol channel: logs go to stderr (RoadRunner logs.mode: raw).
+    main:
+      type: stream
+      path: php://stderr
+      level: info
+      channels: ["!event", "!deprecation"]
+      formatter: Msstc4Symfony\LoggerBundle\Monolog\Formatter\SwitchFormatter
+
+when@test:
+  monolog:
+    handlers:
+      main:
+        type: test

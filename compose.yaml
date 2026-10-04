@@ -1,0 +1,178 @@
+name: bundles-showcase
+
+x-liveliness: &liveliness
+  test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1:8080/_/healthcheck/liveliness') === false ? 1 : 0);"]
+  interval: 5s
+  retries: 20
+
+x-common-env: &common-env
+  APP_SECRET: showcase-demo-secret
+  APPLICATION_NAME: showcase
+
+x-gateway-env: &gateway-env
+  <<: *common-env
+  COMPONENT_NAME: gateway
+  REDIS_CACHE_DSN: redis://redis:6379/0
+  METRICS_STORAGE_DSN: redis://redis:6379?database=1
+  ORDERS_URL: http://orders:8080
+  LOCK_DSN: redis://redis:6379/0
+
+x-orders-env: &orders-env
+  <<: *common-env
+  COMPONENT_NAME: orders
+  DATABASE_URL: postgresql://showcase:showcase@postgres:5432/orders?serverVersion=17&charset=utf8
+  REDIS_CACHE_DSN: redis://redis:6379/2
+  METRICS_STORAGE_DSN: redis://redis:6379?database=3
+  MESSENGER_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f
+
+x-billing-env: &billing-env
+  <<: *common-env
+  COMPONENT_NAME: billing
+  DATABASE_URL: postgresql://showcase:showcase@postgres:5432/billing?serverVersion=17&charset=utf8
+  REDIS_CACHE_DSN: redis://redis:6379/4
+  METRICS_STORAGE_DSN: redis://redis:6379?database=5
+  MESSENGER_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f
+  BILLING_DECLINE_ABOVE: "100000"
+
+x-infra: &infra
+  postgres: { condition: service_healthy }
+  redis: { condition: service_healthy }
+  rabbitmq: { condition: service_healthy }
+
+services:
+  gateway:
+    restart: unless-stopped
+    build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: gateway } }
+    environment: *gateway-env
+    ports: ["127.0.0.1:${SHOWCASE_GATEWAY_PORT:-8080}:8080"]
+    healthcheck: *liveliness
+    depends_on:
+      redis: { condition: service_healthy }
+      orders: { condition: service_healthy }
+
+  orders-migrate:
+    build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: orders } }
+    command: ["php", "bin/console", "doctrine:migrations:migrate", "--no-interaction", "--allow-no-migration"]
+    environment: *orders-env
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  orders:
+    restart: unless-stopped
+    build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: orders } }
+    environment: *orders-env
+    healthcheck: *liveliness
+    depends_on:
+      <<: *infra
+      orders-migrate: { condition: service_completed_successfully }
+
+  orders-worker:
+    # Workers exit after --time-limit or a broker disconnect; the stand must keep consuming.
+    restart: unless-stopped
+    build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: orders } }
+    command: ["php", "bin/console", "messenger:consume", "payment_processed", "--time-limit=3600", "-vv"]
+    environment: *orders-env
+    depends_on:
+      orders: { condition: service_healthy }
+
+  billing-migrate:
+    build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: billing } }
+    command: ["php", "bin/console", "doctrine:migrations:migrate", "--no-interaction", "--allow-no-migration"]
+    environment: *billing-env
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  billing:
+    restart: unless-stopped
+    build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: billing } }
+    environment: *billing-env
+    healthcheck: *liveliness
+    depends_on:
+      <<: *infra
+      billing-migrate: { condition: service_completed_successfully }
+
+  billing-worker:
+    restart: unless-stopped
+    build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: billing } }
+    command: ["php", "bin/console", "messenger:consume", "process_payment", "--time-limit=3600", "-vv"]
+    environment: *billing-env
+    depends_on:
+      billing: { condition: service_healthy }
+
+  postgres:
+    image: postgres:17.11
+    ports: ["127.0.0.1:${SHOWCASE_POSTGRES_PORT:-5432}:5432"]
+    environment: { POSTGRES_USER: showcase, POSTGRES_PASSWORD: showcase, POSTGRES_DB: postgres, PGPASSWORD: showcase }
+    volumes: ["./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro"]
+    # Over TCP and against both databases: during the image's init phase the temporary server
+    # answers on the unix socket only and init.sql has not created the databases yet.
+    healthcheck:
+      test: ["CMD-SHELL", "psql -h 127.0.0.1 -U showcase -d orders -tAc 'select 1' && psql -h 127.0.0.1 -U showcase -d billing -tAc 'select 1'"]
+      interval: 3s
+      retries: 30
+
+  redis:
+    image: redis:7.4.11
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 3s, retries: 30 }
+
+  rabbitmq:
+    image: rabbitmq:4.3.6-management
+    ports: ["127.0.0.1:${SHOWCASE_RABBITMQ_PORT:-15672}:15672"]
+    healthcheck: { test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"], interval: 5s, retries: 30 }
+
+  e2e:
+    build: { context: ., dockerfile: docker/php/Dockerfile, target: e2e }
+    profiles: [e2e]
+    environment:
+      GATEWAY_URL: http://gateway:8080
+      PROMETHEUS_URL: http://prometheus:9090
+      LOKI_URL: http://loki:3100
+      RABBITMQ_URL: http://rabbitmq:15672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      COMPOSE_PROJECT_NAME: bundles-showcase
+    volumes: ["/var/run/docker.sock:/var/run/docker.sock"]
+
+  # Read-only Docker API for discovery and log shipping: containers and networks only, no writes.
+  docker-proxy:
+    image: tecnativa/docker-socket-proxy:v0.5.0
+    environment: { CONTAINERS: 1, NETWORKS: 1 }
+    volumes: ["/var/run/docker.sock:/var/run/docker.sock:ro"]
+    # Container inspection exposes their environment (passwords): only the two consumers can reach it.
+    networks: [docker-api]
+
+  prometheus:
+    image: prom/prometheus:v3.15.0
+    ports: ["127.0.0.1:${SHOWCASE_PROMETHEUS_PORT:-9090}:9090"]
+    volumes: ["./docker/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+    networks: [default, docker-api]
+    depends_on: [docker-proxy]
+
+  loki:
+    image: grafana/loki:3.7.8
+    command: ["-config.file=/etc/loki/loki.yaml"]
+    volumes: ["./docker/observability/loki.yaml:/etc/loki/loki.yaml:ro"]
+    mem_limit: 512m
+
+  alloy:
+    image: grafana/alloy:v1.20.1
+    command: ["run", "/etc/alloy/config.alloy"]
+    volumes: ["./docker/observability/alloy.alloy:/etc/alloy/config.alloy:ro"]
+    networks: [default, docker-api]
+    depends_on: [loki, docker-proxy]
+
+  grafana:
+    image: grafana/grafana:13.2.3
+    ports: ["127.0.0.1:${SHOWCASE_GRAFANA_PORT:-3000}:3000"]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+    volumes:
+      - ./docker/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    mem_limit: 512m
+    depends_on: [prometheus, loki]
+
+networks:
+  default: {}
+  docker-api: { internal: true }
