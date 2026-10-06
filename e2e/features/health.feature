@@ -11,6 +11,12 @@ Feature: Readiness reflects real dependencies
       | orders  | "RedisAdapter : cache.app", "DB connection", "Messenger transport (process_payment)" |
       | billing | "RedisAdapter : cache.app", "DB connection", "Messenger transport (process_payment)" |
 
+  # A single node cannot place replicas: yellow is the healthy state here, green would need a second node.
+  Scenario: Orders probes Elasticsearch through the FOSElasticaBundle client
+    When I ask "orders" for readiness
+    Then readiness is up
+    And readiness has a line matching "/^Elastica connection \(fos_elastica\.client\.default\) passed \(cluster status: (green|yellow)\)$/"
+
   @chaos
   Scenario: Losing Redis makes services not ready but still alive
     When I stop "redis"
@@ -34,3 +40,18 @@ Feature: Readiness reflects real dependencies
     And within 10 seconds "gateway" readiness is up
     When I start "orders"
     Then within 30 seconds "orders" readiness is up
+
+  # Non-critical, unlike Redis: orders are created and served without Elasticsearch (indexing is best effort),
+  # so its failure is a readiness warning, "<label> failed (<reason>)", and readiness stays up.
+  @chaos
+  Scenario: Losing Elasticsearch leaves orders ready with a warning
+    When I stop "elasticsearch"
+    Then within 20 seconds "orders" readiness is up with a warning matching "/^Elastica connection \(fos_elastica\.client\.default\) failed \(.+\)$/"
+    And "orders" liveliness is up
+    When I create an order for 5000
+    Then the response status is 201
+    And the order becomes "paid" within 15 seconds
+    When I start "elasticsearch"
+    # Wait for green|yellow: a run that ends on the red cluster of a fresh start would leave it to the next one.
+    Then within 90 seconds "orders" readiness has a line matching "/^Elastica connection \(fos_elastica\.client\.default\) passed \(cluster status: (green|yellow)\)$/"
+    And within 10 seconds "orders" readiness is up

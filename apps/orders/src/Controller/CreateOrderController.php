@@ -8,6 +8,7 @@ use App\Entity\Order;
 use App\Message\ProcessPayment;
 use App\Order\CreateOrderRequest;
 use App\Order\OrderView;
+use App\Search\OrderIndex;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\AsController;
@@ -22,6 +23,7 @@ final readonly class CreateOrderController
     public function __construct(
         private EntityManagerInterface $entityManager,
         private MessageBusInterface $bus,
+        private OrderIndex $search,
     ) {
     }
 
@@ -40,6 +42,9 @@ final readonly class CreateOrderController
 
             $this->bus->dispatch(new ProcessPayment($order->id(), $order->amount()));
         });
+
+        // After the commit: the search index is a projection and must never hold an order the database rolled back.
+        $this->search->add($order);
 
         return new JsonResponse(OrderView::of($order), JsonResponse::HTTP_CREATED);
     }

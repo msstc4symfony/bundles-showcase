@@ -1,0 +1,18 @@
+fos_elastica:
+    clients:
+        default:
+            hosts: ['%env(ELASTICSEARCH_URL)%']
+            # elastic-transport's default pool never resurrects a node marked dead: a RoadRunner worker would
+            # stay "No alive nodes" after an Elasticsearch restart. RoundRobin pings dead nodes back to life.
+            connection_strategy: RoundRobin
+            # FOS 7.2 passes client_options to the HTTP client (its own "timeout" key is deprecated); for Symfony
+            # HttpClient "timeout" is the idle timeout, 30 s by default. A stopped container leaves keep-alive
+            # connections and curl's cached address of the dead IP behind, and requests hung that long.
+            client_options: { timeout: 2 }
+    indexes:
+        orders:
+            properties:
+                id: { type: keyword }
+                status: { type: keyword }
+                amount: { type: scaled_float, scaling_factor: 100 }
+                createdAt: { type: date }

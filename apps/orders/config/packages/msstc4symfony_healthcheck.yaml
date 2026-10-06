@@ -1,0 +1,3 @@
+msstc4symfony_healthcheck:
+    # Orders are created and served without Elasticsearch (indexing is best effort): its outage is a warning.
+    non_critical: ['healthcheck.checker.fos_elastica.client.default']

@@ -8,6 +8,8 @@
 | `orders` | `app` (APP=orders) | RoadRunner | создание заказа, `GET /orders/{id}` |
 | `orders-worker` | `app` (APP=orders) | `messenger:consume payment_processed` | применяет результат оплаты |
 | `orders-migrate` | `app` (APP=orders) | one-shot `doctrine:migrations:migrate` | схема до старта `orders` |
+| `orders-search-index` | `app` (APP=orders) | one-shot `app:search:create-index` | индекс `orders` с маппингом до старта `orders` |
+| `elasticsearch` | `elasticsearch:8.19.22` | single-node, без security | поиск заказов (только orders) |
 | `billing` | `app` (APP=billing) | RoadRunner (только `/_/metrics`, `/_/healthcheck/*`) | — |
 | `billing-worker` | `app` (APP=billing) | `messenger:consume process_payment` | платёж + ответ `PaymentProcessed` |
 | `billing-migrate` | `app` (APP=billing) | one-shot миграции | — |
@@ -28,6 +30,27 @@
 - `amount` ограничен `CreateOrderRequest::MAX_AMOUNT` (INT4 Postgres) → 422, а не 500.
 - Сервисы и воркеры с `restart: unless-stopped`: `messenger:consume --time-limit=3600` штатно выходит раз в час.
 - Повторная доставка: billing отвечает сохранённым исходом (уникальность по `order_id`), orders не переводит уже `paid/declined` заказ.
+
+## Elasticsearch (orders)
+
+- FOSElasticaBundle ^7.2 + `ruflin/elastica` ^8.0 (явно, чтобы не взять Elastica 9). Клиент `fos_elastica.client.default`
+  (`ELASTICSEARCH_URL`), индекс `orders`: `id`/`status` keyword, `amount` scaled_float (×100), `createdAt` date.
+- Порт `App\Search\OrderIndex`, адаптер `ElasticaOrderIndex` (сервис `fos_elastica.index.orders`). `CreateOrderController`
+  индексирует **после** коммита транзакции; любой `Throwable` логируется (`Order … was not indexed`) и не ломает 201.
+- Семантика снимка: документ — заказ на момент создания, `PaymentProcessed` индекс не обновляет; документ, чья
+  индексация упала, потерян — команды переиндексации (populate) нет. Doctrine-listener FOS не используется.
+- Индекс создаёт one-shot `orders-search-index`: `app:search:create-index` запускает публичную `fos:elastica:create
+  --index=orders` через консольное приложение, только если индекса нет (`create` падает на существующем, `reset`
+  удаляет документы).
+- В test-окружении `OrderIndex` = `App\Tests\Support\RecordingOrderIndex` (`when@test`); `ElasticaOrderIndex` там
+  публичен только для `ElasticsearchWiringTest`, который проверяет продовую сборку и что ни загрузка ядра, ни сборка
+  индекса/чекера readiness не ходят в Elasticsearch (локальный сокет без ответа).
+- Readiness: чекер `healthcheck.checker.fos_elastica.client.default` в `non_critical`
+  (`config/packages/msstc4symfony_healthcheck.yaml`) — в отличие от Redis, Elasticsearch не нужен, чтобы создавать и
+  отдавать заказы. При отказе readiness остаётся up, в `warnings` строка `Elastica connection (…) failed (<причина>)`.
+- Пул узлов: приложение переопределяет сервис FOS `FOS\ElasticaBundle\Elastica\NodePool\RoundRobinResurrect`
+  (`SimpleNodePool(RoundRobin, App\Search\BoundedPingResurrect)`) — связка с внутренним id FOS; переименование в FOS
+  ловит `ElasticsearchWiringTest` в `make check`.
 
 ## Redis
 

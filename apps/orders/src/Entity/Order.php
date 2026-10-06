@@ -49,6 +49,11 @@ final class Order
         return $this->status;
     }
 
+    public function createdAt(): DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
     public function applyPayment(bool $approved): void
     {
         // A redelivered result must not flip an order that is already settled.

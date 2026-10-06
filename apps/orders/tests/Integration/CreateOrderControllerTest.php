@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Integration;
 
 use App\Message\ProcessPayment;
+use App\Tests\Support\RecordingOrderIndex;
 use PHPUnit\Framework\Attributes\TestWith;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
@@ -28,6 +29,7 @@ final class CreateOrderControllerTest extends WebTestCase
         $sent = $transport->getSent();
         self::assertCount(1, $sent);
         self::assertEquals(new ProcessPayment($body['id'], 5000), $sent[0]->getMessage());
+        self::assertSame([$body['id']], $this->searchIndex()->added);
     }
 
     /**
@@ -48,6 +50,7 @@ final class CreateOrderControllerTest extends WebTestCase
         $transport = self::getContainer()->get('messenger.transport.process_payment');
         self::assertInstanceOf(InMemoryTransport::class, $transport);
         self::assertSame([], $transport->getSent());
+        self::assertSame([], $this->searchIndex()->added);
     }
 
     #[TestWith(['not json', 400])]
@@ -81,5 +84,13 @@ final class CreateOrderControllerTest extends WebTestCase
         self::assertResponseStatusCodeSame(422);
         self::assertResponseHeaderSame('Content-Type', 'application/json');
         self::assertJson((string) $client->getResponse()->getContent());
+    }
+
+    private function searchIndex(): RecordingOrderIndex
+    {
+        $index = self::getContainer()->get(RecordingOrderIndex::class);
+        self::assertInstanceOf(RecordingOrderIndex::class, $index);
+
+        return $index;
     }
 }

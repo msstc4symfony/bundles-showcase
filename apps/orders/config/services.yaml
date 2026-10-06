@@ -21,3 +21,23 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    App\Search\BoundedPingResurrect:
+        factory: ['App\Search\BoundedPingResurrect', 'create']
+
+    # The node pool FOSElasticaBundle uses for "connection_strategy: RoundRobin", with a time-limited ping.
+    FOS\ElasticaBundle\Elastica\NodePool\RoundRobinResurrect:
+        class: Elastic\Transport\NodePool\SimpleNodePool
+        arguments:
+            - !service { class: Elastic\Transport\NodePool\Selector\RoundRobin }
+            - '@App\Search\BoundedPingResurrect'
+
+when@test:
+    services:
+        App\Tests\Support\RecordingOrderIndex:
+            public: true
+        App\Search\OrderIndex: '@App\Tests\Support\RecordingOrderIndex'
+        # Replaced by RecordingOrderIndex above; public so a test still resolves the production wiring.
+        App\Search\ElasticaOrderIndex:
+            autowire: true
+            public: true

@@ -55,6 +55,13 @@ final class HealthContext implements Context
         }
     }
 
+    #[Then('readiness has a line matching :pattern')]
+    public function readinessHasALineMatching(string $pattern): void
+    {
+        Assert::stringNotEmpty($pattern);
+        Assert::true($this->lastReport()->hasLineMatching($pattern), sprintf("Readiness has no line matching %s:\n%s", $pattern, $this->lastReport()->raw));
+    }
+
     #[When('I stop :service')]
     public function iStop(string $service): void
     {
@@ -97,6 +104,32 @@ final class HealthContext implements Context
             fn (): bool => $this->health->readiness($service)->isUp(),
             $seconds,
             sprintf('"%s" readiness did not come back up.', $service),
+        );
+    }
+
+    #[Then('within :seconds seconds :service readiness has a line matching :pattern')]
+    public function withinReadinessHasALineMatching(int $seconds, string $service, string $pattern): void
+    {
+        Assert::stringNotEmpty($pattern);
+        Wait::until(
+            fn (): bool => $this->health->readiness($service)->hasLineMatching($pattern),
+            $seconds,
+            sprintf('"%s" readiness has no line matching %s.', $service, $pattern),
+        );
+    }
+
+    #[Then('within :seconds seconds :service readiness is up with a warning matching :pattern')]
+    public function withinReadinessIsUpWithAWarningMatching(int $seconds, string $service, string $pattern): void
+    {
+        Assert::stringNotEmpty($pattern);
+        Wait::until(
+            function () use ($service, $pattern): bool {
+                $report = $this->health->readiness($service);
+
+                return $report->isUp() && $report->warnsMatching($pattern);
+            },
+            $seconds,
+            sprintf('"%s" readiness was not up with a warning matching %s.', $service, $pattern),
         );
     }
 

@@ -146,3 +146,37 @@
 - healthcheck: lock-проверка подписана `Lock store (lock.default)` (id `healthcheck.checker.lock.default`); текст —
   «Title:» и строки с `\t`, пустая секция — `Title: none`. e2e читает JSON, поэтому формат текста его не задевает.
 - Span-метрика одна: `symfony_profiling_span_duration_histogram_seconds` (её регистрирует только metrics-bridge-profiling).
+
+## FOSElasticaBundle + Elasticsearch в orders (2026-10-06 UTC)
+
+- Бандлы видят FOS 7.2 без доработок: healthcheck v1.0.1 — чекер `healthcheck.checker.fos_elastica.client.default`
+  (`Elastica connection (fos_elastica.client.default) passed (cluster status: yellow)`), metrics v1.1.0 — `TimingHttpClient`
+  в `transport_config.http_client` клиента (ChildDefinition от `fos_elastica.client_prototype`, аргумент `$config`).
+- Метрика индексации: `symfony_elastica_request_success{component="orders",method="PUT",path="orders/_doc/<id>"}` —
+  Elastica 8 `Index::addDocument()` с id идёт через index API (PUT).
+- **Открытая проблема metrics-bundle:** метка `path` содержит id документа → неограниченная кардинальность
+  (новая серия на каждый заказ). Чинить в metrics-bundle (нормализация пути), здесь не патчится.
+- elastic-transport по умолчанию (`SimpleNodePool` + `NoResurrect`) **никогда** не воскрешает узел, помеченный мёртвым:
+  после рестарта Elasticsearch воркер RoadRunner навсегда отвечал бы `No alive nodes`. Поэтому
+  `connection_strategy: RoundRobin` (пул FOS с пингом мёртвого узла).
+- Сток `ElasticsearchResurrect` пингует клиентом без лимита времени, а у HTTP-клиента FOS idle timeout 30 с.
+  После `docker stop` в долгоживущем процессе остаются keep-alive соединения и закешированный curl адрес мёртвого IP:
+  readiness отвечал 3–38 с (`ElasticaConnectionChecker exceeded budget`), создание заказа ждало ~3 с. Исправлено
+  в приложении: `client_options: { timeout: 2 }` (в FOS 7.2 собственный ключ `timeout` deprecated, опции HTTP-клиента —
+  через `client_options`; для Symfony HttpClient `timeout` — idle timeout) и подмена пула FOS на
+  `SimpleNodePool(RoundRobin, App\Search\BoundedPingResurrect)` (пинг ≤ 1 с, любой `Throwable` = узел мёртв).
+  Восстановление после старта ~35 с.
+- Живой, но медленный узел (ответ дольше 2 с idle timeout) помечается мёртвым, и на это окно запросы падают
+  `No alive nodes`, пока пинг не вернёт его.
+- Пока узел помечен мёртвым, запросы падают **без HTTP-вызова** → `symfony_elastica_request_failed` растёт только для
+  первого неудачного запроса процесса. e2e это не проверяет.
+- Сразу после рестарта Elasticsearch чекер проходит с `cluster status: red` (статус кластера не оценивается).
+  Хаос-сценарий ждёт `green|yellow`, чтобы следующий прогон не унаследовал красный кластер.
+- `max_duration: 1` на основном клиенте оказался слишком жёстким при load average ~50 на хосте: `HEAD /orders` в
+  `app:search:create-index` не уложился → `make up` упал. Поэтому idle `timeout: 2`, а не `max_duration`.
+- Отказ non-critical чекера в readiness — строка в `warnings`; проба может закончиться и `exceeded budget`, поэтому
+  хаос-шаг опрашивает readiness до строки `Elastica connection (fos_elastica.client.default) failed (…)`.
+- e2e: в шагах «grows by» плейсхолдер `{order}` заменяется id заказа, созданного в сценарии.
+- Рецепт `friendsofsymfony/elastica-bundle` (recipes-contrib, версия рецепта 5.0) кладёт `url:` в конфиг клиента —
+  в 7.x ключа нет (`hosts: [...]`), `cache:clear` после `composer require` падал до правки. Рецепт
+  `php-http/discovery` (1.18) добавил `config/packages/http_discovery.yaml`.

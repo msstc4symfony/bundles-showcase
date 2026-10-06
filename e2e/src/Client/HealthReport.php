@@ -11,12 +11,14 @@ final readonly class HealthReport
     /**
      * @param list<string> $errors
      * @param list<string> $messages
+     * @param list<string> $warnings failures of non-critical checks; they do not fail readiness
      */
     private function __construct(
         public int $status,
         public bool $success,
         public array $errors,
         public array $messages,
+        public array $warnings,
         public string $raw,
     ) {
     }
@@ -30,7 +32,7 @@ final readonly class HealthReport
         }
 
         if (!is_array($decoded)) {
-            return new self($status, false, [], [], $body);
+            return new self($status, false, [], [], [], $body);
         }
 
         return new self(
@@ -38,13 +40,14 @@ final readonly class HealthReport
             ($decoded['success'] ?? null) === true,
             self::strings($decoded['errors'] ?? []),
             self::strings($decoded['messages'] ?? []),
+            self::strings($decoded['warnings'] ?? []),
             $body,
         );
     }
 
     public static function unreachable(string $reason): self
     {
-        return new self(0, false, [], [], $reason);
+        return new self(0, false, [], [], [], $reason);
     }
 
     public function isUp(): bool
@@ -63,6 +66,31 @@ final readonly class HealthReport
     public function mentions(string $fragment): bool
     {
         return array_any([...$this->messages, ...$this->errors], fn (string $line): bool => str_contains($line, $fragment));
+    }
+
+    /**
+     * @param non-empty-string $pattern PCRE pattern, delimiters included
+     */
+    public function hasLineMatching(string $pattern): bool
+    {
+        return $this->anyMatches([...$this->messages, ...$this->errors], $pattern);
+    }
+
+    /**
+     * @param non-empty-string $pattern PCRE pattern, delimiters included
+     */
+    public function warnsMatching(string $pattern): bool
+    {
+        return $this->anyMatches($this->warnings, $pattern);
+    }
+
+    /**
+     * @param list<string> $lines
+     * @param non-empty-string $pattern
+     */
+    private function anyMatches(array $lines, string $pattern): bool
+    {
+        return array_any($lines, static fn (string $line): bool => preg_match($pattern, $line) === 1);
     }
 
     /**
