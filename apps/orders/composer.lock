@@ -2149,16 +2149,16 @@
         },
         {
             "name": "msstc4symfony/metrics-bundle",
-            "version": "v1.1.0",
+            "version": "v1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/metrics-bundle.git",
-                "reference": "69bcfde20879e4e5efb89e755b266be558dc8032"
+                "reference": "33c1116a33e831038abc5c1ccf4ea995124883f9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/metrics-bundle/zipball/69bcfde20879e4e5efb89e755b266be558dc8032",
-                "reference": "69bcfde20879e4e5efb89e755b266be558dc8032",
+                "url": "https://api.github.com/repos/msstc4symfony/metrics-bundle/zipball/33c1116a33e831038abc5c1ccf4ea995124883f9",
+                "reference": "33c1116a33e831038abc5c1ccf4ea995124883f9",
                 "shasum": ""
             },
             "require": {
@@ -2230,7 +2230,10 @@
                 "php",
                 "symfony"
             ],
-            "time": "2026-10-05T15:55:20+00:00"
+            "support": {
+                "source": "https://github.com/msstc4symfony/metrics-bundle/tree/v1.2.0"
+            },
+            "time": "2026-10-06T16:09:10+00:00"
         },
         {
             "name": "msstc4symfony/profiling-bundle",
