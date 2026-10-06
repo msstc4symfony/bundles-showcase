@@ -1917,16 +1917,16 @@
         },
         {
             "name": "msstc4symfony/healthcheck-bundle",
-            "version": "v1.0.1",
+            "version": "v1.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/healthcheck-bundle.git",
-                "reference": "1af237d1d0ea39f191fe53c36d429f764a44692c"
+                "reference": "e0ec70f0fe792e7056314332ba696134028d6652"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/healthcheck-bundle/zipball/1af237d1d0ea39f191fe53c36d429f764a44692c",
-                "reference": "1af237d1d0ea39f191fe53c36d429f764a44692c",
+                "url": "https://api.github.com/repos/msstc4symfony/healthcheck-bundle/zipball/e0ec70f0fe792e7056314332ba696134028d6652",
+                "reference": "e0ec70f0fe792e7056314332ba696134028d6652",
                 "shasum": ""
             },
             "require": {
@@ -1996,7 +1996,10 @@
                 "php",
                 "symfony"
             ],
-            "time": "2026-10-06T04:47:29+00:00"
+            "support": {
+                "source": "https://github.com/msstc4symfony/healthcheck-bundle/tree/v1.0.2"
+            },
+            "time": "2026-10-06T15:29:35+00:00"
         },
         {
             "name": "msstc4symfony/logger-bundle",
