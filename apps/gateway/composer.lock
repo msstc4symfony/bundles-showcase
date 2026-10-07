@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "853291a1cec7afcedbddd2b9f2ee73bb",
+    "content-hash": "53ce0afac713b03e3abffb6e15cb1cc3",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -248,16 +248,16 @@
         },
         {
             "name": "msstc4symfony/healthcheck-bundle",
-            "version": "v1.0.0",
+            "version": "v1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/healthcheck-bundle.git",
-                "reference": "a4351606c0544a1f48be858f70b4a63d004e666b"
+                "reference": "86d83dacf60b5c5fb49ca91ae10eaeb7fa81eef6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/healthcheck-bundle/zipball/a4351606c0544a1f48be858f70b4a63d004e666b",
-                "reference": "a4351606c0544a1f48be858f70b4a63d004e666b",
+                "url": "https://api.github.com/repos/msstc4symfony/healthcheck-bundle/zipball/86d83dacf60b5c5fb49ca91ae10eaeb7fa81eef6",
+                "reference": "86d83dacf60b5c5fb49ca91ae10eaeb7fa81eef6",
                 "shasum": ""
             },
             "require": {
@@ -327,7 +327,10 @@
                 "php",
                 "symfony"
             ],
-            "time": "2026-10-04T06:56:35+00:00"
+            "support": {
+                "source": "https://github.com/msstc4symfony/healthcheck-bundle/tree/v1.2.0"
+            },
+            "time": "2026-10-07T04:19:10+00:00"
         },
         {
             "name": "msstc4symfony/logger-bundle",
@@ -400,6 +403,9 @@
                 "php",
                 "symfony"
             ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/logger-bundle/tree/v1.0.0"
+            },
             "time": "2026-10-04T06:55:34+00:00"
         },
         {
@@ -476,20 +482,23 @@
                 "prometheus",
                 "symfony"
             ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/metrics-bridge-profiling/tree/v1.0.0"
+            },
             "time": "2026-10-04T07:18:51+00:00"
         },
         {
             "name": "msstc4symfony/metrics-bundle",
-            "version": "v1.0.0",
+            "version": "v1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/metrics-bundle.git",
-                "reference": "8e11badcd0a4caa4d2d574790221ae2bb3bb3250"
+                "reference": "f43f04d8890625495ed44d6c9045cdb4e545924d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/metrics-bundle/zipball/8e11badcd0a4caa4d2d574790221ae2bb3bb3250",
-                "reference": "8e11badcd0a4caa4d2d574790221ae2bb3bb3250",
+                "url": "https://api.github.com/repos/msstc4symfony/metrics-bundle/zipball/f43f04d8890625495ed44d6c9045cdb4e545924d",
+                "reference": "f43f04d8890625495ed44d6c9045cdb4e545924d",
                 "shasum": ""
             },
             "require": {
@@ -561,7 +570,10 @@
                 "php",
                 "symfony"
             ],
-            "time": "2026-10-04T06:57:17+00:00"
+            "support": {
+                "source": "https://github.com/msstc4symfony/metrics-bundle/tree/v1.3.0"
+            },
+            "time": "2026-10-07T02:57:30+00:00"
         },
         {
             "name": "msstc4symfony/profiling-bundle",
@@ -642,6 +654,9 @@
                 "profiling",
                 "symfony"
             ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/profiling-bundle/tree/v1.0.0"
+            },
             "time": "2026-10-04T06:55:13+00:00"
         },
         {
@@ -720,6 +735,9 @@
                 "symfony",
                 "tracing"
             ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/tracing-bundle/tree/v1.0.0"
+            },
             "time": "2026-10-04T06:56:09+00:00"
         },
         {
