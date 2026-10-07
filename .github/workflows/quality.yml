@@ -4,14 +4,19 @@ on:
   push:
     branches: [main]
   pull_request:
-  # Bundle-update PRs are opened with GITHUB_TOKEN, which does not trigger pull_request runs.
   workflow_dispatch:
+  # bundle-updates gates a commit on its own branch before fast-forwarding main.
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        required: true
 
 permissions:
   contents: read
 
 concurrency:
-  group: quality-${{ github.ref }}
+  group: quality-${{ inputs.ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -33,6 +38,8 @@ jobs:
         options: --health-cmd "pg_isready -U showcase" --health-interval 3s --health-retries 30
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
@@ -58,6 +65,8 @@ jobs:
         working-directory: e2e
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
@@ -73,6 +82,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'

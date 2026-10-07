@@ -89,13 +89,15 @@ the restart. The index holds the order as it was created; a document whose index
 
 1. A bundle tags a release (`vX.Y.Z`).
 2. The `bundle-updates` workflow (daily at 06:00 UTC, or run by hand) runs `composer update 'msstc4symfony/*'`
-   in every app, pushes the `bundle-updates` branch and opens a PR. Dependabot cannot do this: it does not see
+   in every app and commits the result to the `bundle-updates` branch. Dependabot cannot do this: it does not see
    releases of packages installed from `vcs` repositories. It still handles Symfony, Docker images and actions.
-3. The workflow starts `quality` (PHPStan and PHPUnit per app) and `e2e` (the full stack plus Behat, chaos
-   included) on that branch; merge when both are green.
+3. The same run gates that commit with `quality` (PHPStan and PHPUnit per app) and `e2e` (the full stack plus
+   Behat, chaos included), called as reusable workflows.
+4. When both pass, the run fast-forwards `main` to the commit and deletes the branch. Otherwise the branch stays
+   and an issue labelled `bundle-updates` is opened, or commented on if one is open already.
 
-Opening the PR needs the repository setting "Allow GitHub Actions to create and approve pull requests".
-Without it the workflow still pushes the branch and runs the gate, and the branch is merged by hand.
+No pull request is involved: GitHub Actions may not open pull requests in this organisation. A push made with
+`GITHUB_TOKEN` does not start the `main` push workflows; the gate has already run on that exact commit.
 
 The bundles are required at `^1.0`, so every release of the 1.x line is picked up by that run. A major release
 goes through an rc tag first (`vX.0.0-rc.N`) and gets its final tag only after e2e is green here.

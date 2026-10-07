@@ -129,9 +129,14 @@
   риск 4 спека подтвердился. Обновления бандлов делает `.github/workflows/bundle-updates.yml`.
 - PR от `GITHUB_TOKEN` не запускает `pull_request`-workflow → `quality.yml`/`e2e.yml` получили `workflow_dispatch`,
   и bundle-updates сам запускает их на ветке.
-- Создание PR требует настройки репозитория «Allow GitHub Actions to create and approve pull requests»
-  (сейчас выключена: `Resource not accessible by integration`). Без неё ветка пушится и гейт гоняется, мёрж —
-  вручную (fast-forward в main). Первый прогон: quality и e2e зелёные, влит в main.
+- PR из Actions в организации запрещён выше уровня репозитория (`Resource not accessible by integration`, хотя
+  в репо `can_approve_pull_request_reviews: true`; 2026-10-04..06 ночные прогоны падали на create-pull-request).
+  С 2026-10-07 UTC (решение владельца, вариант «без PR»): bundle-updates коммитит в ветку `bundle-updates`,
+  вызывает `quality.yml`/`e2e.yml` через `workflow_call` с входом `ref` = SHA коммита, при обоих зелёных делает
+  обычный (не force) push SHA в `main` — GitHub отклонит его, если main ушёл вперёд — и удаляет ветку. Иначе —
+  issue с меткой `bundle-updates` (новый или комментарий в открытый). Push от `GITHUB_TOKEN` не запускает
+  push-workflow на main — это ожидаемо, гейт уже прошёл на том же SHA. Concurrency в quality/e2e — по
+  `inputs.ref || github.ref`, чтобы вызов из bundle-updates не делил группу с прогоном main.
 
 ## Showcase на линии бандлов с 1.0.0 (2026-10-04 UTC)
 

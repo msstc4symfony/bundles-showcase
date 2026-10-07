@@ -1,16 +1,16 @@
 name: bundle-updates
 
-# Dependabot does not see releases of the msstc4symfony bundles (they come from vcs repositories),
-# so this job opens the release-gate PR itself.
+# Dependabot does not see releases of the msstc4symfony bundles (they come from vcs repositories), and
+# GITHUB_TOKEN may not open pull requests in this organisation. So this workflow commits the update to the
+# bundle-updates branch, gates that commit with quality and e2e, and fast-forwards main when both pass.
+# A failed gate leaves the branch in place and opens (or comments on) an issue labelled bundle-updates.
 on:
   schedule:
     - cron: '0 6 * * *'
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
-  actions: write
+  contents: read
 
 concurrency:
   group: bundle-updates
@@ -19,6 +19,11 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      sha: ${{ steps.commit.outputs.sha }}
+      summary: ${{ steps.update.outputs.summary }}
     steps:
       - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
@@ -40,22 +45,69 @@ jobs:
             done
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v8
-        id: pr
-        with:
-          branch: bundle-updates
-          delete-branch: true
-          commit-message: Update msstc4symfony bundles
-          title: Update msstc4symfony bundles
-          body: |
-            New releases of the msstc4symfony bundles. The quality and e2e workflows run on this branch;
-            merge when both are green.
-
-            ${{ steps.update.outputs.summary }}
-          labels: dependencies
-      - if: steps.pr.outputs.pull-request-operation == 'created' || steps.pr.outputs.pull-request-operation == 'updated'
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Commit to the bundle-updates branch
+        id: commit
         run: |
-          gh workflow run quality.yml --ref bundle-updates
-          gh workflow run e2e.yml --ref bundle-updates
+          if git diff --quiet; then
+            echo 'No bundle releases since the last update.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -qam 'Update msstc4symfony bundles'
+          git push --force origin HEAD:refs/heads/bundle-updates
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  quality:
+    needs: update
+    if: needs.update.outputs.sha != ''
+    uses: ./.github/workflows/quality.yml
+    with:
+      ref: ${{ needs.update.outputs.sha }}
+
+  e2e:
+    needs: update
+    if: needs.update.outputs.sha != ''
+    uses: ./.github/workflows/e2e.yml
+    with:
+      ref: ${{ needs.update.outputs.sha }}
+
+  merge:
+    needs: [update, quality, e2e]
+    if: needs.update.outputs.sha != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.update.outputs.sha }}
+      # A plain push: GitHub rejects it unless main is still the parent of the gated commit.
+      - run: git push origin HEAD:refs/heads/main
+      - run: git push origin --delete bundle-updates
+
+  report:
+    needs: [update, quality, e2e, merge]
+    if: always() && needs.update.outputs.sha != '' && needs.merge.result != 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      BODY: |
+        Bundle update `${{ needs.update.outputs.sha }}` was not merged into main
+        (quality: ${{ needs.quality.result }}, e2e: ${{ needs.e2e.result }}, merge: ${{ needs.merge.result }}).
+        Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        The commit stays on the bundle-updates branch.
+
+        ${{ needs.update.outputs.summary }}
+    steps:
+      - run: |
+          gh label create bundle-updates --color FBCA04 --description 'Bundle update gate failures' --force
+          issue=$(gh issue list --label bundle-updates --state open --json number --jq '.[0].number // empty')
+          if [ -n "$issue" ]; then
+            gh issue comment "$issue" --body "$BODY"
+          else
+            gh issue create --title 'Bundle update failed the gate' --label bundle-updates --body "$BODY"
+          fi

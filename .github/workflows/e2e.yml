@@ -4,14 +4,19 @@ on:
   push:
     branches: [main]
   pull_request:
-  # Bundle-update PRs are opened with GITHUB_TOKEN, which does not trigger pull_request runs.
   workflow_dispatch:
+  # bundle-updates gates a commit on its own branch before fast-forwarding main.
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        required: true
 
 permissions:
   contents: read
 
 concurrency:
-  group: e2e-${{ github.ref }}
+  group: e2e-${{ inputs.ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -20,6 +25,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
       - run: docker compose up --build --wait --wait-timeout 300
       - run: docker compose run --rm --build e2e --tags='~@chaos' --format=progress
       - run: docker compose run --rm e2e --tags='@chaos' --format=progress
