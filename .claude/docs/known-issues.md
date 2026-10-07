@@ -133,8 +133,8 @@
   в репо `can_approve_pull_request_reviews: true`; 2026-10-04..06 ночные прогоны падали на create-pull-request).
   С 2026-10-07 UTC (решение владельца, вариант «без PR»): bundle-updates коммитит в ветку `bundle-updates`,
   вызывает `quality.yml`/`e2e.yml` через `workflow_call` с входом `ref` = SHA коммита, при обоих зелёных делает
-  обычный (не force) push SHA в `main` — GitHub отклонит его, если main ушёл вперёд — и удаляет ветку. Иначе —
-  issue с меткой `bundle-updates` (новый или комментарий в открытый). Push от `GITHUB_TOKEN` не запускает
+  обычный (не force) push SHA в `main` — GitHub отклонит его, если main ушёл вперёд — и удаляет ветку. Иначе ветка
+  остаётся, job `report` пишет сводку в summary и валит прогон (issues в репозитории выключены). Push от `GITHUB_TOKEN` не запускает
   push-workflow на main — это ожидаемо, гейт уже прошёл на том же SHA. Concurrency в quality/e2e — по
   `inputs.ref || github.ref`, чтобы вызов из bundle-updates не делил группу с прогоном main.
 
@@ -157,10 +157,8 @@
 - Бандлы видят FOS 7.2 без доработок: healthcheck v1.0.1 — чекер `healthcheck.checker.fos_elastica.client.default`
   (`Elastica connection (fos_elastica.client.default) passed (cluster status: yellow)`), metrics v1.1.0 — `TimingHttpClient`
   в `transport_config.http_client` клиента (ChildDefinition от `fos_elastica.client_prototype`, аргумент `$config`).
-- Метрика индексации: `symfony_elastica_request_success{component="orders",method="PUT",path="orders/_doc/<id>"}` —
-  Elastica 8 `Index::addDocument()` с id идёт через index API (PUT).
-- **Открытая проблема metrics-bundle:** метка `path` содержит id документа → неограниченная кардинальность
-  (новая серия на каждый заказ). Чинить в metrics-bundle (нормализация пути), здесь не патчится.
+- Метрика индексации: `symfony_elastica_request_success{component="orders",method="PUT",path="orders/_doc/:id"}` —
+  Elastica 8 `Index::addDocument()` с id идёт через index API (PUT); с metrics 1.2.0 id в метке заменён на `:id`.
 - elastic-transport по умолчанию (`SimpleNodePool` + `NoResurrect`) **никогда** не воскрешает узел, помеченный мёртвым:
   после рестарта Elasticsearch воркер RoadRunner навсегда отвечал бы `No alive nodes`. Поэтому
   `connection_strategy: RoundRobin` (пул FOS с пингом мёртвого узла).
@@ -185,3 +183,12 @@
 - Рецепт `friendsofsymfony/elastica-bundle` (recipes-contrib, версия рецепта 5.0) кладёт `url:` в конфиг клиента —
   в 7.x ключа нет (`hosts: [...]`), `cache:clear` после `composer require` падал до правки. Рецепт
   `php-http/discovery` (1.18) добавил `config/packages/http_discovery.yaml`.
+
+## metrics 1.2.0: `:id` в метке path Elastica (2026-10-07 UTC)
+
+- Первый прогон нового bundle-updates (run 37574199163) упал на e2e: сценарий ждал
+  `path='orders/_doc/<id заказа>'`, а metrics 1.2.0 пишет `orders/_doc/:id`. Гейт сработал как задумано — main
+  не тронут. Изменение лейбла бандла требует правки e2e в том же коммите, что и обновление lock: правка на main
+  отдельно сломала бы e2e на старой версии. Порядок: cherry-pick коммита с ветки `bundle-updates` + правка e2e →
+  push в ветку → `gh workflow run quality.yml/e2e.yml --ref bundle-updates` → fast-forward main.
+

@@ -12,9 +12,9 @@ Feature: Metrics from every service reach Prometheus
     And within 20 seconds "symfony_messenger_message_handled{component='billing',transport='process_payment',message='ProcessPayment',status='handled'}" grows by 1
     And within 20 seconds "symfony_profiling_span_duration_histogram_seconds_count{component='billing',message='message_app_message_processpayment'}" grows by 1
 
-  # FOSElasticaBundle indexes through Elastica 8's index API: PUT <index>/_doc/<id>. "{order}" is the id of the
-  # order created in this scenario, so the path label is new and grows from zero.
+  # FOSElasticaBundle indexes through Elastica 8's index API: PUT <index>/_doc/<id>; metrics-bundle replaces the
+  # document id in the path label with ":id", so every order shares one series.
   Scenario: Indexing a new order is measured as an Elastica request
     Given I remember the current metric values
     When I create an order for 5000
-    Then within 20 seconds "symfony_elastica_request_success{component='orders',method='PUT',path='orders/_doc/{order}'}" grows by 1
+    Then within 20 seconds "symfony_elastica_request_success{component='orders',method='PUT',path='orders/_doc/:id'}" grows by 1

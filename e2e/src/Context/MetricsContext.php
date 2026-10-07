@@ -8,8 +8,6 @@ use App\E2e\Client\PrometheusClient;
 use App\E2e\Client\RabbitMqClient;
 use App\E2e\Wait;
 use Behat\Behat\Context\Context;
-use Behat\Behat\Hook\Scope\BeforeScenarioScope;
-use Behat\Hook\BeforeScenario;
 use Behat\Step\Given;
 use Behat\Step\Then;
 use Closure;
@@ -24,26 +22,16 @@ final class MetricsContext implements Context
 
     private const int RABBITMQ_STATS_INTERVAL_SECONDS = 6;
 
-    private const string LAST_ORDER_PLACEHOLDER = '{order}';
-
     private readonly PrometheusClient $prometheus;
 
     private readonly RabbitMqClient $rabbitMq;
 
     private ?float $rememberedAt = null;
 
-    private OrderContext $orders;
-
     public function __construct()
     {
         $this->prometheus = new PrometheusClient();
         $this->rabbitMq = new RabbitMqClient();
-    }
-
-    #[BeforeScenario]
-    public function gatherContexts(BeforeScenarioScope $scope): void
-    {
-        $this->orders = OrderContext::from($scope);
     }
 
     #[Given('I remember the current metric values')]
@@ -94,10 +82,6 @@ final class MetricsContext implements Context
      */
     private function waitForGrowth(int $seconds, string $query, Closure $accepted, string $expectation): void
     {
-        if (str_contains($query, self::LAST_ORDER_PLACEHOLDER)) {
-            $query = str_replace(self::LAST_ORDER_PLACEHOLDER, $this->orders->scenario->lastOrderId(), $query);
-        }
-
         $since = $this->rememberedAt ?? throw new LogicException('Remember the metric values first.');
         $before = $this->prometheus->value($query, $since);
         $after = $before;
