@@ -3,7 +3,7 @@ name: bundle-updates
 # Dependabot does not see releases of the msstc4symfony bundles (they come from vcs repositories), and
 # GITHUB_TOKEN may not open pull requests in this organisation. So this workflow commits the update to the
 # bundle-updates branch, gates that commit with quality and e2e, and fast-forwards main when both pass.
-# A failed gate leaves the branch in place and opens (or comments on) an issue labelled bundle-updates.
+# A failed gate leaves the branch in place; the run fails and its summary names the update (issues are off here).
 on:
   schedule:
     - cron: '0 6 * * *'
@@ -90,24 +90,15 @@ jobs:
     needs: [update, quality, e2e, merge]
     if: always() && needs.update.outputs.sha != '' && needs.merge.result != 'success'
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
     env:
-      GH_TOKEN: ${{ github.token }}
-      GH_REPO: ${{ github.repository }}
-      BODY: |
-        Bundle update `${{ needs.update.outputs.sha }}` was not merged into main
+      SUMMARY: |
+        ### Bundle update not merged
+
+        Commit `${{ needs.update.outputs.sha }}` stays on the `bundle-updates` branch
         (quality: ${{ needs.quality.result }}, e2e: ${{ needs.e2e.result }}, merge: ${{ needs.merge.result }}).
-        Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        The commit stays on the bundle-updates branch.
 
         ${{ needs.update.outputs.summary }}
     steps:
       - run: |
-          gh label create bundle-updates --color FBCA04 --description 'Bundle update gate failures' --force
-          issue=$(gh issue list --label bundle-updates --state open --json number --jq '.[0].number // empty')
-          if [ -n "$issue" ]; then
-            gh issue comment "$issue" --body "$BODY"
-          else
-            gh issue create --title 'Bundle update failed the gate' --label bundle-updates --body "$BODY"
-          fi
+          echo "$SUMMARY" >> "$GITHUB_STEP_SUMMARY"
+          exit 1

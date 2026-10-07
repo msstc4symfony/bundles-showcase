@@ -94,7 +94,7 @@ the restart. The index holds the order as it was created; a document whose index
 3. The same run gates that commit with `quality` (PHPStan and PHPUnit per app) and `e2e` (the full stack plus
    Behat, chaos included), called as reusable workflows.
 4. When both pass, the run fast-forwards `main` to the commit and deletes the branch. Otherwise the branch stays
-   and an issue labelled `bundle-updates` is opened, or commented on if one is open already.
+   and the run fails; its summary names the update and the failed gate.
 
 No pull request is involved: GitHub Actions may not open pull requests in this organisation. A push made with
 `GITHUB_TOKEN` does not start the `main` push workflows; the gate has already run on that exact commit.
