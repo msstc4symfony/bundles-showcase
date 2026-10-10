@@ -82,6 +82,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.update.outputs.sha }}
+          # A shallow clone lacks main's tip, so git refuses the push as "fetch first" even for a fast-forward.
+          fetch-depth: 0
       # A plain push: GitHub rejects it unless main is still the parent of the gated commit.
       - run: git push origin HEAD:refs/heads/main
       - run: git push origin --delete bundle-updates
