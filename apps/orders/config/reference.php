@@ -419,7 +419,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         enabled?: bool|Param, // Default: false
  *     },
  *     lock?: Param|bool|string|array{ // Lock configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Default: true
  *         resources?: Param|string|array<string, Param|string|list<scalar|Param|null>>,
  *     },
  *     semaphore?: Param|bool|string|array{ // Semaphore configuration
@@ -1207,11 +1207,29 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     http_client?: array{
  *         sanitize_path?: bool|Param, // Replace identifiers in outgoing request paths with placeholders to bound the "path" label. // Default: true
  *     },
+ *     elastica?: array{
+ *         sanitize_path?: bool|Param, // Replace document ids and other identifiers in Elastica request paths with placeholders to bound the "path" label. // Default: true
+ *     },
  *     metric_enums?: list<scalar|Param|null>,
  * }
  * @psalm-type Msstc4symfonyTracingConfig = array{
  *     application_name?: string|Param, // First half of the request-from value this service sends downstream. // Default: "%env(default:msstc4symfony_tracing.unknown:APPLICATION_NAME)%"
  *     component_name?: string|Param, // Second half of the request-from value this service sends downstream. // Default: "%env(default:msstc4symfony_tracing.unknown:COMPONENT_NAME)%"
+ * }
+ * @psalm-type Msstc4symfonyLogicConfig = array{
+ *     logging?: array{
+ *         logger?: scalar|Param|null, // Default: "logger"
+ *     },
+ *     lock?: array{
+ *         factory?: scalar|Param|null, // Default: "lock.factory"
+ *         default_profile?: scalar|Param|null, // Default: "short"
+ *         conflict_status_code?: scalar|Param|null, // Default: 409
+ *         profiles?: array<string, array{ // Default: []
+ *             ttl?: int|Param,
+ *             retry_count?: int|Param, // Default: 0
+ *             retry_delay_ms?: int|Param, // Default: 0
+ *         }>,
+ *     },
  * }
  * @psalm-type BaldinofRoadRunnerConfig = array{
  *     kernel_reboot?: array{
@@ -1674,6 +1692,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     msstc4symfony_profiling?: Msstc4symfonyProfilingConfig,
  *     msstc4symfony_metrics?: Msstc4symfonyMetricsConfig,
  *     msstc4symfony_tracing?: Msstc4symfonyTracingConfig,
+ *     msstc4symfony_logic?: Msstc4symfonyLogicConfig,
  *     baldinof_road_runner?: BaldinofRoadRunnerConfig,
  *     doctrine?: DoctrineConfig,
  *     doctrine_migrations?: DoctrineMigrationsConfig,
@@ -1690,6 +1709,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         msstc4symfony_profiling?: Msstc4symfonyProfilingConfig,
  *         msstc4symfony_metrics?: Msstc4symfonyMetricsConfig,
  *         msstc4symfony_tracing?: Msstc4symfonyTracingConfig,
+ *         msstc4symfony_logic?: Msstc4symfonyLogicConfig,
  *         baldinof_road_runner?: BaldinofRoadRunnerConfig,
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
@@ -1707,6 +1727,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         msstc4symfony_profiling?: Msstc4symfonyProfilingConfig,
  *         msstc4symfony_metrics?: Msstc4symfonyMetricsConfig,
  *         msstc4symfony_tracing?: Msstc4symfonyTracingConfig,
+ *         msstc4symfony_logic?: Msstc4symfonyLogicConfig,
  *         baldinof_road_runner?: BaldinofRoadRunnerConfig,
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
@@ -1724,6 +1745,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         msstc4symfony_profiling?: Msstc4symfonyProfilingConfig,
  *         msstc4symfony_metrics?: Msstc4symfonyMetricsConfig,
  *         msstc4symfony_tracing?: Msstc4symfonyTracingConfig,
+ *         msstc4symfony_logic?: Msstc4symfonyLogicConfig,
  *         baldinof_road_runner?: BaldinofRoadRunnerConfig,
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,

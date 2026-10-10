@@ -192,3 +192,20 @@
   отдельно сломала бы e2e на старой версии. Порядок: cherry-pick коммита с ветки `bundle-updates` + правка e2e →
   push в ветку → `gh workflow run quality.yml/e2e.yml --ref bundle-updates` → fast-forward main.
 
+
+## logic-bundle в orders (2026-10-10 UTC)
+
+- `symfony/lock` приходит зависимостью logic-bundle, его Flex-рецепт кладёт `config/packages/lock.yaml` и
+  `LOCK_DSN=flock` — в orders удалены: lockable Actions нет, а flock в нескольких репликах ничего не защищает.
+  Если появится `#[LockableAction]` — `framework.lock` на Redis, как в gateway.
+- 500 при создании заказа логируется дважды: `Fail application action …` (ERROR, LoggingMiddleware) и CRITICAL
+  от `ErrorListener` Symfony. Цена логирования на уровне Action (вне HTTP второго лога нет).
+- `Input` валидируется дважды: `MapRequestPayload` (даёт 422) и ValidationMiddleware бандла (для вызовов не из HTTP;
+  его `ValidationFailedException` без маппинга — 500). Оставлено намеренно (§8 спеки: работают Logging и Validation).
+- `Action` пока зависит от `EntityManagerInterface`/`MessageBusInterface`/`App\Entity\Order` напрямую — перенос 1:1
+  из контроллера; порты (репозиторий заказов, запрос оплаты) — отдельной итерацией. `OrderView` остался в `App\Order`.
+
+## bundle-updates: merge не проходил (исправлено 2026-10-10 UTC)
+
+- С 2026-10-07 каждый `merge` падал `! [rejected] HEAD -> main (fetch first)`: checkout с `ref: <sha>` неглубокий,
+  коммита `main` локально нет, и git отказывает до проверки fast-forward. Фикс — `fetch-depth: 0` в merge-джобе.

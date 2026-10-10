@@ -73,6 +73,7 @@ The same request id shows up in four processes: `gateway`, `orders`, `billing-wo
 | [healthcheck-bundle](https://github.com/msstc4symfony/healthcheck-bundle) | `/_/healthcheck/liveliness` (used by the compose healthchecks) and `/_/healthcheck/readiness` (Redis, Postgres, RabbitMQ, lock store, Elasticsearch through `fos_elastica.client.default`; `?_format=json` for JSON) |
 | [profiling-bundle](https://github.com/msstc4symfony/profiling-bundle) | A span for every request and consumed message |
 | [metrics-bridge-profiling](https://github.com/msstc4symfony/metrics-bridge-profiling) | Span durations exported as the `symfony_profiling_span_duration_histogram_seconds` metric |
+| [logic-bundle](https://github.com/msstc4symfony/logic-bundle) | orders creates an order through an `Action` (`src/Application/Order/Create/`): `Start/Finish application action` log records around it and validation of its `Input`. No lock: the gateway idempotency store already serialises duplicate `POST /orders`, and a non-blocking lock would answer 409 instead of the stored response |
 
 ## Elasticsearch in orders
 

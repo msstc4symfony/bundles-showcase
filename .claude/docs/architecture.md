@@ -27,7 +27,12 @@
   коммит: handler бросает `OrderNotVisibleYet`, транспорт `payment_processed` ретраит 5× (500 мс ×2, ~15 с).
   Исчерпавшие ретраи сообщения уходят в failure transport `failed` (Doctrine, таблица `messenger_messages`,
   `FAILED_TRANSPORT_DSN`; в тестах in-memory) — `messenger:failed:show|retry`. Outbox не сделан.
-- `amount` ограничен `CreateOrderRequest::MAX_AMOUNT` (INT4 Postgres) → 422, а не 500.
+- `amount` ограничен `App\Application\Order\Create\Input::MAX_AMOUNT` (INT4 Postgres) → 422, а не 500.
+- Создание заказа — `App\Application\Order\Create\Action` (logic-bundle): контроллер получает его как
+  `ActionInterface` через `#[Autowire(service: Action::class)]` — под этим id лежит `ActionPipeline` (логирование +
+  валидация `Input`), а не сам класс. Ответ 422 по-прежнему даёт `MapRequestPayload`, middleware валидации — второй
+  рубеж для вызовов не из HTTP. Lock не используется (идемпотентность — в gateway). `OutputLogBuilder` кладёт
+  `order_id/status/amount` в запись `Finish application action`.
 - Сервисы и воркеры с `restart: unless-stopped`: `messenger:consume --time-limit=3600` штатно выходит раз в час.
 - Повторная доставка: billing отвечает сохранённым исходом (уникальность по `order_id`), orders не переводит уже `paid/declined` заказ.
 
@@ -35,7 +40,7 @@
 
 - FOSElasticaBundle ^7.2 + `ruflin/elastica` ^8.0 (явно, чтобы не взять Elastica 9). Клиент `fos_elastica.client.default`
   (`ELASTICSEARCH_URL`), индекс `orders`: `id`/`status` keyword, `amount` scaled_float (×100), `createdAt` date.
-- Порт `App\Search\OrderIndex`, адаптер `ElasticaOrderIndex` (сервис `fos_elastica.index.orders`). `CreateOrderController`
+- Порт `App\Search\OrderIndex`, адаптер `ElasticaOrderIndex` (сервис `fos_elastica.index.orders`). Action создания заказа
   индексирует **после** коммита транзакции; любой `Throwable` логируется (`Order … was not indexed`) и не ломает 201.
 - Семантика снимка: документ — заказ на момент создания, `PaymentProcessed` индекс не обновляет; документ, чья
   индексация упала, потерян — команды переиндексации (populate) нет. Doctrine-listener FOS не используется.

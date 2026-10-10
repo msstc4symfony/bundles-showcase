@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8c15f9022d59936f664c881e0f5110ce",
+    "content-hash": "9799b0ced853c23302bb8b1d0b2ed5d3",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -2076,6 +2076,82 @@
                 "source": "https://github.com/msstc4symfony/logger-bundle/tree/v1.0.0"
             },
             "time": "2026-10-04T06:55:34+00:00"
+        },
+        {
+            "name": "msstc4symfony/logic-bundle",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/msstc4symfony/logic-bundle.git",
+                "reference": "a768a17c0e5fc26c133e64fe0ecbd911f08855c9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/msstc4symfony/logic-bundle/zipball/a768a17c0e5fc26c133e64fe0ecbd911f08855c9",
+                "reference": "a768a17c0e5fc26c133e64fe0ecbd911f08855c9",
+                "shasum": ""
+            },
+            "require": {
+                "composer-runtime-api": ">=2.2",
+                "php": ">=8.4",
+                "psr/container": "^1.1|^2.0",
+                "psr/log": "^3.0",
+                "symfony/config": "^7.4|^8.0",
+                "symfony/dependency-injection": "^7.4|^8.0",
+                "symfony/http-kernel": "^7.4|^8.0",
+                "symfony/lock": "^7.4|^8.0",
+                "symfony/validator": "^7.4|^8.0"
+            },
+            "conflict": {
+                "symfony/symfony": "*"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.55",
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan": "^2.1",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpstan/phpstan-symfony": "^2.0",
+                "phpunit/phpunit": ">=11.0",
+                "rector/rector": "^2.1",
+                "roave/security-advisories": "dev-latest"
+            },
+            "type": "symfony-bundle",
+            "extra": {
+                "symfony": {
+                    "allow-contrib": false,
+                    "require": "^7.4|^8.0"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Msstc4Symfony\\LogicBundle\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Msstc4Symfony\\LogicBundle\\Test\\": "tests/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Maxim Shamaev",
+                    "email": "maxim.shamaev@gmail.com"
+                }
+            ],
+            "description": "Use-case contracts for Symfony: Action/Input/Output plus a middleware pipeline (logging, validation, locking) around every action",
+            "keywords": [
+                "hexagonal",
+                "php",
+                "symfony",
+                "use-case"
+            ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/logic-bundle/tree/v1.0.0"
+            },
+            "time": "2026-10-10T05:35:56+00:00"
         },
         {
             "name": "msstc4symfony/metrics-bridge-profiling",
@@ -5681,6 +5757,88 @@
             "time": "2026-09-29T14:08:01+00:00"
         },
         {
+            "name": "symfony/lock",
+            "version": "v8.1.8",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/lock.git",
+                "reference": "a57c18e351998f9964dff24713f7138a01d53703"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/lock/zipball/a57c18e351998f9964dff24713f7138a01d53703",
+                "reference": "a57c18e351998f9964dff24713f7138a01d53703",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.4.1",
+                "psr/log": "^1|^2|^3"
+            },
+            "conflict": {
+                "doctrine/dbal": "<4.3"
+            },
+            "require-dev": {
+                "doctrine/dbal": "^4.3",
+                "predis/predis": "^1.1|^2.0",
+                "symfony/serializer": "^6.4|^7.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Lock\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jérémy Derussé",
+                    "email": "jeremy@derusse.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Creates and manages locks, a mechanism to provide exclusive access to a shared resource",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "cas",
+                "flock",
+                "locking",
+                "mutex",
+                "redlock",
+                "semaphore"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/lock/tree/v8.1.8"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-09-18T16:00:27+00:00"
+        },
+        {
             "name": "symfony/messenger",
             "version": "v8.1.8",
             "source": {
@@ -6004,16 +6162,16 @@
         },
         {
             "name": "symfony/polyfill-deepclone",
-            "version": "v1.43.0",
+            "version": "v1.43.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-deepclone.git",
-                "reference": "8db92c5508a3f7f82d8688d32f0a4868a26e58ad"
+                "reference": "aaba44b6ee7299ae65717811c55b57ab9bc0fedd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-deepclone/zipball/8db92c5508a3f7f82d8688d32f0a4868a26e58ad",
-                "reference": "8db92c5508a3f7f82d8688d32f0a4868a26e58ad",
+                "url": "https://api.github.com/repos/symfony/polyfill-deepclone/zipball/aaba44b6ee7299ae65717811c55b57ab9bc0fedd",
+                "reference": "aaba44b6ee7299ae65717811c55b57ab9bc0fedd",
                 "shasum": ""
             },
             "require": {
@@ -6067,7 +6225,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-deepclone/tree/v1.43.0"
+                "source": "https://github.com/symfony/polyfill-deepclone/tree/v1.43.1"
             },
             "funding": [
                 {
@@ -6087,7 +6245,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-30T09:07:27+00:00"
+            "time": "2026-10-06T19:46:18+00:00"
         },
         {
             "name": "symfony/polyfill-intl-grapheme",

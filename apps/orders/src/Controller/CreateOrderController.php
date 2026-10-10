@@ -4,48 +4,31 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\Order;
-use App\Message\ProcessPayment;
-use App\Order\CreateOrderRequest;
-use App\Order\OrderView;
-use App\Search\OrderIndex;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Application\Order\Create\Action;
+use App\Application\Order\Create\Input;
+use App\Application\Order\Create\Output;
+use Msstc4Symfony\LogicBundle\Application\Action\ActionInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
-use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
-use Webmozart\Assert\Assert;
 
 #[AsController]
 final readonly class CreateOrderController
 {
+    /**
+     * @param ActionInterface<Output> $create the logic pipeline around Action, not Action itself
+     */
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private MessageBusInterface $bus,
-        private OrderIndex $search,
+        #[Autowire(service: Action::class)]
+        private ActionInterface $create,
     ) {
     }
 
     #[Route('/orders', name: 'orders_create', methods: ['POST'], format: 'json')]
-    public function __invoke(#[MapRequestPayload(acceptFormat: 'json', validationFailedStatusCode: 422)] CreateOrderRequest $request): JsonResponse
+    public function __invoke(#[MapRequestPayload(acceptFormat: 'json', validationFailedStatusCode: 422)] Input $input): JsonResponse
     {
-        // Already validated by the request constraints; the assertion narrows mixed to int.
-        Assert::integer($request->amount);
-        $order = new Order($request->amount);
-
-        // Flush before dispatch so a database error never publishes a payment for a missing order;
-        // a failed AMQP send still rolls the order back.
-        $this->entityManager->wrapInTransaction(function () use ($order): void {
-            $this->entityManager->persist($order);
-            $this->entityManager->flush();
-
-            $this->bus->dispatch(new ProcessPayment($order->id(), $order->amount()));
-        });
-
-        // After the commit: the search index is a projection and must never hold an order the database rolled back.
-        $this->search->add($order);
-
-        return new JsonResponse(OrderView::of($order), JsonResponse::HTTP_CREATED);
+        return new JsonResponse($this->create->__invoke($input)->order, JsonResponse::HTTP_CREATED);
     }
 }
