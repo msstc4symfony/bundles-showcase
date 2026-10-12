@@ -15,4 +15,6 @@ return [
     Doctrine\Bundle\DoctrineBundle\DoctrineBundle::class => ['all' => true],
     Doctrine\Bundle\MigrationsBundle\DoctrineMigrationsBundle::class => ['all' => true],
     FOS\ElasticaBundle\FOSElasticaBundle::class => ['all' => true],
+    Msstc4Symfony\MetricsBridgeLogic\MetricsBridgeLogicBundle::class => ['all' => true],
+    Msstc4Symfony\ProfilingBridgeLogic\ProfilingBridgeLogicBundle::class => ['all' => true],
 ];

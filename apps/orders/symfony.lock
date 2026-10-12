@@ -68,11 +68,17 @@
     "msstc4symfony/logic-bundle": {
         "version": "v1.0.0"
     },
+    "msstc4symfony/metrics-bridge-logic": {
+        "version": "v1.0.0"
+    },
     "msstc4symfony/metrics-bridge-profiling": {
         "version": "v1.0.0"
     },
     "msstc4symfony/metrics-bundle": {
         "version": "v1.2.0"
+    },
+    "msstc4symfony/profiling-bridge-logic": {
+        "version": "v1.0.0"
     },
     "msstc4symfony/profiling-bundle": {
         "version": "v1.0.0"

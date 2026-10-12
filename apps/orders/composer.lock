@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9799b0ced853c23302bb8b1d0b2ed5d3",
+    "content-hash": "a4572e698c05fe5b94170e485b84f75d",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -2079,16 +2079,16 @@
         },
         {
             "name": "msstc4symfony/logic-bundle",
-            "version": "v1.0.0",
+            "version": "v1.1.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/msstc4symfony/logic-bundle.git",
-                "reference": "a768a17c0e5fc26c133e64fe0ecbd911f08855c9"
+                "url": "git@github.com:msstc4symfony/logic-bundle.git",
+                "reference": "3dd6a4e71341457c35eb557cee1e9bffd1420a29"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/logic-bundle/zipball/a768a17c0e5fc26c133e64fe0ecbd911f08855c9",
-                "reference": "a768a17c0e5fc26c133e64fe0ecbd911f08855c9",
+                "url": "https://api.github.com/repos/msstc4symfony/logic-bundle/zipball/3dd6a4e71341457c35eb557cee1e9bffd1420a29",
+                "reference": "3dd6a4e71341457c35eb557cee1e9bffd1420a29",
                 "shasum": ""
             },
             "require": {
@@ -2148,10 +2148,84 @@
                 "symfony",
                 "use-case"
             ],
-            "support": {
-                "source": "https://github.com/msstc4symfony/logic-bundle/tree/v1.0.0"
+            "time": "2026-10-12T06:00:42+00:00"
+        },
+        {
+            "name": "msstc4symfony/metrics-bridge-logic",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "git@github.com:msstc4symfony/metrics-bridge-logic.git",
+                "reference": "32c5307e743448d6a79138918e68558837204553"
             },
-            "time": "2026-10-10T05:35:56+00:00"
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/msstc4symfony/metrics-bridge-logic/zipball/32c5307e743448d6a79138918e68558837204553",
+                "reference": "32c5307e743448d6a79138918e68558837204553",
+                "shasum": ""
+            },
+            "require": {
+                "composer-runtime-api": ">=2.2",
+                "msstc4symfony/logic-bundle": "^1.1",
+                "msstc4symfony/metrics-bundle": "^1.3",
+                "php": ">=8.4",
+                "symfony/config": "^7.4|^8.0",
+                "symfony/dependency-injection": "^7.4|^8.0",
+                "symfony/http-kernel": "^7.4|^8.0"
+            },
+            "conflict": {
+                "symfony/symfony": "*"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.55",
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan": "^2.1",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpstan/phpstan-symfony": "^2.0",
+                "phpunit/phpunit": ">=11.0",
+                "promphp/prometheus_client_php": "^2.13",
+                "rector/rector": "^2.1",
+                "roave/security-advisories": "dev-latest",
+                "symfony/filesystem": "^7.4|^8.0",
+                "symfony/framework-bundle": "^7.4|^8.0",
+                "symfony/monolog-bundle": "^3.11|^4.0",
+                "symfony/validator": "^7.4|^8.0"
+            },
+            "type": "symfony-bundle",
+            "extra": {
+                "symfony": {
+                    "allow-contrib": false,
+                    "require": "^7.4|^8.0"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Msstc4Symfony\\MetricsBridgeLogic\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Msstc4Symfony\\MetricsBridgeLogic\\Test\\": "tests/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Maxim Shamaev",
+                    "email": "maxim.shamaev@gmail.com"
+                }
+            ],
+            "description": "Exports msstc4symfony/logic-bundle Action outcomes and durations as msstc4symfony/metrics-bundle Prometheus metrics",
+            "keywords": [
+                "logic",
+                "metrics",
+                "php",
+                "prometheus",
+                "symfony"
+            ],
+            "time": "2026-10-12T07:05:35+00:00"
         },
         {
             "name": "msstc4symfony/metrics-bridge-profiling",
@@ -2319,6 +2393,82 @@
                 "source": "https://github.com/msstc4symfony/metrics-bundle/tree/v1.3.0"
             },
             "time": "2026-10-07T02:57:30+00:00"
+        },
+        {
+            "name": "msstc4symfony/profiling-bridge-logic",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "git@github.com:msstc4symfony/profiling-bridge-logic.git",
+                "reference": "3d7e9a975cd89073b68e5d558c8852de0362128c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/msstc4symfony/profiling-bridge-logic/zipball/3d7e9a975cd89073b68e5d558c8852de0362128c",
+                "reference": "3d7e9a975cd89073b68e5d558c8852de0362128c",
+                "shasum": ""
+            },
+            "require": {
+                "composer-runtime-api": ">=2.2",
+                "msstc4symfony/logic-bundle": "^1.1",
+                "msstc4symfony/profiling-bundle": "^1.0",
+                "php": ">=8.4",
+                "symfony/config": "^7.4|^8.0",
+                "symfony/dependency-injection": "^7.4|^8.0",
+                "symfony/http-kernel": "^7.4|^8.0"
+            },
+            "conflict": {
+                "symfony/symfony": "*"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.55",
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan": "^2.1",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpstan/phpstan-symfony": "^2.0",
+                "phpunit/phpunit": ">=11.0",
+                "psr/log": "^3.0",
+                "rector/rector": "^2.1",
+                "roave/security-advisories": "dev-latest",
+                "symfony/filesystem": "^7.4|^8.0",
+                "symfony/framework-bundle": "^7.4|^8.0",
+                "symfony/monolog-bundle": "^3.11|^4.0",
+                "symfony/validator": "^7.4|^8.0"
+            },
+            "type": "symfony-bundle",
+            "extra": {
+                "symfony": {
+                    "allow-contrib": false,
+                    "require": "^7.4|^8.0"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Msstc4Symfony\\ProfilingBridgeLogic\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Msstc4Symfony\\ProfilingBridgeLogic\\Test\\": "tests/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Maxim Shamaev",
+                    "email": "maxim.shamaev@gmail.com"
+                }
+            ],
+            "description": "Opens a msstc4symfony/profiling-bundle span around every msstc4symfony/logic-bundle Action",
+            "keywords": [
+                "logic",
+                "php",
+                "profiling",
+                "symfony"
+            ],
+            "time": "2026-10-12T08:28:03+00:00"
         },
         {
             "name": "msstc4symfony/profiling-bundle",

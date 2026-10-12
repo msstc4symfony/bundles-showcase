@@ -33,6 +33,10 @@
   валидация `Input`), а не сам класс. Ответ 422 по-прежнему даёт `MapRequestPayload`, middleware валидации — второй
   рубеж для вызовов не из HTTP. Lock не используется (идемпотентность — в gateway). `OutputLogBuilder` кладёт
   `order_id/status/amount` в запись `Finish application action`.
+- Вокруг Action в orders два бриджа (с 2026-10-12 UTC): `profiling-bridge-logic` (priority 500, спан
+  `action App\Application\Order\Create\Action`, дочерний к `request orders_create`) и `metrics-bridge-logic` (400,
+  `symfony_logic_action_duration_histogram_seconds{action, outcome}`); оба снаружи логирования (300). Через
+  metrics-bridge-profiling спан Action попадает и в `symfony_profiling_span_duration_histogram_seconds`.
 - Сервисы и воркеры с `restart: unless-stopped`: `messenger:consume --time-limit=3600` штатно выходит раз в час.
 - Повторная доставка: billing отвечает сохранённым исходом (уникальность по `order_id`), orders не переводит уже `paid/declined` заказ.
 
