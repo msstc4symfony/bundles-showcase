@@ -24,3 +24,4 @@ Feature: One trace across HTTP and RabbitMQ
       | orders         |
       | billing-worker |
       | orders-worker  |
+    And within 15 seconds the logs of that trace link the client, gateway, orders, its Action, billing-worker and orders-worker

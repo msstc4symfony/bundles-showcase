@@ -83,6 +83,9 @@
     "msstc4symfony/profiling-bundle": {
         "version": "v1.0.0"
     },
+    "msstc4symfony/tracing-bridge-logic": {
+        "version": "v1.0.0"
+    },
     "msstc4symfony/tracing-bundle": {
         "version": "v1.0.0"
     },

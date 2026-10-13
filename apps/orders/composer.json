@@ -20,7 +20,8 @@
         "msstc4symfony/metrics-bundle": "^1.3",
         "msstc4symfony/profiling-bridge-logic": "^1.0",
         "msstc4symfony/profiling-bundle": "^1.0",
-        "msstc4symfony/tracing-bundle": "^1.0",
+        "msstc4symfony/tracing-bridge-logic": "^1.0",
+        "msstc4symfony/tracing-bundle": "^1.1",
         "ruflin/elastica": "^8.0",
         "symfony/amqp-messenger": "8.1.*",
         "symfony/clock": "8.1.*",
@@ -128,6 +129,10 @@
         "name": "profiling-bridge-logic",
         "type": "vcs",
         "url": "https://github.com/msstc4symfony/profiling-bridge-logic"
+    },{
+        "name": "tracing-bridge-logic",
+        "type": "vcs",
+        "url": "https://github.com/msstc4symfony/tracing-bridge-logic"
     }],
     "require-dev": {
         "phpstan/extension-installer": "^1.4",

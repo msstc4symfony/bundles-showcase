@@ -20,6 +20,9 @@ final class TracingContext implements Context
 {
     private const string REQUEST_ID_HEADER = 'Request-Id';
 
+    // logic-bundle's LoggingMiddleware writes "Start|Finish|Fail application action <name>" inside the Action's span.
+    private const string ACTION_LOG_MARKER = 'application action';
+
     private OrderContext $orders;
 
     private LokiClient $loki;
@@ -27,6 +30,11 @@ final class TracingContext implements Context
     private float $startedAt;
 
     private ?string $traceId = null;
+
+    private ?string $clientSpanId = null;
+
+    /** @var non-empty-string|null last poll's result, for the timeout message */
+    private ?string $missingHop = null;
 
     #[BeforeScenario]
     public function gatherContexts(BeforeScenarioScope $scope): void
@@ -50,9 +58,10 @@ final class TracingContext implements Context
     public function iCreateAnOrderWithATraceparent(int $amount): void
     {
         $this->traceId = bin2hex(random_bytes(16));
+        $this->clientSpanId = bin2hex(random_bytes(8));
         $this->orders->recordCreation($this->orders->gateway->createOrder(
             $amount,
-            headers: ['traceparent' => sprintf('00-%s-%s-01', $this->traceId, bin2hex(random_bytes(8)))],
+            headers: ['traceparent' => sprintf('00-%s-%s-01', $this->traceId, $this->clientSpanId)],
         ));
     }
 
@@ -74,6 +83,29 @@ final class TracingContext implements Context
             },
             $seconds,
             sprintf('Logs for trace id %s did not reach every process in time.', $traceId),
+        );
+    }
+
+    #[Then('within :seconds seconds the logs of that trace link the client, gateway, orders, its Action, billing-worker and orders-worker')]
+    public function theLogsOfThatTraceFormTheCallTree(int $seconds): void
+    {
+        $traceId = $this->traceId ?? throw new LogicException('Send a traceparent first.');
+        $clientSpanId = $this->clientSpanId ?? throw new LogicException('Send a traceparent first.');
+        $this->missingHop = null;
+
+        Wait::until(
+            function () use ($traceId, $clientSpanId): bool {
+                $lines = $this->loki->linesWhere('trace_id', $traceId, $this->startedAt);
+                $this->missingHop = $this->missingCallTreeHop($lines, $clientSpanId);
+
+                return $this->missingHop === null;
+            },
+            $seconds,
+            fn (): string => sprintf(
+                'Logs for trace id %s have no "%s" hop under its caller.',
+                $traceId,
+                $this->missingHop ?? '?',
+            ),
         );
     }
 
@@ -122,6 +154,47 @@ final class TracingContext implements Context
         foreach ($lines as $line) {
             Assert::same($line->requestFrom(), $caller, sprintf('"%s" log "%s" has the wrong request_from.', $service, $line->message));
         }
+    }
+
+    /**
+     * Each hop's parent_span_id must be a span_id logged by the hop before it.
+     *
+     * @param list<LogLine> $lines
+     *
+     * @return non-empty-string|null the first hop without such a log line; null when the tree is complete
+     */
+    private function missingCallTreeHop(array $lines, string $clientSpanId): ?string
+    {
+        $hops = [
+            'gateway' => static fn (LogLine $line): bool => $line->service === 'gateway',
+            'orders request' => static fn (LogLine $line): bool => $line->service === 'orders' && !self::isActionLog($line),
+            'orders Action' => static fn (LogLine $line): bool => $line->service === 'orders' && self::isActionLog($line),
+            'billing-worker' => static fn (LogLine $line): bool => $line->service === 'billing-worker',
+            'orders-worker' => static fn (LogLine $line): bool => $line->service === 'orders-worker',
+        ];
+        $parents = [$clientSpanId];
+        foreach ($hops as $hop => $belongs) {
+            $spans = [];
+            foreach ($lines as $line) {
+                $span = $line->spanId();
+                if ($span !== null && $belongs($line) && in_array($line->parentSpanId(), $parents, true)) {
+                    $spans[$span] = true;
+                }
+            }
+
+            if ($spans === []) {
+                return $hop;
+            }
+
+            $parents = array_map(strval(...), array_keys($spans));
+        }
+
+        return null;
+    }
+
+    private static function isActionLog(LogLine $line): bool
+    {
+        return str_contains($line->message, self::ACTION_LOG_MARKER);
     }
 
     /**

@@ -17,4 +17,5 @@ return [
     FOS\ElasticaBundle\FOSElasticaBundle::class => ['all' => true],
     Msstc4Symfony\MetricsBridgeLogic\MetricsBridgeLogicBundle::class => ['all' => true],
     Msstc4Symfony\ProfilingBridgeLogic\ProfilingBridgeLogicBundle::class => ['all' => true],
+    Msstc4Symfony\TracingBridgeLogic\TracingBridgeLogicBundle::class => ['all' => true],
 ];

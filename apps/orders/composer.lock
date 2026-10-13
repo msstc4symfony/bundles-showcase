@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a4572e698c05fe5b94170e485b84f75d",
+    "content-hash": "c0de32f260a7f8ba3b123259fea95128",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -2566,17 +2566,93 @@
             "time": "2026-10-04T06:55:13+00:00"
         },
         {
-            "name": "msstc4symfony/tracing-bundle",
+            "name": "msstc4symfony/tracing-bridge-logic",
             "version": "v1.0.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/msstc4symfony/tracing-bundle.git",
-                "reference": "d98eac1f3dcb3b8285ecd24387f7f1ceeaebf863"
+                "url": "https://github.com/msstc4symfony/tracing-bridge-logic.git",
+                "reference": "fda0a04d927bcf64a872d9a0852ceee9a13b3331"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/tracing-bundle/zipball/d98eac1f3dcb3b8285ecd24387f7f1ceeaebf863",
-                "reference": "d98eac1f3dcb3b8285ecd24387f7f1ceeaebf863",
+                "url": "https://api.github.com/repos/msstc4symfony/tracing-bridge-logic/zipball/fda0a04d927bcf64a872d9a0852ceee9a13b3331",
+                "reference": "fda0a04d927bcf64a872d9a0852ceee9a13b3331",
+                "shasum": ""
+            },
+            "require": {
+                "composer-runtime-api": ">=2.2",
+                "msstc4symfony/logic-bundle": "^1.1",
+                "msstc4symfony/tracing-bundle": "^1.1",
+                "php": ">=8.4",
+                "symfony/config": "^7.4|^8.0",
+                "symfony/dependency-injection": "^7.4|^8.0",
+                "symfony/http-kernel": "^7.4|^8.0"
+            },
+            "conflict": {
+                "symfony/symfony": "*"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.55",
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan": "^2.1",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpstan/phpstan-symfony": "^2.0",
+                "phpunit/phpunit": ">=11.0",
+                "psr/log": "^3.0",
+                "rector/rector": "^2.1",
+                "roave/security-advisories": "dev-latest",
+                "symfony/filesystem": "^7.4|^8.0",
+                "symfony/framework-bundle": "^7.4|^8.0",
+                "symfony/monolog-bundle": "^3.11|^4.0",
+                "symfony/validator": "^7.4|^8.0"
+            },
+            "type": "symfony-bundle",
+            "extra": {
+                "symfony": {
+                    "allow-contrib": false,
+                    "require": "^7.4|^8.0"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Msstc4Symfony\\TracingBridgeLogic\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Msstc4Symfony\\TracingBridgeLogic\\Test\\": "tests/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Maxim Shamaev",
+                    "email": "maxim.shamaev@gmail.com"
+                }
+            ],
+            "description": "Gives every msstc4symfony/logic-bundle Action its own msstc4symfony/tracing-bundle span id",
+            "keywords": [
+                "logic",
+                "php",
+                "symfony",
+                "tracing"
+            ],
+            "time": "2026-10-13T04:27:37+00:00"
+        },
+        {
+            "name": "msstc4symfony/tracing-bundle",
+            "version": "v1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/msstc4symfony/tracing-bundle.git",
+                "reference": "d8544a6ecaf4ed7ecca61ebb66bb86f550030166"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/msstc4symfony/tracing-bundle/zipball/d8544a6ecaf4ed7ecca61ebb66bb86f550030166",
+                "reference": "d8544a6ecaf4ed7ecca61ebb66bb86f550030166",
                 "shasum": ""
             },
             "require": {
@@ -2642,9 +2718,9 @@
                 "tracing"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/tracing-bundle/tree/v1.0.0"
+                "source": "https://github.com/msstc4symfony/tracing-bundle/tree/v1.1.0"
             },
-            "time": "2026-10-04T06:56:09+00:00"
+            "time": "2026-10-13T04:21:13+00:00"
         },
         {
             "name": "open-telemetry/api",

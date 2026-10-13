@@ -37,6 +37,11 @@
   `action App\Application\Order\Create\Action`, дочерний к `request orders_create`) и `metrics-bridge-logic` (400,
   `symfony_logic_action_duration_histogram_seconds{action, outcome}`); оба снаружи логирования (300). Через
   metrics-bridge-profiling спан Action попадает и в `symfony_profiling_span_duration_histogram_seconds`.
+- Третий бридж (с 2026-10-13 UTC) — `tracing-bridge-logic` (600, самый внешний): Action пишет логи и шлёт
+  `ProcessPayment` в своём span id (`extra.span_id`), `extra.parent_span_id` = span HTTP-запроса orders.
+  tracing-bundle ^1.1 во всех трёх приложениях: исходящий `traceparent`/`TraceStamp` несёт span отправителя, поэтому
+  дерево по логам сквозное: клиент → gateway → orders (запрос) → Action → billing-worker → orders-worker. Это
+  проверяет e2e-сценарий «The logs of one order rebuild its call tree across processes».
 - Сервисы и воркеры с `restart: unless-stopped`: `messenger:consume --time-limit=3600` штатно выходит раз в час.
 - Повторная доставка: billing отвечает сохранённым исходом (уникальность по `order_id`), orders не переводит уже `paid/declined` заказ.
 

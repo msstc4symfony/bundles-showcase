@@ -51,6 +51,16 @@ final readonly class LogLine
         return $this->extraString('runtime_id');
     }
 
+    public function spanId(): ?string
+    {
+        return $this->extraString('span_id');
+    }
+
+    public function parentSpanId(): ?string
+    {
+        return $this->extraString('parent_span_id');
+    }
+
     private function extraString(string $key): ?string
     {
         $value = $this->extra[$key] ?? null;

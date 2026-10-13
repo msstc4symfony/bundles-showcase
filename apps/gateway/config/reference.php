@@ -1202,6 +1202,9 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     http_client?: array{
  *         sanitize_path?: bool|Param, // Replace identifiers in outgoing request paths with placeholders to bound the "path" label. // Default: true
  *     },
+ *     elastica?: array{
+ *         sanitize_path?: bool|Param, // Replace document ids and other identifiers in Elastica request paths with placeholders to bound the "path" label. // Default: true
+ *     },
  *     metric_enums?: list<scalar|Param|null>,
  * }
  * @psalm-type Msstc4symfonyTracingConfig = array{
