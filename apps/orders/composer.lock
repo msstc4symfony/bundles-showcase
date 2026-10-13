@@ -2639,6 +2639,10 @@
                 "symfony",
                 "tracing"
             ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/tracing-bridge-logic/tree/v1.0.0",
+                "issues": "https://github.com/msstc4symfony/tracing-bridge-logic/issues"
+            },
             "time": "2026-10-13T04:27:37+00:00"
         },
         {

@@ -735,6 +735,9 @@
                 "symfony",
                 "tracing"
             ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/tracing-bundle/tree/v1.1.0"
+            },
             "time": "2026-10-13T04:21:13+00:00"
         },
         {
