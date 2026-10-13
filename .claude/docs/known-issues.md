@@ -216,3 +216,12 @@
 
 - С 2026-10-07 каждый `merge` падал `! [rejected] HEAD -> main (fetch first)`: checkout с `ref: <sha>` неглубокий,
   коммита `main` локально нет, и git отказывает до проверки fast-forward. Фикс — `fetch-depth: 0` в merge-джобе.
+
+## PHP 8.5, Postgres 18, Elasticsearch 9 (2026-10-13 UTC)
+
+- Образ приложений `php:8.5.10-cli`; quality-CI и локальный `make check` по-прежнему на PHP 8.4 (lock-файлы
+  резолвятся под 8.4, рантайм 8.5 — e2e подтверждает совместимость).
+- Postgres 18: `serverVersion=18` в `DATABASE_URL` (compose, `.env`, `.env.test`) и `postgres:18` в quality.yml.
+  Тома данных у сервиса нет, поэтому перенос `PGDATA` в образе 18 (`/var/lib/postgresql/18/docker`) не мешает;
+  если появится том — монтировать `/var/lib/postgresql`, а не `.../data`.
+- Elasticsearch 9.5.5 работает с клиентом `ruflin/elastica` ^8: создание индекса, индексация и поиск заказов проходят e2e.

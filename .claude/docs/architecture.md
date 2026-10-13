@@ -9,7 +9,7 @@
 | `orders-worker` | `app` (APP=orders) | `messenger:consume payment_processed` | применяет результат оплаты |
 | `orders-migrate` | `app` (APP=orders) | one-shot `doctrine:migrations:migrate` | схема до старта `orders` |
 | `orders-search-index` | `app` (APP=orders) | one-shot `app:search:create-index` | индекс `orders` с маппингом до старта `orders` |
-| `elasticsearch` | `elasticsearch:8.19.22` | single-node, без security | поиск заказов (только orders) |
+| `elasticsearch` | `elasticsearch:9.5.5` | single-node, без security | поиск заказов (только orders) |
 | `billing` | `app` (APP=billing) | RoadRunner (только `/_/metrics`, `/_/healthcheck/*`) | — |
 | `billing-worker` | `app` (APP=billing) | `messenger:consume process_payment` | платёж + ответ `PaymentProcessed` |
 | `billing-migrate` | `app` (APP=billing) | one-shot миграции | — |

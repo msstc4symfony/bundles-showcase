@@ -22,7 +22,7 @@ client ──HTTP──▶ gateway ──HTTP──▶ orders ──AMQP: Proces
 | `orders` | Stores the order as `pending`, then sends `ProcessPayment` and indexes the order in Elasticsearch through FOSElasticaBundle. Applies `PaymentProcessed` and moves the order to `paid` or `declined`. | RoadRunner + `messenger:consume payment_processed`; one-shots `orders-migrate` (schema) and `orders-search-index` (Elasticsearch index) before start |
 | `billing` | Records the payment. Amounts above `BILLING_DECLINE_ABOVE` (100000) are declined. | RoadRunner (service routes) + `messenger:consume process_payment` |
 
-Infrastructure: PostgreSQL 17, Redis 7, RabbitMQ 4, Elasticsearch 8 (single node, used by orders). Observability: Prometheus, Loki, Alloy and Grafana.
+Infrastructure: PostgreSQL 18, Redis 7, RabbitMQ 4, Elasticsearch 9 (single node, used by orders). Observability: Prometheus, Loki, Alloy and Grafana.
 
 ## Run it
 
