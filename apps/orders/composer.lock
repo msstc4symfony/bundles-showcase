@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c0de32f260a7f8ba3b123259fea95128",
+    "content-hash": "c51d862d8f175c139dbe3b83bb7da181",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -2567,22 +2567,22 @@
         },
         {
             "name": "msstc4symfony/tracing-bridge-logic",
-            "version": "v1.0.0",
+            "version": "v1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/tracing-bridge-logic.git",
-                "reference": "fda0a04d927bcf64a872d9a0852ceee9a13b3331"
+                "reference": "6c2acf5de2394e791fe4aeec76d7db6b6d866cb6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/tracing-bridge-logic/zipball/fda0a04d927bcf64a872d9a0852ceee9a13b3331",
-                "reference": "fda0a04d927bcf64a872d9a0852ceee9a13b3331",
+                "url": "https://api.github.com/repos/msstc4symfony/tracing-bridge-logic/zipball/6c2acf5de2394e791fe4aeec76d7db6b6d866cb6",
+                "reference": "6c2acf5de2394e791fe4aeec76d7db6b6d866cb6",
                 "shasum": ""
             },
             "require": {
                 "composer-runtime-api": ">=2.2",
                 "msstc4symfony/logic-bundle": "^1.1",
-                "msstc4symfony/tracing-bundle": "^1.1",
+                "msstc4symfony/tracing-bundle": "^1.2",
                 "php": ">=8.4",
                 "symfony/config": "^7.4|^8.0",
                 "symfony/dependency-injection": "^7.4|^8.0",
@@ -2639,24 +2639,20 @@
                 "symfony",
                 "tracing"
             ],
-            "support": {
-                "source": "https://github.com/msstc4symfony/tracing-bridge-logic/tree/v1.0.0",
-                "issues": "https://github.com/msstc4symfony/tracing-bridge-logic/issues"
-            },
-            "time": "2026-10-13T04:27:37+00:00"
+            "time": "2026-10-13T15:01:05+00:00"
         },
         {
             "name": "msstc4symfony/tracing-bundle",
-            "version": "v1.1.0",
+            "version": "v1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/tracing-bundle.git",
-                "reference": "d8544a6ecaf4ed7ecca61ebb66bb86f550030166"
+                "reference": "c8842ac1783523b759fbe54b91493d66c136a5d6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/tracing-bundle/zipball/d8544a6ecaf4ed7ecca61ebb66bb86f550030166",
-                "reference": "d8544a6ecaf4ed7ecca61ebb66bb86f550030166",
+                "url": "https://api.github.com/repos/msstc4symfony/tracing-bundle/zipball/c8842ac1783523b759fbe54b91493d66c136a5d6",
+                "reference": "c8842ac1783523b759fbe54b91493d66c136a5d6",
                 "shasum": ""
             },
             "require": {
@@ -2722,9 +2718,9 @@
                 "tracing"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/tracing-bundle/tree/v1.1.0"
+                "source": "https://github.com/msstc4symfony/tracing-bundle/tree/v1.2.0"
             },
-            "time": "2026-10-13T04:21:13+00:00"
+            "time": "2026-10-13T14:48:37+00:00"
         },
         {
             "name": "open-telemetry/api",

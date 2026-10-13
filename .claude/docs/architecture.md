@@ -39,7 +39,7 @@
   metrics-bridge-profiling спан Action попадает и в `symfony_profiling_span_duration_histogram_seconds`.
 - Третий бридж (с 2026-10-13 UTC) — `tracing-bridge-logic` (600, самый внешний): Action пишет логи и шлёт
   `ProcessPayment` в своём span id (`extra.span_id`), `extra.parent_span_id` = span HTTP-запроса orders.
-  tracing-bundle ^1.1 во всех трёх приложениях: исходящий `traceparent`/`TraceStamp` несёт span отправителя, поэтому
+  tracing-bundle ^1.2 во всех трёх приложениях (бридж ^1.1 строит span Action через `TraceContext::withChildSpan()`): исходящий `traceparent`/`TraceStamp` несёт span отправителя, поэтому
   дерево по логам сквозное: клиент → gateway → orders (запрос) → Action → billing-worker → orders-worker. Это
   проверяет e2e-сценарий «The logs of one order rebuild its call tree across processes».
 - Сервисы и воркеры с `restart: unless-stopped`: `messenger:consume --time-limit=3600` штатно выходит раз в час.

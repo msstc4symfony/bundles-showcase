@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2c0de16eb95e560f5a740b9ecbe9fc05",
+    "content-hash": "89b6efd4e6a7521dae39d40ae5bf9678",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -1778,16 +1778,16 @@
         },
         {
             "name": "msstc4symfony/tracing-bundle",
-            "version": "v1.1.0",
+            "version": "v1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/tracing-bundle.git",
-                "reference": "d8544a6ecaf4ed7ecca61ebb66bb86f550030166"
+                "reference": "c8842ac1783523b759fbe54b91493d66c136a5d6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/tracing-bundle/zipball/d8544a6ecaf4ed7ecca61ebb66bb86f550030166",
-                "reference": "d8544a6ecaf4ed7ecca61ebb66bb86f550030166",
+                "url": "https://api.github.com/repos/msstc4symfony/tracing-bundle/zipball/c8842ac1783523b759fbe54b91493d66c136a5d6",
+                "reference": "c8842ac1783523b759fbe54b91493d66c136a5d6",
                 "shasum": ""
             },
             "require": {
@@ -1852,10 +1852,7 @@
                 "symfony",
                 "tracing"
             ],
-            "support": {
-                "source": "https://github.com/msstc4symfony/tracing-bundle/tree/v1.1.0"
-            },
-            "time": "2026-10-13T04:21:13+00:00"
+            "time": "2026-10-13T14:48:37+00:00"
         },
         {
             "name": "promphp/prometheus_client_php",
