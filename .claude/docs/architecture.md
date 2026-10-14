@@ -115,4 +115,6 @@ Loki не опубликован. Локально у владельца 8080 и
   PHPUnit; затем PHPStan e2e, cs-fixer, Rector dry-run. Нужен Postgres на `127.0.0.1:5432`.
 - CI: `quality.yml` (матрица приложений + e2e-static + style), `e2e.yml` (весь стек + Behat, `@chaos` отдельным прогоном).
 - Версии бандлов — релизные теги из публичных GitHub-репозиториев (`vcs`), обновляет bundle-updates.
-  Ограничение во всех приложениях — `^1.0`.
+  Ограничения — нижние границы последних релизов (composer `bump-after-update`); с 2026-10-14 UTC — релизы
+  на PHP 8.2 (healthcheck ^1.3, logger ^1.1, logic ^1.2, metrics ^1.4, profiling ^1.1, tracing ^1.3, бриджи ^1.1 /
+  tracing-bridge-logic ^1.2). Сам полигон остаётся на PHP 8.5.
