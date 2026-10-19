@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "96783f598be6e02c6cca0e6ff9b137df",
+    "content-hash": "cff62e0df4746b1e58d58bc479fb4364",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -2082,16 +2082,16 @@
         },
         {
             "name": "msstc4symfony/logic-bundle",
-            "version": "v1.2.0",
+            "version": "v1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/logic-bundle.git",
-                "reference": "8e9152a8b6e1f11d46d2526643a6cbcefe6136bd"
+                "reference": "acab50177f3c7191fd0994103f8bd8f212ce359e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/logic-bundle/zipball/8e9152a8b6e1f11d46d2526643a6cbcefe6136bd",
-                "reference": "8e9152a8b6e1f11d46d2526643a6cbcefe6136bd",
+                "url": "https://api.github.com/repos/msstc4symfony/logic-bundle/zipball/acab50177f3c7191fd0994103f8bd8f212ce359e",
+                "reference": "acab50177f3c7191fd0994103f8bd8f212ce359e",
                 "shasum": ""
             },
             "require": {
@@ -2152,9 +2152,9 @@
                 "use-case"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/logic-bundle/tree/v1.2.0"
+                "source": "https://github.com/msstc4symfony/logic-bundle/tree/v1.3.0"
             },
-            "time": "2026-10-14T16:15:27+00:00"
+            "time": "2026-10-19T06:51:05+00:00"
         },
         {
             "name": "msstc4symfony/metrics-bridge-logic",
