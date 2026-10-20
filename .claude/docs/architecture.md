@@ -101,7 +101,7 @@ Multi-stage: `runtime` (расширения через install-php-extensions �
 Monolog → `php://stderr` (stdout у RoadRunner — канал протокола воркера), RoadRunner `logs.mode: raw`. Формат —
 logger-bundle `SwitchFormatter` → JSON одной строкой. Alloy читает docker-логи **только** контейнеров проекта
 (`com.docker.compose.project=bundles-showcase`), метка `service` = имя compose-сервиса. В LogQL поля `extra`
-плющатся: `extra_request_id`, `extra_runtime_id`, `extra_request_from`.
+плющатся: `extra_trace_id`, `extra_span_id`, `extra_parent_span_id`, `extra_runtime_id`, `extra_caller` (tracing 2.0: только W3C; `request_id`/`request_from` удалены).
 
 ## Порты
 

@@ -25,7 +25,7 @@ e2e: ## Behat scenarios against the running stack (make up first); @chaos runs l
 	docker compose run --rm --build e2e --tags='~@chaos'
 	docker compose run --rm e2e --tags='@chaos' --allow-no-tests
 
-demo-traffic: ## About 60 orders over a minute, then a request id to follow in Loki
+demo-traffic: ## About 60 orders over a minute, then a trace id to follow in Loki
 	docker compose run --rm --build --entrypoint php e2e bin/demo-traffic
 
 # Per project with its own autoloader: the apps share class names (App\\...) with different signatures,

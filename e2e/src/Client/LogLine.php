@@ -36,14 +36,14 @@ final readonly class LogLine
         return new self($service, is_string($message) ? $message : '', is_array($extra) ? $extra : []);
     }
 
-    public function requestFrom(): ?string
+    public function traceId(): ?string
     {
-        return $this->extraString('request_from');
+        return $this->extraString('trace_id');
     }
 
-    public function requestId(): ?string
+    public function caller(): ?string
     {
-        return $this->extraString('request_id');
+        return $this->extraString('caller');
     }
 
     public function runtimeId(): ?string

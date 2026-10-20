@@ -6,7 +6,7 @@ monolog:
       path: php://stderr
       level: info
       channels: ["!event", "!deprecation"]
-      formatter: Msstc4Symfony\LoggerBundle\Monolog\Formatter\SwitchFormatter
+      formatter: Msstc4Symfony\LoggerBundle\Framework\Monolog\Formatter\SwitchFormatter
 
 when@test:
   monolog:

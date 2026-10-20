@@ -22,17 +22,7 @@ final readonly class LokiClient
     }
 
     /**
-     * Log records of every showcase process that carry the request id, newest first.
-     *
-     * @return list<LogLine>
-     */
-    public function linesFor(string $requestId, float $sinceUnix): array
-    {
-        return $this->linesWhere('request_id', $requestId, $sinceUnix);
-    }
-
-    /**
-     * @param 'request_id'|'runtime_id'|'trace_id' $extraField
+     * @param 'runtime_id'|'trace_id' $extraField
      *
      * @return list<LogLine>
      */

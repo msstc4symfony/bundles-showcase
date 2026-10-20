@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ad21753dcf0fc1c986d4beb60da450ed",
+    "content-hash": "e512c8fe86af0b044babd108f6946778",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -248,16 +248,16 @@
         },
         {
             "name": "msstc4symfony/healthcheck-bundle",
-            "version": "v1.3.0",
+            "version": "v2.0.0-rc.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/healthcheck-bundle.git",
-                "reference": "9bac20233d2c66aa19b445b3d709069f3223bbd2"
+                "reference": "b1627d449cec141bbb3ec42194469377f7d06c2e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/healthcheck-bundle/zipball/9bac20233d2c66aa19b445b3d709069f3223bbd2",
-                "reference": "9bac20233d2c66aa19b445b3d709069f3223bbd2",
+                "url": "https://api.github.com/repos/msstc4symfony/healthcheck-bundle/zipball/b1627d449cec141bbb3ec42194469377f7d06c2e",
+                "reference": "b1627d449cec141bbb3ec42194469377f7d06c2e",
                 "shasum": ""
             },
             "require": {
@@ -330,22 +330,22 @@
                 "symfony"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/healthcheck-bundle/tree/v1.3.0"
+                "source": "https://github.com/msstc4symfony/healthcheck-bundle/tree/v2.0.0-rc.1"
             },
-            "time": "2026-10-14T17:25:58+00:00"
+            "time": "2026-10-19T07:22:46+00:00"
         },
         {
             "name": "msstc4symfony/logger-bundle",
-            "version": "v1.1.0",
+            "version": "v2.0.0-rc.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/logger-bundle.git",
-                "reference": "f2741609773e502dc3eedbdc14f74704a40719ac"
+                "reference": "66dba49422c4e733085211d31ed580a9d1f54c4b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/logger-bundle/zipball/f2741609773e502dc3eedbdc14f74704a40719ac",
-                "reference": "f2741609773e502dc3eedbdc14f74704a40719ac",
+                "url": "https://api.github.com/repos/msstc4symfony/logger-bundle/zipball/66dba49422c4e733085211d31ed580a9d1f54c4b",
+                "reference": "66dba49422c4e733085211d31ed580a9d1f54c4b",
                 "shasum": ""
             },
             "require": {
@@ -407,29 +407,31 @@
                 "symfony"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/logger-bundle/tree/v1.1.0"
+                "source": "https://github.com/msstc4symfony/logger-bundle/tree/v2.0.0-rc.1"
             },
-            "time": "2026-10-14T16:24:25+00:00"
+            "time": "2026-10-19T07:03:25+00:00"
         },
         {
             "name": "msstc4symfony/metrics-bridge-profiling",
-            "version": "v1.1.0",
+            "version": "v2.0.0-rc.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/metrics-bridge-profiling.git",
-                "reference": "d39bfd8f62f2e9fedaf107a41055666d5fc070f4"
+                "reference": "ddc189d637b2c9d1b7c8c678e8fd434c913df02e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/metrics-bridge-profiling/zipball/d39bfd8f62f2e9fedaf107a41055666d5fc070f4",
-                "reference": "d39bfd8f62f2e9fedaf107a41055666d5fc070f4",
+                "url": "https://api.github.com/repos/msstc4symfony/metrics-bridge-profiling/zipball/ddc189d637b2c9d1b7c8c678e8fd434c913df02e",
+                "reference": "ddc189d637b2c9d1b7c8c678e8fd434c913df02e",
                 "shasum": ""
             },
             "require": {
                 "composer-runtime-api": ">=2.2",
-                "msstc4symfony/metrics-bundle": "^1.4",
-                "msstc4symfony/profiling-bundle": "^1.1",
+                "monolog/monolog": "^3.5",
+                "msstc4symfony/metrics-bundle": "^2.0@rc",
+                "msstc4symfony/profiling-bundle": "^2.0@rc",
                 "php": ">=8.2",
+                "psr/log": "^2.0|^3.0",
                 "symfony/config": "^7.4|^8.0",
                 "symfony/dependency-injection": "^7.4|^8.0",
                 "symfony/http-kernel": "^7.4|^8.0"
@@ -486,22 +488,22 @@
                 "symfony"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/metrics-bridge-profiling/tree/v1.1.0"
+                "source": "https://github.com/msstc4symfony/metrics-bridge-profiling/tree/v2.0.0-rc.1"
             },
-            "time": "2026-10-14T17:36:05+00:00"
+            "time": "2026-10-20T10:12:44+00:00"
         },
         {
             "name": "msstc4symfony/metrics-bundle",
-            "version": "v1.4.0",
+            "version": "v2.0.0-rc.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/metrics-bundle.git",
-                "reference": "3dd038181b22d962007133f2aba3b423bf7b39ed"
+                "reference": "6c576f14149507abc6c6e90db1b65cc6f6f7bc03"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/metrics-bundle/zipball/3dd038181b22d962007133f2aba3b423bf7b39ed",
-                "reference": "3dd038181b22d962007133f2aba3b423bf7b39ed",
+                "url": "https://api.github.com/repos/msstc4symfony/metrics-bundle/zipball/6c576f14149507abc6c6e90db1b65cc6f6f7bc03",
+                "reference": "6c576f14149507abc6c6e90db1b65cc6f6f7bc03",
                 "shasum": ""
             },
             "require": {
@@ -575,22 +577,22 @@
                 "symfony"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/metrics-bundle/tree/v1.4.0"
+                "source": "https://github.com/msstc4symfony/metrics-bundle/tree/v2.0.0-rc.1"
             },
-            "time": "2026-10-14T16:52:55+00:00"
+            "time": "2026-10-19T11:11:53+00:00"
         },
         {
             "name": "msstc4symfony/profiling-bundle",
-            "version": "v1.1.0",
+            "version": "v2.0.0-rc.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/profiling-bundle.git",
-                "reference": "a34f386c7a747a99400bae14191a8110b489fa36"
+                "reference": "6a233f272768af10006abaccb1a5aa562e231738"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/profiling-bundle/zipball/a34f386c7a747a99400bae14191a8110b489fa36",
-                "reference": "a34f386c7a747a99400bae14191a8110b489fa36",
+                "url": "https://api.github.com/repos/msstc4symfony/profiling-bundle/zipball/6a233f272768af10006abaccb1a5aa562e231738",
+                "reference": "6a233f272768af10006abaccb1a5aa562e231738",
                 "shasum": ""
             },
             "require": {
@@ -660,22 +662,22 @@
                 "symfony"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/profiling-bundle/tree/v1.1.0"
+                "source": "https://github.com/msstc4symfony/profiling-bundle/tree/v2.0.0-rc.1"
             },
-            "time": "2026-10-14T16:56:40+00:00"
+            "time": "2026-10-19T07:01:28+00:00"
         },
         {
             "name": "msstc4symfony/tracing-bundle",
-            "version": "v1.3.0",
+            "version": "v2.0.0-rc.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/tracing-bundle.git",
-                "reference": "3e437582f2a7274a921685b7142990b6befae006"
+                "reference": "767ec593d9038a8b40be9d88aaceabb855041179"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/tracing-bundle/zipball/3e437582f2a7274a921685b7142990b6befae006",
-                "reference": "3e437582f2a7274a921685b7142990b6befae006",
+                "url": "https://api.github.com/repos/msstc4symfony/tracing-bundle/zipball/767ec593d9038a8b40be9d88aaceabb855041179",
+                "reference": "767ec593d9038a8b40be9d88aaceabb855041179",
                 "shasum": ""
             },
             "require": {
@@ -685,8 +687,7 @@
                 "symfony/console": "^7.4|^8.0",
                 "symfony/event-dispatcher": "^7.4|^8.0",
                 "symfony/framework-bundle": "^7.4|^8.0",
-                "symfony/service-contracts": "^3",
-                "symfony/uid": "^7.4|^8.0"
+                "symfony/service-contracts": "^3"
             },
             "conflict": {
                 "symfony/symfony": "*"
@@ -735,16 +736,16 @@
                     "email": "maxim.shamaev@gmail.com"
                 }
             ],
-            "description": "Request tracing for Symfony: propagates request id and caller across HTTP, Messenger and logs",
+            "description": "W3C Trace Context and Baggage for Symfony: propagates the trace across HTTP, Messenger and logs",
             "keywords": [
                 "php",
                 "symfony",
                 "tracing"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/tracing-bundle/tree/v1.3.0"
+                "source": "https://github.com/msstc4symfony/tracing-bundle/tree/v2.0.0-rc.1"
             },
-            "time": "2026-10-14T16:23:54+00:00"
+            "time": "2026-10-20T09:03:31+00:00"
         },
         {
             "name": "promphp/prometheus_client_php",
@@ -3916,89 +3917,6 @@
             "time": "2026-09-25T15:46:47+00:00"
         },
         {
-            "name": "symfony/polyfill-uuid",
-            "version": "v1.43.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/polyfill-uuid.git",
-                "reference": "b23ff8245cc5c4479ea2be3d0132d2e6dd433993"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-uuid/zipball/b23ff8245cc5c4479ea2be3d0132d2e6dd433993",
-                "reference": "b23ff8245cc5c4479ea2be3d0132d2e6dd433993",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.2"
-            },
-            "provide": {
-                "ext-uuid": "*"
-            },
-            "suggest": {
-                "ext-uuid": "For best performance"
-            },
-            "type": "library",
-            "extra": {
-                "thanks": {
-                    "url": "https://github.com/symfony/polyfill",
-                    "name": "symfony/polyfill"
-                }
-            },
-            "autoload": {
-                "files": [
-                    "bootstrap.php"
-                ],
-                "psr-4": {
-                    "Symfony\\Polyfill\\Uuid\\": ""
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Grégoire Pineau",
-                    "email": "lyrixx@lyrixx.info"
-                },
-                {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
-                }
-            ],
-            "description": "Symfony polyfill for uuid functions",
-            "homepage": "https://symfony.com",
-            "keywords": [
-                "compatibility",
-                "polyfill",
-                "portable",
-                "uuid"
-            ],
-            "support": {
-                "source": "https://github.com/symfony/polyfill-uuid/tree/v1.43.0"
-            },
-            "funding": [
-                {
-                    "url": "https://symfony.com/sponsor",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://github.com/fabpot",
-                    "type": "github"
-                },
-                {
-                    "url": "https://github.com/nicolas-grekas",
-                    "type": "github"
-                },
-                {
-                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
-                    "type": "tidelift"
-                }
-            ],
-            "time": "2026-09-24T05:20:52+00:00"
-        },
-        {
             "name": "symfony/property-access",
             "version": "v8.1.4",
             "source": {
@@ -5032,84 +4950,6 @@
                 }
             ],
             "time": "2026-09-28T19:13:15+00:00"
-        },
-        {
-            "name": "symfony/uid",
-            "version": "v8.1.9",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/uid.git",
-                "reference": "cb487cf30380f0b0b090973bb9c0588193c06685"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/symfony/uid/zipball/cb487cf30380f0b0b090973bb9c0588193c06685",
-                "reference": "cb487cf30380f0b0b090973bb9c0588193c06685",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=8.4.1",
-                "symfony/polyfill-uuid": "^1.15"
-            },
-            "require-dev": {
-                "symfony/console": "^7.4|^8.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Symfony\\Component\\Uid\\": ""
-                },
-                "exclude-from-classmap": [
-                    "/Tests/"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Grégoire Pineau",
-                    "email": "lyrixx@lyrixx.info"
-                },
-                {
-                    "name": "Nicolas Grekas",
-                    "email": "p@tchwork.com"
-                },
-                {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
-                }
-            ],
-            "description": "Provides an object-oriented API to generate and represent UIDs",
-            "homepage": "https://symfony.com",
-            "keywords": [
-                "UID",
-                "ulid",
-                "uuid"
-            ],
-            "support": {
-                "source": "https://github.com/symfony/uid/tree/v8.1.9"
-            },
-            "funding": [
-                {
-                    "url": "https://symfony.com/sponsor",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://github.com/fabpot",
-                    "type": "github"
-                },
-                {
-                    "url": "https://github.com/nicolas-grekas",
-                    "type": "github"
-                },
-                {
-                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
-                    "type": "tidelift"
-                }
-            ],
-            "time": "2026-10-12T14:32:04+00:00"
         },
         {
             "name": "symfony/var-dumper",
@@ -7674,6 +7514,167 @@
             "time": "2026-08-21T17:47:34+00:00"
         },
         {
+            "name": "symfony/polyfill-uuid",
+            "version": "v1.43.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-uuid.git",
+                "reference": "b23ff8245cc5c4479ea2be3d0132d2e6dd433993"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-uuid/zipball/b23ff8245cc5c4479ea2be3d0132d2e6dd433993",
+                "reference": "b23ff8245cc5c4479ea2be3d0132d2e6dd433993",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2"
+            },
+            "provide": {
+                "ext-uuid": "*"
+            },
+            "suggest": {
+                "ext-uuid": "For best performance"
+            },
+            "type": "library",
+            "extra": {
+                "thanks": {
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Uuid\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Grégoire Pineau",
+                    "email": "lyrixx@lyrixx.info"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill for uuid functions",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "polyfill",
+                "portable",
+                "uuid"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-uuid/tree/v1.43.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-09-24T05:20:52+00:00"
+        },
+        {
+            "name": "symfony/uid",
+            "version": "v8.1.9",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/uid.git",
+                "reference": "cb487cf30380f0b0b090973bb9c0588193c06685"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/uid/zipball/cb487cf30380f0b0b090973bb9c0588193c06685",
+                "reference": "cb487cf30380f0b0b090973bb9c0588193c06685",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.4.1",
+                "symfony/polyfill-uuid": "^1.15"
+            },
+            "require-dev": {
+                "symfony/console": "^7.4|^8.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Uid\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Grégoire Pineau",
+                    "email": "lyrixx@lyrixx.info"
+                },
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Provides an object-oriented API to generate and represent UIDs",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "UID",
+                "ulid",
+                "uuid"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/uid/tree/v8.1.9"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-10-12T14:32:04+00:00"
+        },
+        {
             "name": "theseer/tokenizer",
             "version": "2.0.1",
             "source": {
@@ -7725,7 +7726,7 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "stable",
+    "minimum-stability": "RC",
     "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,

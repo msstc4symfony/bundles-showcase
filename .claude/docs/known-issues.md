@@ -42,7 +42,7 @@
 
 - Alloy без фильтра по compose-проекту тащил логи **всех** контейнеров хоста и бэкфилл старых строк
   (Loki: `entry too far behind`).
-- В Loki поле request id — `extra_request_id` (не `request_id`).
+- В Loki поле trace id — `extra_trace_id` (не `trace_id`). С tracing 2.0 request id нет: e2e ищет по trace id своего `traceparent` (случайный на сценарий).
 - Логи Action в e2e и в `LogicBridgesTest` опознаются по тексту `application action` из `LoggingMiddleware`
   logic-bundle (констант для текста нет); если logic-bundle поменяет сообщения, оба теста упадут явно.
 - Метрики: `symfony_http_request`, `symfony_http_response{status}`, `symfony_request_duration_histogram_seconds`,

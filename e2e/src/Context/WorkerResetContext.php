@@ -12,12 +12,11 @@ use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Hook\BeforeScenario;
 use Behat\Step\Then;
 use Behat\Step\When;
+use LogicException;
 use Webmozart\Assert\Assert;
 
 final class WorkerResetContext implements Context
 {
-    private const string REQUEST_ID_HEADER = 'Request-Id';
-
     private const string UNKNOWN_ORDER = '0190e0f6-0000-7000-8000-00000000ffff';
 
     private OrderContext $orders;
@@ -26,8 +25,8 @@ final class WorkerResetContext implements Context
 
     private float $startedAt;
 
-    /** @var list<string> run-scoped request ids sent by this scenario */
-    private array $requestIds = [];
+    /** @var array<string, non-empty-string> readable label => trace id sent by this scenario */
+    private array $traces = [];
 
     #[BeforeScenario]
     public function gatherContexts(BeforeScenarioScope $scope): void
@@ -37,30 +36,26 @@ final class WorkerResetContext implements Context
         $this->startedAt = microtime(true) - 5;
     }
 
-    #[When('I send :count order lookups with request ids :first to :last')]
+    #[When('I send :count order lookups with traces :first to :last')]
     public function iSendOrderLookups(int $count, string $first, string $last): void
     {
         $prefix = (string) preg_replace('/\d+$/', '', $first);
-        Assert::same($last, $prefix . $count, 'The id range must run from <prefix>1 to <prefix><count>.');
+        Assert::same($last, $prefix . $count, 'The label range must run from <prefix>1 to <prefix><count>.');
 
         for ($i = 1; $i <= $count; $i++) {
-            $requestId = RunScoped::id($prefix . $i);
-            $this->requestIds[] = $requestId;
-            $this->orders->gateway->showOrder(self::UNKNOWN_ORDER, [self::REQUEST_ID_HEADER => $requestId]);
+            $this->orders->gateway->showOrder(self::UNKNOWN_ORDER, $this->traceHeaders($prefix . $i));
         }
     }
 
-    #[When('I create orders with request ids :first, :second and :third')]
-    public function iCreateOrdersWithRequestIds(string $first, string $second, string $third): void
+    #[When('I create orders with traces :first, :second and :third')]
+    public function iCreateOrdersWithTraces(string $first, string $second, string $third): void
     {
         foreach ([$first, $second, $third] as $readable) {
-            $requestId = RunScoped::id($readable);
-            $this->requestIds[] = $requestId;
-            Assert::same($this->orders->gateway->createOrder(5000, headers: [self::REQUEST_ID_HEADER => $requestId])->status, 201);
+            Assert::same($this->orders->gateway->createOrder(5000, headers: $this->traceHeaders($readable))->status, 201);
         }
     }
 
-    #[Then('within :seconds seconds the gateway logs show :count distinct runtime ids for those request ids')]
+    #[Then('within :seconds seconds the gateway logs show :count distinct runtime ids for those traces')]
     public function theGatewayLogsShowDistinctRuntimeIds(int $seconds, int $count): void
     {
         $runtimeIds = [];
@@ -68,13 +63,13 @@ final class WorkerResetContext implements Context
         Wait::until(
             function () use (&$runtimeIds): bool {
                 $runtimeIds = [];
-                foreach ($this->requestIds as $requestId) {
-                    $perRequest = $this->runtimeIdsOf('gateway', $requestId);
-                    if (count($perRequest) !== 1) {
+                foreach ($this->traces as $traceId) {
+                    $perTrace = $this->runtimeIdsOf('gateway', $traceId);
+                    if (count($perTrace) !== 1) {
                         return false;
                     }
 
-                    $runtimeIds[] = $perRequest[0];
+                    $runtimeIds[] = $perTrace[0];
                 }
 
                 return true;
@@ -86,17 +81,18 @@ final class WorkerResetContext implements Context
         Assert::count(array_unique($runtimeIds), $count);
     }
 
-    #[Then('no gateway log line of the :readable runtime carries another request id')]
-    public function noGatewayLineOfTheRuntimeCarriesAnotherRequestId(string $readable): void
+    #[Then('no gateway log line of the :readable runtime carries another trace id')]
+    public function noGatewayLineOfTheRuntimeCarriesAnotherTraceId(string $readable): void
     {
         $this->assertRuntimeIsolated('gateway', $readable);
     }
 
-    #[Then('within :seconds seconds no :service log line of the :readable runtime carries another request id')]
-    public function withinNoLineOfTheRuntimeCarriesAnotherRequestId(int $seconds, string $service, string $readable): void
+    #[Then('within :seconds seconds no :service log line of the :readable runtime carries another trace id')]
+    public function withinNoLineOfTheRuntimeCarriesAnotherTraceId(int $seconds, string $service, string $readable): void
     {
+        $traceId = $this->traceOf($readable);
         Wait::until(
-            fn (): bool => $this->runtimeIdsOf($service, RunScoped::id($readable)) !== [],
+            fn (): bool => $this->runtimeIdsOf($service, $traceId) !== [],
             $seconds,
             sprintf('No "%s" logs for "%s".', $service, $readable),
         );
@@ -104,15 +100,34 @@ final class WorkerResetContext implements Context
         $this->assertRuntimeIsolated($service, $readable);
     }
 
+    /**
+     * @return array{traceparent: non-empty-string}
+     */
+    private function traceHeaders(string $readable): array
+    {
+        $traceId = bin2hex(random_bytes(16));
+        $this->traces[$readable] = $traceId;
+
+        return ['traceparent' => sprintf('00-%s-%s-01', $traceId, bin2hex(random_bytes(8)))];
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    private function traceOf(string $readable): string
+    {
+        return $this->traces[$readable] ?? throw new LogicException(sprintf('Send the "%s" trace first.', $readable));
+    }
+
     private function assertRuntimeIsolated(string $service, string $readable): void
     {
-        $requestId = RunScoped::id($readable);
-        $runtimeIds = $this->runtimeIdsOf($service, $requestId);
+        $traceId = $this->traceOf($readable);
+        $runtimeIds = $this->runtimeIdsOf($service, $traceId);
         Assert::notEmpty($runtimeIds, sprintf('No "%s" logs for "%s".', $service, $readable));
 
         foreach ($runtimeIds as $runtimeId) {
             foreach ($this->loki->linesWhere('runtime_id', $runtimeId, $this->startedAt) as $line) {
-                Assert::same($line->requestId(), $requestId, sprintf('Runtime %s of "%s" logged "%s".', $runtimeId, $readable, $line->message));
+                Assert::same($line->traceId(), $traceId, sprintf('Runtime %s of "%s" logged "%s".', $runtimeId, $readable, $line->message));
             }
         }
     }
@@ -120,10 +135,10 @@ final class WorkerResetContext implements Context
     /**
      * @return list<string>
      */
-    private function runtimeIdsOf(string $service, string $requestId): array
+    private function runtimeIdsOf(string $service, string $traceId): array
     {
         $lines = array_filter(
-            $this->loki->linesFor($requestId, $this->startedAt),
+            $this->loki->linesWhere('trace_id', $traceId, $this->startedAt),
             static fn (LogLine $line): bool => $line->service === $service && $line->runtimeId() !== null,
         );
 

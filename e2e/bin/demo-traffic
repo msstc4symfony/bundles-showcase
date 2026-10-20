@@ -12,13 +12,13 @@ const DECLINE_ABOVE = 100_000;
 
 $gateway = new GatewayClient();
 $keys = [];
-$sampleRequestId = null;
+$sampleTraceId = null;
 $statuses = [];
 
 for ($i = 1; $i <= ORDERS; ++$i) {
-    $requestId = sprintf('demo-%s-%02d', date('His'), $i);
-    $sampleRequestId ??= $requestId;
-    $headers = ['Request-Id' => $requestId];
+    $traceId = bin2hex(random_bytes(16));
+    $sampleTraceId ??= $traceId;
+    $headers = ['traceparent' => sprintf('00-%s-%s-01', $traceId, bin2hex(random_bytes(8)))];
 
     $amount = random_int(1, 5) === 1 ? random_int(DECLINE_ABOVE + 1, 3 * DECLINE_ABOVE) : random_int(100, DECLINE_ABOVE);
     if (random_int(1, 10) === 1) {
@@ -37,4 +37,4 @@ for ($i = 1; $i <= ORDERS; ++$i) {
 ksort($statuses);
 echo 'Responses by status: ', json_encode($statuses), PHP_EOL;
 echo 'Follow one request in Grafana → Explore → Loki:', PHP_EOL;
-printf('  {service=~".+"} | json | extra_request_id="%s"%s', $sampleRequestId, PHP_EOL);
+printf('  {service=~".+"} | json | extra_trace_id="%s"%s', $sampleTraceId, PHP_EOL);

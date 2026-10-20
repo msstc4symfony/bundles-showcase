@@ -7,8 +7,8 @@ framework:
     buses:
       messenger.bus.default:
         middleware:
-          - Msstc4Symfony\TracingBundle\Messenger\Middleware\OutgoingStampMiddleware
-          - Msstc4Symfony\TracingBundle\Messenger\Middleware\IncomingStampMiddleware
+          - Msstc4Symfony\TracingBundle\Framework\Messenger\OutgoingTraceMiddleware
+          - Msstc4Symfony\TracingBundle\Framework\Messenger\IncomingTraceMiddleware
     transports:
       failed: '%env(FAILED_TRANSPORT_DSN)%'
       process_payment:

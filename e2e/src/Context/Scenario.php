@@ -16,8 +16,6 @@ final class Scenario
 
     public ?string $lastOrderId = null;
 
-    public ?string $requestId = null;
-
     public function lastResponse(): GatewayResponse
     {
         return $this->lastResponse ?? throw new LogicException('No request has been sent yet in this scenario.');

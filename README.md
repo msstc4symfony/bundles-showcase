@@ -28,7 +28,7 @@ Infrastructure: PostgreSQL 18, Redis 7, RabbitMQ 4, Elasticsearch 9 (single node
 
 ```bash
 make up            # build and start everything, wait until healthy
-make demo-traffic  # ~60 orders over a minute; prints a request id to follow
+make demo-traffic  # ~60 orders over a minute; prints a trace id to follow
 make e2e           # Behat scenarios; @chaos (stops Redis / orders / Elasticsearch) runs last
 make down          # stop and drop volumes
 ```
@@ -47,28 +47,30 @@ All ports bind to `127.0.0.1` only. When a port is already taken, override it:
 ## Follow one request
 
 ```bash
-curl -s -XPOST localhost:8080/orders -H 'Content-Type: application/json' \
-     -H 'Request-Id: my-first-order' -d '{"amount":5000}'
+curl -si -XPOST localhost:8080/orders -H 'Content-Type: application/json' \
+     -H 'traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01' -d '{"amount":5000}'
 ```
 
-In Grafana, open Explore → Loki and run:
+The response carries `traceresponse` with the same trace id (without `traceparent` the gateway starts a trace and
+returns it there). In Grafana, open Explore → Loki and run:
 
 ```logql
-{service=~".+"} | json | extra_request_id="my-first-order"
+{service=~".+"} | json | extra_trace_id="4bf92f3577b34da6a3ce929d0e0e4736"
 ```
 
-A W3C `traceparent` header works too: search Loki with `extra_trace_id="<trace-id>"`.
+The same trace id shows up in four processes: `gateway`, `orders`, `billing-worker` and `orders-worker`. In each
+of them, `extra_caller` names the caller (`showcase:gateway`, `showcase:orders`, `showcase:billing`, sent in W3C
+`baggage`), and `extra_parent_span_id` is a `span_id` logged by that caller.
 
-The same request id shows up in four processes: `gateway`, `orders`, `billing-worker` and
-`orders-worker`. In each of them, `extra_request_from` names the caller
-(`showcase:gateway`, `showcase:orders`, `showcase:billing`).
+Switching a running stack from the 1.x bundles: drain RabbitMQ first — the tracing stamp class moved in 2.0 and
+messages stamped by 1.x cannot be decoded.
 
 ## What each bundle contributes
 
 | Bundle | Seen here as |
 |---|---|
-| [logger-bundle](https://github.com/msstc4symfony/logger-bundle) | One JSON log record per line on stderr, with `request_id`, `runtime_id`, `request_from` and the container id in `extra` |
-| [tracing-bundle](https://github.com/msstc4symfony/tracing-bundle) | `Request-Id` carried across HTTP and RabbitMQ in both directions; a fresh runtime id for every request and message on reused workers; W3C `traceparent`/`tracestate` continued end to end (`extra_trace_id` in Loki) |
+| [logger-bundle](https://github.com/msstc4symfony/logger-bundle) | One JSON log record per line on stderr, with `trace_id`, `span_id`, `parent_span_id`, `caller`, `runtime_id` and the container id in `extra` |
+| [tracing-bundle](https://github.com/msstc4symfony/tracing-bundle) | W3C `traceparent`/`tracestate`/`baggage` carried across HTTP and RabbitMQ in both directions, `traceresponse` on every response; a fresh runtime id for every request and message on reused workers (`extra_trace_id` in Loki) |
 | [metrics-bundle](https://github.com/msstc4symfony/metrics-bundle) | `/_/metrics` on every service: routes, statuses, latency, outbound HTTP, Doctrine queries per connection name, Messenger messages sent and handled, Elasticsearch requests of the FOSElasticaBundle client (`symfony_elastica_request_success{method="PUT",path="orders/_doc/<id>"}`), errors |
 | [healthcheck-bundle](https://github.com/msstc4symfony/healthcheck-bundle) | `/_/healthcheck/liveliness` (used by the compose healthchecks) and `/_/healthcheck/readiness` (Redis, Postgres, RabbitMQ, lock store, Elasticsearch through `fos_elastica.client.default`; `?_format=json` for JSON) |
 | [profiling-bundle](https://github.com/msstc4symfony/profiling-bundle) | A span for every request and consumed message |

@@ -18,8 +18,6 @@ use Webmozart\Assert\Assert;
 
 final class TracingContext implements Context
 {
-    private const string REQUEST_ID_HEADER = 'Request-Id';
-
     // logic-bundle's LoggingMiddleware writes "Start|Finish|Fail application action <name>" inside the Action's span.
     private const string ACTION_LOG_MARKER = 'application action';
 
@@ -43,15 +41,6 @@ final class TracingContext implements Context
         $this->loki = new LokiClient();
         // Small margin: container clocks and the runner clock may differ slightly.
         $this->startedAt = microtime(true) - 5;
-    }
-
-    #[When('I create an order for :amount with request id :requestId')]
-    public function iCreateAnOrderWithRequestId(int $amount, string $requestId): void
-    {
-        $this->orders->recordCreation($this->orders->gateway->createOrder(
-            $amount,
-            headers: [self::REQUEST_ID_HEADER => RunScoped::id($requestId)],
-        ));
     }
 
     #[When('I create an order for :amount with a traceparent')]
@@ -109,50 +98,39 @@ final class TracingContext implements Context
         );
     }
 
-    #[Then('the response header :name is the request id :requestId')]
-    public function theResponseHeaderIsTheRequestId(string $name, string $requestId): void
+    #[Then('the response header :name continues that trace')]
+    public function theResponseHeaderContinuesThatTrace(string $name): void
     {
-        Assert::same($this->orders->scenario->lastResponse()->header($name), RunScoped::id($requestId));
+        $traceId = $this->traceId ?? throw new LogicException('Send a traceparent first.');
+        $parts = explode('-', $this->orders->scenario->lastResponse()->header($name) ?? '');
+
+        Assert::count($parts, 4, sprintf('"%s" is not a traceparent-shaped header.', $name));
+        Assert::same($parts[1], $traceId);
+        Assert::notSame($parts[2], $this->clientSpanId, 'The server must answer with its own span.');
     }
 
-    #[Then('the response has a non-empty :name header')]
-    public function theResponseHasANonEmptyHeader(string $name): void
+    #[Then('the response has a :name header with a new trace id')]
+    public function theResponseHasAHeaderWithANewTraceId(string $name): void
     {
-        Assert::stringNotEmpty($this->orders->scenario->lastResponse()->header($name));
+        $parts = explode('-', $this->orders->scenario->lastResponse()->header($name) ?? '');
+
+        Assert::count($parts, 4, sprintf('"%s" is not a traceparent-shaped header.', $name));
+        Assert::regex($parts[1], '/^[0-9a-f]{32}$/');
+        $this->traceId = $parts[1];
     }
 
-    #[Then('within :seconds seconds logs with request id :requestId come from:')]
-    public function logsComeFrom(int $seconds, string $requestId, TableNode $services): void
+    #[Then('the :service logs of that trace have caller :caller')]
+    public function theLogsOfThatTraceHaveCaller(string $service, string $caller): void
     {
-        $expected = $this->serviceNames($services);
-        $seen = [];
-
-        Wait::until(
-            function () use ($requestId, $expected, &$seen): bool {
-                $seen = array_values(array_unique(array_map(
-                    static fn (LogLine $line): string => $line->service,
-                    $this->loki->linesFor(RunScoped::id($requestId), $this->startedAt),
-                )));
-                sort($seen);
-
-                return array_values(array_intersect($expected, $seen)) === $expected;
-            },
-            $seconds,
-            sprintf('Logs for request id "%s" did not reach every process in time.', $requestId),
-        );
-    }
-
-    #[Then('the :service logs for request id :requestId have request from :caller')]
-    public function theLogsHaveRequestFrom(string $service, string $requestId, string $caller): void
-    {
+        $traceId = $this->traceId ?? throw new LogicException('Send a traceparent first.');
         $lines = array_filter(
-            $this->loki->linesFor(RunScoped::id($requestId), $this->startedAt),
+            $this->loki->linesWhere('trace_id', $traceId, $this->startedAt),
             static fn (LogLine $line): bool => $line->service === $service,
         );
 
-        Assert::notEmpty($lines, sprintf('No "%s" logs for request id "%s".', $service, $requestId));
+        Assert::notEmpty($lines, sprintf('No "%s" logs for trace id %s.', $service, $traceId));
         foreach ($lines as $line) {
-            Assert::same($line->requestFrom(), $caller, sprintf('"%s" log "%s" has the wrong request_from.', $service, $line->message));
+            Assert::same($line->caller(), $caller, sprintf('"%s" log "%s" has the wrong caller.', $service, $line->message));
         }
     }
 

@@ -646,7 +646,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         }>,
  *     },
  *     uid?: bool|array{ // Uid configuration
- *         enabled?: bool|Param, // Default: true
+ *         enabled?: bool|Param, // Default: false
  *         default_uuid_version?: 7|6|4|1|Param, // Default: 7
  *         name_based_uuid_version?: 5|3|Param, // Default: 5
  *         name_based_uuid_namespace?: scalar|Param|null,
@@ -1208,8 +1208,8 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     metric_enums?: list<scalar|Param|null>,
  * }
  * @psalm-type Msstc4symfonyTracingConfig = array{
- *     application_name?: string|Param, // First half of the request-from value this service sends downstream. // Default: "%env(default:msstc4symfony_tracing.unknown:APPLICATION_NAME)%"
- *     component_name?: string|Param, // Second half of the request-from value this service sends downstream. // Default: "%env(default:msstc4symfony_tracing.unknown:COMPONENT_NAME)%"
+ *     application_name?: string|Param, // First half of the caller name this service sends downstream in W3C baggage. // Default: "%env(default:msstc4symfony_tracing.unknown:APPLICATION_NAME)%"
+ *     component_name?: string|Param, // Second half of the caller name this service sends downstream in W3C baggage. // Default: "%env(default:msstc4symfony_tracing.unknown:COMPONENT_NAME)%"
  * }
  * @psalm-type BaldinofRoadRunnerConfig = array{
  *     kernel_reboot?: array{
