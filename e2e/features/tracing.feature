@@ -17,6 +17,7 @@ Feature: One W3C trace across HTTP and RabbitMQ
     Then the response has a "traceresponse" header with a new trace id
     And within 15 seconds logs with that trace id come from:
       | gateway |
+    And the "gateway" logs of that trace start it
 
   Scenario: The logs of one trace rebuild the call tree
     When I create an order for 5000 with a traceparent

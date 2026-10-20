@@ -90,11 +90,12 @@ final class WorkerResetContext implements Context
     #[Then('within :seconds seconds no :service log line of the :readable runtime carries another trace id')]
     public function withinNoLineOfTheRuntimeCarriesAnotherTraceId(int $seconds, string $service, string $readable): void
     {
-        $traceId = $this->traceOf($readable);
+        $this->traceOf($readable);
+        // Every trace of the scenario must reach Loki first: a leak into a later message is only visible once it has.
         Wait::until(
-            fn (): bool => $this->runtimeIdsOf($service, $traceId) !== [],
+            fn (): bool => array_filter($this->traces, fn (string $trace): bool => $this->runtimeIdsOf($service, $trace) === []) === [],
             $seconds,
-            sprintf('No "%s" logs for "%s".', $service, $readable),
+            sprintf('Not every trace of this scenario reached the "%s" logs in time.', $service),
         );
 
         $this->assertRuntimeIsolated($service, $readable);

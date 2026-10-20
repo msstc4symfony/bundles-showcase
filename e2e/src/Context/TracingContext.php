@@ -102,9 +102,8 @@ final class TracingContext implements Context
     public function theResponseHeaderContinuesThatTrace(string $name): void
     {
         $traceId = $this->traceId ?? throw new LogicException('Send a traceparent first.');
-        $parts = explode('-', $this->orders->scenario->lastResponse()->header($name) ?? '');
+        $parts = $this->traceResponseParts($name);
 
-        Assert::count($parts, 4, sprintf('"%s" is not a traceparent-shaped header.', $name));
         Assert::same($parts[1], $traceId);
         Assert::notSame($parts[2], $this->clientSpanId, 'The server must answer with its own span.');
     }
@@ -112,11 +111,7 @@ final class TracingContext implements Context
     #[Then('the response has a :name header with a new trace id')]
     public function theResponseHasAHeaderWithANewTraceId(string $name): void
     {
-        $parts = explode('-', $this->orders->scenario->lastResponse()->header($name) ?? '');
-
-        Assert::count($parts, 4, sprintf('"%s" is not a traceparent-shaped header.', $name));
-        Assert::regex($parts[1], '/^[0-9a-f]{32}$/');
-        $this->traceId = $parts[1];
+        $this->traceId = $this->traceResponseParts($name)[1];
     }
 
     #[Then('the :service logs of that trace have caller :caller')]
@@ -132,6 +127,42 @@ final class TracingContext implements Context
         foreach ($lines as $line) {
             Assert::same($line->caller(), $caller, sprintf('"%s" log "%s" has the wrong caller.', $service, $line->message));
         }
+    }
+
+    /**
+     * A trace the gateway started has no parent: a gateway worker that kept the previous request's context
+     * would log that request's trace and span as parent instead.
+     */
+    #[Then('the :service logs of that trace start it')]
+    public function theLogsOfThatTraceStartIt(string $service): void
+    {
+        $traceId = $this->traceId ?? throw new LogicException('Read a trace id first.');
+        $lines = array_filter(
+            $this->loki->linesWhere('trace_id', $traceId, $this->startedAt),
+            static fn (LogLine $line): bool => $line->service === $service,
+        );
+
+        Assert::notEmpty($lines, sprintf('No "%s" logs for trace id %s.', $service, $traceId));
+        foreach ($lines as $line) {
+            Assert::null($line->parentSpanId(), sprintf('"%s" log "%s" has a parent span in a trace it started.', $service, $line->message));
+        }
+    }
+
+    /**
+     * @return array{non-empty-string, non-empty-string, non-empty-string, non-empty-string} version, trace id, span id, flags
+     */
+    private function traceResponseParts(string $name): array
+    {
+        $value = $this->orders->scenario->lastResponse()->header($name) ?? '';
+        Assert::regex($value, '/^00-(?!0{32})[0-9a-f]{32}-(?!0{16})[0-9a-f]{16}-[0-9a-f]{2}$/D', sprintf('"%s: %s" is not a valid traceparent-shaped value.', $name, $value));
+
+        [$version, $traceId, $spanId, $flags] = explode('-', $value);
+        Assert::stringNotEmpty($version);
+        Assert::stringNotEmpty($traceId);
+        Assert::stringNotEmpty($spanId);
+        Assert::stringNotEmpty($flags);
+
+        return [$version, $traceId, $spanId, $flags];
     }
 
     /**

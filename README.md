@@ -51,7 +51,8 @@ curl -si -XPOST localhost:8080/orders -H 'Content-Type: application/json' \
      -H 'traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01' -d '{"amount":5000}'
 ```
 
-The response carries `traceresponse` with the same trace id (without `traceparent` the gateway starts a trace and
+Use a fresh trace id for each try (`openssl rand -hex 16`), or the Loki query below mixes the runs. The response
+carries `traceresponse` with the same trace id (without `traceparent` the gateway starts a trace and
 returns it there). In Grafana, open Explore → Loki and run:
 
 ```logql
