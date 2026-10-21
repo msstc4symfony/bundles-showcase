@@ -1,0 +1,4 @@
+msstc4symfony_tracing:
+    baggage:
+        # The gateway's baggage goes to the orders service only; every other host gets the trace headers alone.
+        allowed_hosts: ['%env(string:key:host:url:ORDERS_URL)%']

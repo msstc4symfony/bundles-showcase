@@ -46,12 +46,51 @@ final class TracingContext implements Context
     #[When('I create an order for :amount with a traceparent')]
     public function iCreateAnOrderWithATraceparent(int $amount): void
     {
-        $this->traceId = bin2hex(random_bytes(16));
-        $this->clientSpanId = bin2hex(random_bytes(8));
         $this->orders->recordCreation($this->orders->gateway->createOrder(
             $amount,
-            headers: ['traceparent' => sprintf('00-%s-%s-01', $this->traceId, $this->clientSpanId)],
+            headers: ['traceparent' => $this->newTraceParent()],
         ));
+    }
+
+    #[When('I send the baggage probe with a traceparent')]
+    public function iSendTheBaggageProbeWithATraceparent(): void
+    {
+        $response = $this->orders->gateway->probeBaggage([
+            'traceparent' => $this->newTraceParent(),
+            'baggage' => 'tenant=e2e',
+        ]);
+
+        Assert::same(
+            $response->body,
+            ['direct' => 200, 'via_orders' => 200],
+            'The baggage probe did not reach the echo.',
+        );
+    }
+
+    #[Then('within :seconds seconds the baggage echo gets that trace on :first and :second without baggage')]
+    public function theBaggageEchoGetsThatTraceWithoutBaggage(int $seconds, string $first, string $second): void
+    {
+        $traceId = $this->traceId ?? throw new LogicException('Send a traceparent first.');
+        $paths = [$first, $second];
+        $lines = [];
+
+        Wait::until(
+            function () use ($traceId, $paths, &$lines): bool {
+                $lines = array_values(array_filter(
+                    $this->loki->linesWhere('trace_id', $traceId, $this->startedAt),
+                    static fn (LogLine $line): bool => $line->service === 'baggage-echo',
+                ));
+                $seen = array_filter(array_map(static fn (LogLine $line): ?string => $line->path(), $lines), is_string(...));
+
+                return array_diff($paths, $seen) === [];
+            },
+            $seconds,
+            sprintf('The baggage echo did not log trace id %s on %s and %s in time.', $traceId, $first, $second),
+        );
+
+        foreach ($lines as $line) {
+            Assert::null($line->baggage(), sprintf('The baggage echo got baggage on "%s".', $line->message));
+        }
     }
 
     #[Then('within :seconds seconds logs with that trace id come from:')]
@@ -221,5 +260,13 @@ final class TracingContext implements Context
         sort($names);
 
         return $names;
+    }
+
+    private function newTraceParent(): string
+    {
+        $this->traceId = bin2hex(random_bytes(16));
+        $this->clientSpanId = bin2hex(random_bytes(8));
+
+        return sprintf('00-%s-%s-01', $this->traceId, $this->clientSpanId);
     }
 }

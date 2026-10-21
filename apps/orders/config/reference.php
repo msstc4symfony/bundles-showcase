@@ -1215,6 +1215,9 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  * @psalm-type Msstc4symfonyTracingConfig = array{
  *     application_name?: string|Param, // First half of the caller name this service sends downstream in W3C baggage. // Default: "%env(default:msstc4symfony_tracing.unknown:APPLICATION_NAME)%"
  *     component_name?: string|Param, // Second half of the caller name this service sends downstream in W3C baggage. // Default: "%env(default:msstc4symfony_tracing.unknown:COMPONENT_NAME)%"
+ *     baggage?: array{
+ *         allowed_hosts?: null|list<string|Param>,
+ *     },
  * }
  * @psalm-type Msstc4symfonyLogicConfig = array{
  *     logging?: array{

@@ -12,6 +12,14 @@ Feature: One W3C trace across HTTP and RabbitMQ
       | orders-worker  |
     And the "orders" logs of that trace have caller "showcase:gateway"
 
+  Scenario: Only the listed host gets the gateway's baggage, redirects included
+    When I send the baggage probe with a traceparent
+    Then within 15 seconds logs with that trace id come from:
+      | gateway |
+      | orders  |
+    And the "orders" logs of that trace have caller "showcase:gateway"
+    And within 15 seconds the baggage echo gets that trace on "/direct" and "/via-orders" without baggage
+
   Scenario: A request without a traceparent gets a new trace
     When I create an order for 5000
     Then the response has a "traceresponse" header with a new trace id

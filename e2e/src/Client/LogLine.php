@@ -61,6 +61,16 @@ final readonly class LogLine
         return $this->extraString('parent_span_id');
     }
 
+    public function path(): ?string
+    {
+        return $this->extraString('path');
+    }
+
+    public function baggage(): ?string
+    {
+        return $this->extraString('baggage');
+    }
+
     private function extraString(string $key): ?string
     {
         $value = $this->extra[$key] ?? null;

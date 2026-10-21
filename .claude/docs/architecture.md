@@ -13,6 +13,7 @@
 | `billing` | `app` (APP=billing) | RoadRunner (только `/_/metrics`, `/_/healthcheck/*`) | — |
 | `billing-worker` | `app` (APP=billing) | `messenger:consume process_payment` | платёж + ответ `PaymentProcessed` |
 | `billing-migrate` | `app` (APP=billing) | one-shot миграции | — |
+| `baggage-echo` | `php:8.5.10-cli` | `php -S` + `docker/baggage-echo/echo.php` | хост вне `allowed_hosts` gateway: логирует `trace_id`, `path`, `baggage` для e2e (кроме `/_/*`); gateway ждёт его healthy только ради `up --wait` перед e2e |
 | `e2e` (profile `e2e`) | `e2e` | Behat 4 (`behat.php`) | сценарии; docker CLI для `@chaos` |
 
 Три приложения независимы (свой `composer.json/lock`, свой Kernel), общий только `docker/php/Dockerfile`.

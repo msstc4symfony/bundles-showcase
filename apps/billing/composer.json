@@ -16,7 +16,7 @@
         "msstc4symfony/metrics-bridge-profiling": "^2.0",
         "msstc4symfony/metrics-bundle": "^2.0",
         "msstc4symfony/profiling-bundle": "^2.0",
-        "msstc4symfony/tracing-bundle": "^2.1.1",
+        "msstc4symfony/tracing-bundle": "^2.1.2",
         "symfony/amqp-messenger": "8.1.*",
         "symfony/clock": "8.1.*",
         "symfony/console": "8.1.*",

@@ -16,6 +16,7 @@ x-gateway-env: &gateway-env
   METRICS_STORAGE_DSN: redis://redis:6379?database=1
   ORDERS_URL: http://orders:8080
   LOCK_DSN: redis://redis:6379/0
+  BAGGAGE_ECHO_URL: http://baggage-echo:8080
 
 x-orders-env: &orders-env
   <<: *common-env
@@ -25,6 +26,7 @@ x-orders-env: &orders-env
   METRICS_STORAGE_DSN: redis://redis:6379?database=3
   MESSENGER_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f
   ELASTICSEARCH_URL: http://elasticsearch:9200
+  BAGGAGE_ECHO_URL: http://baggage-echo:8080
 
 x-billing-env: &billing-env
   <<: *common-env
@@ -50,6 +52,7 @@ services:
     depends_on:
       redis: { condition: service_healthy }
       orders: { condition: service_healthy }
+      baggage-echo: { condition: service_healthy }
 
   orders-migrate:
     build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: orders } }
@@ -107,6 +110,13 @@ services:
     environment: *billing-env
     depends_on:
       billing: { condition: service_healthy }
+
+  # A host off the gateway's baggage.allowed_hosts: logs the baggage it gets, for e2e.
+  baggage-echo:
+    image: php:8.5.10-cli
+    command: ["php", "-S", "0.0.0.0:8080", "/srv/echo.php"]
+    volumes: ["./docker/baggage-echo/echo.php:/srv/echo.php:ro"]
+    healthcheck: *liveliness
 
   postgres:
     image: postgres:18.4

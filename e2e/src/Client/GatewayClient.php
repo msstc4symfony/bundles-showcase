@@ -61,6 +61,14 @@ final readonly class GatewayClient
         return $this->read($this->http->request('GET', '/orders/' . $id, ['headers' => $headers]));
     }
 
+    /**
+     * @param array<string, string> $headers
+     */
+    public function probeBaggage(array $headers = []): GatewayResponse
+    {
+        return $this->read($this->http->request('GET', '/_probe/baggage', ['headers' => $headers]));
+    }
+
     private function read(ResponseInterface $response): GatewayResponse
     {
         $content = $response->getContent(false);

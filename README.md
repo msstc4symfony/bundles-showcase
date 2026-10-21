@@ -63,6 +63,12 @@ The same trace id shows up in four processes: `gateway`, `orders`, `billing-work
 of them, `extra_caller` names the caller (`showcase:gateway`, `showcase:orders`, `showcase:billing`, sent in W3C
 `baggage`), and `extra_parent_span_id` is a `span_id` logged by that caller.
 
+The gateway sends its baggage to orders only (`msstc4symfony_tracing.baggage.allowed_hosts`, the host of
+`ORDERS_URL`); other hosts get `traceparent` and `tracestate` alone. The e2e stand checks it with
+`baggage-echo`, a host off the list: the gateway calls it directly and through a 307 from orders
+(`GET /_probe/baggage` and `/_probe/redirect`, both on only when `BAGGAGE_ECHO_URL` is set), and the echo
+logs that neither call carried baggage.
+
 Switching a running stack from the 1.x bundles: drain RabbitMQ first — the tracing stamp class moved in 2.0 and
 messages stamped by 1.x cannot be decoded.
 

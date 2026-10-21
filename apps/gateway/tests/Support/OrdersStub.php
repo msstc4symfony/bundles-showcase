@@ -11,16 +11,18 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 /**
  * Stands in for the orders service: every HttpClient of the test kernel answers through it
  * (framework.http_client.mock_response_factory).
+ *
+ * @phpstan-type RequestOptions array{normalized_headers?: array<string, list<string>>, ...}
  */
 final class OrdersStub
 {
-    /** @var (Closure(string, string): MockResponse)|null */
+    /** @var (Closure(string, string, RequestOptions): MockResponse)|null */
     private ?Closure $respond = null;
 
     public int $calls = 0;
 
     /**
-     * @param Closure(string, string): MockResponse $respond receives the method and the URL
+     * @param Closure(string, string, RequestOptions): MockResponse $respond receives the method, the URL and the options
      */
     public function respondWith(Closure $respond): void
     {
@@ -28,7 +30,10 @@ final class OrdersStub
         $this->calls = 0;
     }
 
-    public function __invoke(string $method, string $url): MockResponse
+    /**
+     * @param RequestOptions $options
+     */
+    public function __invoke(string $method, string $url, array $options = []): MockResponse
     {
         if (!$this->respond instanceof Closure) {
             throw new LogicException('OrdersStub has no configured answer.');
@@ -36,6 +41,6 @@ final class OrdersStub
 
         $this->calls++;
 
-        return ($this->respond)($method, $url);
+        return ($this->respond)($method, $url, $options);
     }
 }

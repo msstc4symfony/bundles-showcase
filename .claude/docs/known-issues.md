@@ -225,3 +225,18 @@
   Тома данных у сервиса нет, поэтому перенос `PGDATA` в образе 18 (`/var/lib/postgresql/18/docker`) не мешает;
   если появится том — монтировать `/var/lib/postgresql`, а не `.../data`.
 - Elasticsearch 9.5.5 работает с клиентом `ruflin/elastica` ^8: создание индекса, индексация и поиск заказов проходят e2e.
+
+## baggage.allowed_hosts в gateway (2026-10-21 UTC)
+
+- `allowed_hosts: ['%env(string:key:host:url:ORDERS_URL)%']` — `string:` обязателен: у `key:` тип результата
+  `bool|int|float|string|array`, и `stringPrototype()` бандла валит сборку (`Expected "string", but got one of …`).
+- Пробы `/_probe/baggage` (gateway) и `/_probe/redirect` (orders) — 404 без `BAGGAGE_ECHO_URL`; в compose
+  переменная только у gateway и orders. Через orders проверяется редирект с разрешённого хоста (2.1.1-фикс):
+  его ведёт `RedirectFollower` бандла, а не транспорт.
+- Тест gateway видит baggage через `OrdersStub` (третий аргумент — опции запроса); caller там
+  `showcase:unknown` — `COMPONENT_NAME` в `.env.test` не задан.
+- `orders-search-index` однажды упал на свежем ES (2026-10-21 UTC): `exists()` → false, затем `fos:elastica:create`
+  → `resource_already_exists_exception` — похоже, повтор PUT клиентом после медленного ответа только что поднятого
+  ES. Повторный `make up` проходит (команда видит индекс). Если повторится — ловить 400 already_exists как успех.
+- `php -S` в `baggage-echo` пишет в stderr свои access-строки (не JSON, в т.ч. healthcheck): e2e они не мешают
+  (`| json | extra_trace_id=` их отсекает), подавить флагом у встроенного сервера нельзя.
