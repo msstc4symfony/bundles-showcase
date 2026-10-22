@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "164af76e828b308dce520b3e3f4e54d4",
+    "content-hash": "bd496f9409dc0b364a6b5842282b2d75",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -1365,16 +1365,16 @@
         },
         {
             "name": "msstc4symfony/healthcheck-bundle",
-            "version": "v2.0.0",
+            "version": "v2.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/healthcheck-bundle.git",
-                "reference": "a38aa21e2c94b3db02a37e815fbf09591f9acfcf"
+                "reference": "a1eedc4ae2c313d8ecb739ee604665b3a2132f9a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/healthcheck-bundle/zipball/a38aa21e2c94b3db02a37e815fbf09591f9acfcf",
-                "reference": "a38aa21e2c94b3db02a37e815fbf09591f9acfcf",
+                "url": "https://api.github.com/repos/msstc4symfony/healthcheck-bundle/zipball/a1eedc4ae2c313d8ecb739ee604665b3a2132f9a",
+                "reference": "a1eedc4ae2c313d8ecb739ee604665b3a2132f9a",
                 "shasum": ""
             },
             "require": {
@@ -1447,9 +1447,9 @@
                 "symfony"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/healthcheck-bundle/tree/v2.0.0"
+                "source": "https://github.com/msstc4symfony/healthcheck-bundle/tree/v2.2.0"
             },
-            "time": "2026-10-20T10:25:10+00:00"
+            "time": "2026-10-22T08:02:38+00:00"
         },
         {
             "name": "msstc4symfony/logger-bundle",
@@ -1700,16 +1700,16 @@
         },
         {
             "name": "msstc4symfony/profiling-bundle",
-            "version": "v2.0.0",
+            "version": "v2.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/profiling-bundle.git",
-                "reference": "67de82cc34bdd92e88ce99a74a240df6d42a504c"
+                "reference": "6dd9834ef8be06dd965e571723b4bbd87edb976b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/profiling-bundle/zipball/67de82cc34bdd92e88ce99a74a240df6d42a504c",
-                "reference": "67de82cc34bdd92e88ce99a74a240df6d42a504c",
+                "url": "https://api.github.com/repos/msstc4symfony/profiling-bundle/zipball/6dd9834ef8be06dd965e571723b4bbd87edb976b",
+                "reference": "6dd9834ef8be06dd965e571723b4bbd87edb976b",
                 "shasum": ""
             },
             "require": {
@@ -1779,16 +1779,16 @@
                 "symfony"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/profiling-bundle/tree/v2.0.0"
+                "source": "https://github.com/msstc4symfony/profiling-bundle/tree/v2.1.0"
             },
-            "time": "2026-10-20T10:25:04+00:00"
+            "time": "2026-10-22T09:40:46+00:00"
         },
         {
             "name": "msstc4symfony/tracing-bundle",
             "version": "v2.1.2",
             "source": {
                 "type": "git",
-                "url": "git@github.com:msstc4symfony/tracing-bundle.git",
+                "url": "https://github.com/msstc4symfony/tracing-bundle.git",
                 "reference": "d7a818699177bf6c3dd16485ca96d913668ce3d4"
             },
             "dist": {
@@ -1859,6 +1859,9 @@
                 "symfony",
                 "tracing"
             ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/tracing-bundle/tree/v2.1.2"
+            },
             "time": "2026-10-21T17:34:28+00:00"
         },
         {
