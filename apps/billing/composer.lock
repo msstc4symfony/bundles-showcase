@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3d084fc40667466c716c2b7132e1822e",
+    "content-hash": "56ca66cce46c4f92b8b037e7515f2f75",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -1365,16 +1365,16 @@
         },
         {
             "name": "msstc4symfony/healthcheck-bundle",
-            "version": "v2.2.0",
+            "version": "v2.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/healthcheck-bundle.git",
-                "reference": "a1eedc4ae2c313d8ecb739ee604665b3a2132f9a"
+                "reference": "ed05288da4e8fe4cbd2791a72d0348c942c5d5a9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/healthcheck-bundle/zipball/a1eedc4ae2c313d8ecb739ee604665b3a2132f9a",
-                "reference": "a1eedc4ae2c313d8ecb739ee604665b3a2132f9a",
+                "url": "https://api.github.com/repos/msstc4symfony/healthcheck-bundle/zipball/ed05288da4e8fe4cbd2791a72d0348c942c5d5a9",
+                "reference": "ed05288da4e8fe4cbd2791a72d0348c942c5d5a9",
                 "shasum": ""
             },
             "require": {
@@ -1447,9 +1447,9 @@
                 "symfony"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/healthcheck-bundle/tree/v2.2.0"
+                "source": "https://github.com/msstc4symfony/healthcheck-bundle/tree/v2.3.0"
             },
-            "time": "2026-10-22T08:02:38+00:00"
+            "time": "2026-10-23T18:51:17+00:00"
         },
         {
             "name": "msstc4symfony/logger-bundle",

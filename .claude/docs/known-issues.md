@@ -270,5 +270,7 @@
 - Readiness при остановленном Redis стал отвечать за 5–20 с (чекеров Redis-пулов теперь больше: `cache.app`, `property_access`, `metrics.cache`,
   плюс lock), e2e-клиент с таймаутом 10 с видел «unreachable», а не «down», и chaos-шаг «readiness did not go down» мигал. Поэтому в
   compose у `REDIS_CACHE_DSN` и `METRICS_STORAGE_DSN` стоит `timeout=1&read_timeout=1` (рекомендация README healthcheck-bundle: границы — на клиенте).
-  Всё равно ответы orders при лежащем Redis бывают 5–17 с (liveliness до 4–5 с: ядро RoadRunner пересобирается после каждого запроса),
-  поэтому `HealthClient` ждёт ответ до 30 с вместо 10 (иначе «unreachable» вместо «down»/«up» в chaos-шагах).
+  С healthcheck 2.2 ответы orders при лежащем Redis всё равно бывали 5–17 с, и `HealthClient` временно ждал 30 с.
+  healthcheck 2.3.0 пробует пулы на одном подключении один раз за прогон (остальные: `shared connection probe via
+  Cache (... : cache.app) connection failed`), readiness при лежащем Redis — 0,1–1,7 с (замер 2026-10-23 UTC), поэтому
+  `HealthClient` снова ждёт 10 с. `timeouts.probe_ms` в приложениях не задан: с общей пробой он не нужен.

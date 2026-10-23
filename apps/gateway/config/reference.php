@@ -711,6 +711,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     non_critical?: list<scalar|Param|null>,
  *     timeouts?: array{ // Per-checker wall-clock budgets. The decorator reports an error if exceeded.
  *         default_ms?: int|Param, // Default: 2000
+ *         probe_ms?: int|Param, // Wall-clock budget of one whole probe run; checkers not started by then are skipped and reported failed (warning when non-critical). Unset or null (default) is unlimited. // Default: null
  *         overrides?: array<string, int|Param>,
  *     },
  *     http_client?: array<string, array{ // Default: []
