@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b708951e315f111ff3ccaa8b0db1f20a",
+    "content-hash": "445402d377c78f6628bc7616985ef84f",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -2082,16 +2082,16 @@
         },
         {
             "name": "msstc4symfony/logic-bundle",
-            "version": "v2.0.0-rc.1",
+            "version": "v2.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/logic-bundle.git",
-                "reference": "fca917aa72f1565a84404e12dea6c1035a627c0f"
+                "reference": "fc1edccba5ddd10e9c10ae7abe1563d7f83adc66"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/logic-bundle/zipball/fca917aa72f1565a84404e12dea6c1035a627c0f",
-                "reference": "fca917aa72f1565a84404e12dea6c1035a627c0f",
+                "url": "https://api.github.com/repos/msstc4symfony/logic-bundle/zipball/fc1edccba5ddd10e9c10ae7abe1563d7f83adc66",
+                "reference": "fc1edccba5ddd10e9c10ae7abe1563d7f83adc66",
                 "shasum": ""
             },
             "require": {
@@ -2152,9 +2152,9 @@
                 "use-case"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/logic-bundle/tree/v2.0.0-rc.1"
+                "source": "https://github.com/msstc4symfony/logic-bundle/tree/v2.0.0"
             },
-            "time": "2026-10-23T03:51:38+00:00"
+            "time": "2026-10-23T09:28:20+00:00"
         },
         {
             "name": "msstc4symfony/metrics-bridge-healthcheck",
@@ -11285,9 +11285,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "msstc4symfony/logic-bundle": 5
-    },
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

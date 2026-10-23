@@ -120,8 +120,8 @@ Loki не опубликован. Локально у владельца 8080 и
 - CI: `quality.yml` (матрица приложений + e2e-static + style), `e2e.yml` (весь стек + Behat, `@chaos` отдельным прогоном).
 - Версии бандлов — релизные теги из публичных GitHub-репозиториев (`vcs`), обновляет bundle-updates.
   Ограничения — нижние границы последних релизов (composer `bump-after-update`); с 2026-10-23 UTC: healthcheck ^2.2,
-  logger ^2.1, metrics ^2.2.1, profiling ^2.2, tracing ^2.1.3, metrics-bridge-profiling ^2.0, `logic-bundle ^2.0@rc` (orders, до
-  финального тега), бриджи logic ^2.0.1, новые metrics-bridge-healthcheck ^1.0 и tracing-bridge-profiling ^1.1 (все приложения),
+  logger ^2.1, metrics ^2.2.1, profiling ^2.2, tracing ^2.1.3, metrics-bridge-profiling ^2.0, `logic-bundle ^2.0` (orders; на rc.1 через
+  `^2.0@rc` до финального тега 2026-10-23 UTC), бриджи logic ^2.0.1, новые metrics-bridge-healthcheck ^1.0 и tracing-bridge-profiling ^1.1 (все приложения),
   sql-labeller ^1.0 (транзитивно через metrics, нужен vcs-репозиторий). Полигон остаётся на PHP 8.5.
 
 ## Конфигурация бандлов 2.2 (2026-10-23 UTC)

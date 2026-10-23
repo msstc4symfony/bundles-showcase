@@ -114,8 +114,8 @@ No pull request is involved: GitHub Actions may not open pull requests in this o
 Each app requires a bundle at the release it relies on, a minor or a patch (`^2.2.1` for metrics, `^2.2` for
 profiling and healthcheck, `^2.1` for logger, `^2.1.3` for tracing), so every later release of the same major is
 picked up by that run. A major release goes through an rc tag first (`vX.0.0-rc.N`) and gets its final tag only after
-e2e is green here: until then the app requires it as `^X.0@rc` (orders requires logic-bundle `^2.0@rc`), and the
-final tag replaces that with `^X.0`.
+e2e is green here: until then the app requires it as `^X.0@rc` (logic-bundle 2.0.0 went this way), and the final
+tag replaces that with `^X.0`.
 
 A bug found here is fixed in the bundle's own repository, with a test and a patch release, and is
 never patched in this repository.

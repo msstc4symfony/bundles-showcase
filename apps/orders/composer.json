@@ -14,7 +14,7 @@
         "friendsofsymfony/elastica-bundle": "^7.2",
         "msstc4symfony/healthcheck-bundle": "^2.2",
         "msstc4symfony/logger-bundle": "^2.1",
-        "msstc4symfony/logic-bundle": "^2.0@rc",
+        "msstc4symfony/logic-bundle": "^2.0",
         "msstc4symfony/metrics-bridge-healthcheck": "^1.0",
         "msstc4symfony/metrics-bridge-logic": "^2.0.1",
         "msstc4symfony/metrics-bridge-profiling": "^2.0",

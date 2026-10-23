@@ -247,7 +247,7 @@
   зависимостей → `sql-labeller` прописан в `repositories` всех трёх приложений (иначе «could not be found»). Так же — оба новых моста.
 - Docker-сборка (`composer install` в Dockerfile) обошлась без `COMPOSER_AUTH`: репозитории публичные. Локальный
   `composer update` с `gh auth token` работает только вне песочницы Claude (keyring недоступен внутри).
-- `msstc4symfony/logic-bundle: ^2.0@rc` (только orders) — флаг стабильности нужен, пока нет финального тега; после тега заменить на `^2.0`.
+- `msstc4symfony/logic-bundle: ^2.0@rc` (только orders) — флаг стабильности нужен, пока нет финального тега; после тега v2.0.0 (2026-10-23 UTC) заменено на `^2.0`.
 - Пул `metrics.cache` (`config/packages/cache.yaml`, адаптер `cache.adapter.redis`) добавлен во все приложения: без него throttle
   метрик падает на `cache.app`, и в `cache_request` попадали бы его лукапы. Побочный эффект: в readiness появился чекер
   `healthcheck.checker.cache.pool.metrics.cache`. Autowiring `$metricsCache` по имени давал INFO-deprecation Symfony 8.1 («use the #[Target] attribute») при сборке контейнера на
