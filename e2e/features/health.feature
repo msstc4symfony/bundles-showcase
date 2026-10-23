@@ -45,6 +45,7 @@ Feature: Readiness reflects real dependencies
   # so its failure is a readiness warning, "<label> failed (<reason>)", and readiness stays up.
   @chaos
   Scenario: Losing Elasticsearch leaves orders ready with a warning
+    Given I remember the current metric values
     When I stop "elasticsearch"
     Then within 20 seconds "orders" readiness is up with a warning matching "/^Elastica connection \(fos_elastica\.client\.default\) failed \(.+\)$/"
     And "orders" liveliness is up
@@ -55,3 +56,7 @@ Feature: Readiness reflects real dependencies
     # Wait for green|yellow: a run that ends on the red cluster of a fresh start would leave it to the next one.
     Then within 90 seconds "orders" readiness has a line matching "/^Elastica connection \(fos_elastica\.client\.default\) passed \(cluster status: (green|yellow)\)$/"
     And within 10 seconds "orders" readiness is up
+    # A non-critical checker that failed is "degraded", and its probe still passes.
+    And within 20 seconds "symfony_healthcheck_checker_run{component='orders',probe='readiness',checker='healthcheck.checker.fos_elastica.client.default',status='degraded'}" grows by at least 1
+    And within 20 seconds "symfony_healthcheck_probe_run{component='orders',probe='readiness',status='passed'}" has a series
+    And "symfony_healthcheck_probe_run{component='orders',probe='readiness',status='failed'}" has not grown after the next scrape

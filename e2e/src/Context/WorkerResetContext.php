@@ -127,7 +127,7 @@ final class WorkerResetContext implements Context
         Assert::notEmpty($runtimeIds, sprintf('No "%s" logs for "%s".', $service, $readable));
 
         foreach ($runtimeIds as $runtimeId) {
-            foreach ($this->loki->linesWhere('runtime_id', $runtimeId, $this->startedAt) as $line) {
+            foreach ($this->loki->linesWhereExtra('runtime_id', $runtimeId, $this->startedAt) as $line) {
                 Assert::same($line->traceId(), $traceId, sprintf('Runtime %s of "%s" logged "%s".', $runtimeId, $readable, $line->message));
             }
         }
@@ -139,7 +139,7 @@ final class WorkerResetContext implements Context
     private function runtimeIdsOf(string $service, string $traceId): array
     {
         $lines = array_filter(
-            $this->loki->linesWhere('trace_id', $traceId, $this->startedAt),
+            $this->loki->linesOfTrace($traceId, $this->startedAt),
             static fn (LogLine $line): bool => $line->service === $service && $line->runtimeId() !== null,
         );
 

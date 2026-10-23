@@ -37,4 +37,4 @@ for ($i = 1; $i <= ORDERS; ++$i) {
 ksort($statuses);
 echo 'Responses by status: ', json_encode($statuses), PHP_EOL;
 echo 'Follow one request in Grafana → Explore → Loki:', PHP_EOL;
-printf('  {service=~".+"} | json | extra_trace_id="%s"%s', $sampleTraceId, PHP_EOL);
+printf('  {service=~".+"} | json | trace_id="%s"%s', $sampleTraceId, PHP_EOL);

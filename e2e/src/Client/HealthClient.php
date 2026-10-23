@@ -14,7 +14,7 @@ final readonly class HealthClient
 
     public function __construct()
     {
-        $this->http = HttpClient::create(['timeout' => 10]);
+        $this->http = HttpClient::create(['timeout' => 30]);
     }
 
     public function readiness(string $service): HealthReport

@@ -31,3 +31,11 @@ Feature: One W3C trace across HTTP and RabbitMQ
     When I create an order for 5000 with a traceparent
     Then the order becomes "paid" within 15 seconds
     And within 15 seconds the logs of that trace link the client, gateway, orders, its Action, billing-worker and orders-worker
+
+  Scenario: Logs carry the tracing ids at the top level of the record
+    When I create an order for 5000 with a traceparent
+    Then the order becomes "paid" within 15 seconds
+    And within 15 seconds the "gateway" logs of that trace carry the tracing ids at the top level, not in extra
+    And within 15 seconds the "orders" logs of that trace carry the tracing ids at the top level, not in extra
+    And within 15 seconds the "billing-worker" logs of that trace carry the tracing ids at the top level, not in extra
+    And within 15 seconds the "orders-worker" logs of that trace carry the tracing ids at the top level, not in extra

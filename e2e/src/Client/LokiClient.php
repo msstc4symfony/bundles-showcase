@@ -22,13 +22,33 @@ final readonly class LokiClient
     }
 
     /**
-     * @param 'runtime_id'|'trace_id' $extraField
+     * Logs of one trace: trace_id is a top-level field of the record (logger-bundle's json_top_level_extra).
      *
      * @return list<LogLine>
      */
-    public function linesWhere(string $extraField, string $value, float $sinceUnix): array
+    public function linesOfTrace(string $traceId, float $sinceUnix): array
     {
-        $query = sprintf('{service=~".+"} | json | extra_%s=`%s`', $extraField, $value);
+        return $this->query('trace_id', $traceId, $sinceUnix);
+    }
+
+    /**
+     * @param 'runtime_id' $field
+     *
+     * @return list<LogLine>
+     */
+    public function linesWhereExtra(string $field, string $value, float $sinceUnix): array
+    {
+        return $this->query('extra_' . $field, $value, $sinceUnix);
+    }
+
+    /**
+     * @param non-empty-string $label
+     *
+     * @return list<LogLine>
+     */
+    private function query(string $label, string $value, float $sinceUnix): array
+    {
+        $query = sprintf('{service=~".+"} | json | %s=`%s`', $label, $value);
         $data = $this->http->request('GET', '/loki/api/v1/query_range', ['query' => [
             'query' => $query,
             'start' => (string) (int) ($sinceUnix * 1e9),

@@ -16,8 +16,8 @@ if (str_starts_with($path, '/_/')) {
 
 file_put_contents('php://stderr', json_encode([
     'message' => 'Baggage echo received ' . $path,
+    'trace_id' => explode('-', $traceParent)[1] ?? null,
     'extra' => [
-        'trace_id' => explode('-', $traceParent)[1] ?? null,
         'path' => $path,
         'baggage' => $_SERVER['HTTP_BAGGAGE'] ?? null,
     ],

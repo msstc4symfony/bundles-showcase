@@ -8,6 +8,7 @@ use App\E2e\Client\LogLine;
 use App\E2e\Client\LokiClient;
 use App\E2e\Wait;
 use Behat\Behat\Context\Context;
+use Behat\Behat\Context\Environment\InitializedContextEnvironment;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\TableNode;
 use Behat\Hook\BeforeScenario;
@@ -70,14 +71,14 @@ final class TracingContext implements Context
     #[Then('within :seconds seconds the baggage echo gets that trace on :first and :second without baggage')]
     public function theBaggageEchoGetsThatTraceWithoutBaggage(int $seconds, string $first, string $second): void
     {
-        $traceId = $this->traceId ?? throw new LogicException('Send a traceparent first.');
+        $traceId = $this->traceId();
         $paths = [$first, $second];
         $lines = [];
 
         Wait::until(
             function () use ($traceId, $paths, &$lines): bool {
                 $lines = array_values(array_filter(
-                    $this->loki->linesWhere('trace_id', $traceId, $this->startedAt),
+                    $this->loki->linesOfTrace($traceId, $this->startedAt),
                     static fn (LogLine $line): bool => $line->service === 'baggage-echo',
                 ));
                 $seen = array_filter(array_map(static fn (LogLine $line): ?string => $line->path(), $lines), is_string(...));
@@ -96,14 +97,14 @@ final class TracingContext implements Context
     #[Then('within :seconds seconds logs with that trace id come from:')]
     public function logsWithThatTraceIdComeFrom(int $seconds, TableNode $services): void
     {
-        $traceId = $this->traceId ?? throw new LogicException('Send a traceparent first.');
+        $traceId = $this->traceId();
         $expected = $this->serviceNames($services);
 
         Wait::until(
             function () use ($traceId, $expected): bool {
                 $seen = array_values(array_unique(array_map(
                     static fn (LogLine $line): string => $line->service,
-                    $this->loki->linesWhere('trace_id', $traceId, $this->startedAt),
+                    $this->loki->linesOfTrace($traceId, $this->startedAt),
                 )));
                 sort($seen);
 
@@ -117,13 +118,13 @@ final class TracingContext implements Context
     #[Then('within :seconds seconds the logs of that trace link the client, gateway, orders, its Action, billing-worker and orders-worker')]
     public function theLogsOfThatTraceFormTheCallTree(int $seconds): void
     {
-        $traceId = $this->traceId ?? throw new LogicException('Send a traceparent first.');
+        $traceId = $this->traceId();
         $clientSpanId = $this->clientSpanId ?? throw new LogicException('Send a traceparent first.');
         $this->missingHop = null;
 
         Wait::until(
             function () use ($traceId, $clientSpanId): bool {
-                $lines = $this->loki->linesWhere('trace_id', $traceId, $this->startedAt);
+                $lines = $this->loki->linesOfTrace($traceId, $this->startedAt);
                 $this->missingHop = $this->missingCallTreeHop($lines, $clientSpanId);
 
                 return $this->missingHop === null;
@@ -137,10 +138,58 @@ final class TracingContext implements Context
         );
     }
 
+    #[Then('within :seconds seconds the :service logs of that trace carry the tracing ids at the top level, not in extra')]
+    public function theLogsCarryTracingIdsAtTheTopLevel(int $seconds, string $service): void
+    {
+        $traceId = $this->traceId();
+        $lines = [];
+
+        Wait::until(
+            function () use ($traceId, $service, &$lines): bool {
+                $lines = array_values(array_filter(
+                    $this->loki->linesOfTrace($traceId, $this->startedAt),
+                    static fn (LogLine $line): bool => $line->service === $service,
+                ));
+
+                return $lines !== [];
+            },
+            $seconds,
+            sprintf('No "%s" logs for trace id %s in time.', $service, $traceId),
+        );
+
+        foreach ($lines as $line) {
+            foreach (['trace_id', 'span_id', 'parent_span_id'] as $key) {
+                Assert::false($line->hasExtraKey($key), sprintf('"%s" log "%s" still has "%s" in extra.', $service, $line->message, $key));
+            }
+
+            Assert::true($line->hasTopLevelKey('parent_span_id'), sprintf('"%s" log "%s" has no top-level "parent_span_id".', $service, $line->message));
+            Assert::regex($line->spanId() ?? '', LogLine::SPAN_ID_PATTERN, sprintf('"%s" log "%s" has no span id.', $service, $line->message));
+            Assert::nullOrRegex($line->parentSpanId(), LogLine::SPAN_ID_PATTERN, sprintf('"%s" log "%s" has a malformed parent span id.', $service, $line->message));
+        }
+    }
+
+    public function traceId(): string
+    {
+        return $this->traceId ?? throw new LogicException('Send a traceparent first.');
+    }
+
+    public function startedAt(): float
+    {
+        return $this->startedAt;
+    }
+
+    public static function from(BeforeScenarioScope $scope): self
+    {
+        $environment = $scope->getEnvironment();
+        Assert::isInstanceOf($environment, InitializedContextEnvironment::class);
+
+        return $environment->getContext(self::class);
+    }
+
     #[Then('the response header :name continues that trace')]
     public function theResponseHeaderContinuesThatTrace(string $name): void
     {
-        $traceId = $this->traceId ?? throw new LogicException('Send a traceparent first.');
+        $traceId = $this->traceId();
         $parts = $this->traceResponseParts($name);
 
         Assert::same($parts[1], $traceId);
@@ -156,9 +205,9 @@ final class TracingContext implements Context
     #[Then('the :service logs of that trace have caller :caller')]
     public function theLogsOfThatTraceHaveCaller(string $service, string $caller): void
     {
-        $traceId = $this->traceId ?? throw new LogicException('Send a traceparent first.');
+        $traceId = $this->traceId();
         $lines = array_filter(
-            $this->loki->linesWhere('trace_id', $traceId, $this->startedAt),
+            $this->loki->linesOfTrace($traceId, $this->startedAt),
             static fn (LogLine $line): bool => $line->service === $service,
         );
 
@@ -175,9 +224,9 @@ final class TracingContext implements Context
     #[Then('the :service logs of that trace start it')]
     public function theLogsOfThatTraceStartIt(string $service): void
     {
-        $traceId = $this->traceId ?? throw new LogicException('Read a trace id first.');
+        $traceId = $this->traceId();
         $lines = array_filter(
-            $this->loki->linesWhere('trace_id', $traceId, $this->startedAt),
+            $this->loki->linesOfTrace($traceId, $this->startedAt),
             static fn (LogLine $line): bool => $line->service === $service,
         );
 

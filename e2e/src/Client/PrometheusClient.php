@@ -44,6 +44,17 @@ final readonly class PrometheusClient
         return $this->scalar(sprintf('sum(%s)', $promQl), $atUnix);
     }
 
+    public function hasSeries(string $promQl): bool
+    {
+        $data = $this->http->request('GET', '/api/v1/query', ['query' => ['query' => $promQl]])->toArray();
+        $payload = $data['data'] ?? null;
+        Assert::isArray($payload);
+        $result = $payload['result'] ?? null;
+        Assert::isList($result);
+
+        return $result !== [];
+    }
+
     private function scalar(string $promQl, ?float $atUnix): float
     {
         $query = ['query' => $promQl];
