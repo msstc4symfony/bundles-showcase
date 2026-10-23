@@ -12,8 +12,8 @@ x-common-env: &common-env
 x-gateway-env: &gateway-env
   <<: *common-env
   COMPONENT_NAME: gateway
-  REDIS_CACHE_DSN: redis://redis:6379/0
-  METRICS_STORAGE_DSN: redis://redis:6379?database=1
+  REDIS_CACHE_DSN: redis://redis:6379/0?timeout=1&read_timeout=1
+  METRICS_STORAGE_DSN: redis://redis:6379?database=1&timeout=1&read_timeout=1
   ORDERS_URL: http://orders:8080
   LOCK_DSN: redis://redis:6379/0
   BAGGAGE_ECHO_URL: http://baggage-echo:8080
@@ -22,8 +22,8 @@ x-orders-env: &orders-env
   <<: *common-env
   COMPONENT_NAME: orders
   DATABASE_URL: postgresql://showcase:showcase@postgres:5432/orders?serverVersion=18&charset=utf8
-  REDIS_CACHE_DSN: redis://redis:6379/2
-  METRICS_STORAGE_DSN: redis://redis:6379?database=3
+  REDIS_CACHE_DSN: redis://redis:6379/2?timeout=1&read_timeout=1
+  METRICS_STORAGE_DSN: redis://redis:6379?database=3&timeout=1&read_timeout=1
   MESSENGER_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f
   ELASTICSEARCH_URL: http://elasticsearch:9200
   BAGGAGE_ECHO_URL: http://baggage-echo:8080
@@ -32,8 +32,8 @@ x-billing-env: &billing-env
   <<: *common-env
   COMPONENT_NAME: billing
   DATABASE_URL: postgresql://showcase:showcase@postgres:5432/billing?serverVersion=18&charset=utf8
-  REDIS_CACHE_DSN: redis://redis:6379/4
-  METRICS_STORAGE_DSN: redis://redis:6379?database=5
+  REDIS_CACHE_DSN: redis://redis:6379/4?timeout=1&read_timeout=1
+  METRICS_STORAGE_DSN: redis://redis:6379?database=5&timeout=1&read_timeout=1
   MESSENGER_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f
   BILLING_DECLINE_ABOVE: "100000"
 

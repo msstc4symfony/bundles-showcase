@@ -1,0 +1,2 @@
+msstc4symfony_logger:
+  json_top_level_extra: [trace_id, span_id, parent_span_id]

@@ -68,6 +68,9 @@
     "msstc4symfony/logic-bundle": {
         "version": "v1.0.0"
     },
+    "msstc4symfony/metrics-bridge-healthcheck": {
+        "version": "v1.0.0"
+    },
     "msstc4symfony/metrics-bridge-logic": {
         "version": "v1.0.0"
     },
@@ -85,6 +88,9 @@
     },
     "msstc4symfony/tracing-bridge-logic": {
         "version": "v1.0.0"
+    },
+    "msstc4symfony/tracing-bridge-profiling": {
+        "version": "v1.1.0"
     },
     "msstc4symfony/tracing-bundle": {
         "version": "v1.0.0"

@@ -53,6 +53,9 @@
     "msstc4symfony/logger-bundle": {
         "version": "v1.1.1"
     },
+    "msstc4symfony/metrics-bridge-healthcheck": {
+        "version": "v1.0.0"
+    },
     "msstc4symfony/metrics-bridge-profiling": {
         "version": "v1.0.0"
     },
@@ -61,6 +64,9 @@
     },
     "msstc4symfony/profiling-bundle": {
         "version": "v1.0.0"
+    },
+    "msstc4symfony/tracing-bridge-profiling": {
+        "version": "v1.1.0"
     },
     "msstc4symfony/tracing-bundle": {
         "version": "v1.0.0"

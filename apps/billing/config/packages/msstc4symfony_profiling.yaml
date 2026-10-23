@@ -1,2 +1,4 @@
 msstc4symfony_profiling:
   messages: ['App\Message\ProcessPayment']
+  auto_spans:
+    dbal: true

@@ -1,0 +1,5 @@
+msstc4symfony_metrics:
+  messenger:
+    queue_depth:
+      transports: [process_payment, payment_processed, failed]
+      period: PT5S

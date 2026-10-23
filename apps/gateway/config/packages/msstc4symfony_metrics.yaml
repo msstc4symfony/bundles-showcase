@@ -1,0 +1,3 @@
+msstc4symfony_metrics:
+  cache:
+    pools: [cache.app]

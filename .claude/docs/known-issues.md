@@ -22,7 +22,7 @@
 - `cache:warmup` при сборке образа требует все env, на которые ссылается конфиг на этапе компиляции → дефолты
   `REDIS_CACHE_DSN` в закоммиченных `.env` (compose их переопределяет).
 - Без `.dockerignore` `COPY apps/<app>/` затирал `--no-dev` vendor хостовым (с dev-зависимостями).
-- Ограничения бандлов в приложениях — `^1.0`; `composer update 'msstc4symfony/*'` двигает lock в пределах 1.x.
+- Ограничения бандлов в приложениях — нижние границы минора, от которого приложение зависит (см. architecture.md); `composer update 'msstc4symfony/*'` двигает lock в пределах мажора.
 - PHPStan анализирует против **test**-контейнера: `container->get()` есть только в тестах, test-only сервисы
   (`OrdersStub`) в dev-контейнере отсутствуют.
 - `make fix` = Rector, потом cs-fixer (Rector добавляет импорты, которые cs-fixer должен отсортировать).
@@ -42,7 +42,7 @@
 
 - Alloy без фильтра по compose-проекту тащил логи **всех** контейнеров хоста и бэкфилл старых строк
   (Loki: `entry too far behind`).
-- В Loki поле trace id — `extra_trace_id` (не `trace_id`). С tracing 2.0 request id нет: e2e ищет по trace id своего `traceparent` (случайный на сценарий).
+- В Loki trace id — `trace_id` на верхнем уровне записи (с 2026-10-23 UTC, `json_top_level_extra` logger-bundle 2.1); `runtime_id`/`caller` остались в `extra_*`. С tracing 2.0 request id нет: e2e ищет по trace id своего `traceparent` (случайный на сценарий).
 - Логи Action в e2e и в `LogicBridgesTest` опознаются по тексту `application action` из `LoggingMiddleware`
   logic-bundle (констант для текста нет); если logic-bundle поменяет сообщения, оба теста упадут явно.
 - Метрики: `symfony_http_request`, `symfony_http_response{status}`, `symfony_request_duration_histogram_seconds`,
@@ -239,4 +239,36 @@
   → `resource_already_exists_exception` — похоже, повтор PUT клиентом после медленного ответа только что поднятого
   ES. Повторный `make up` проходит (команда видит индекс). Если повторится — ловить 400 already_exists как успех.
 - `php -S` в `baggage-echo` пишет в stderr свои access-строки (не JSON, в т.ч. healthcheck): e2e они не мешают
-  (`| json | extra_trace_id=` их отсекает), подавить флагом у встроенного сервера нельзя.
+  (`| json | trace_id=` их отсекает), подавить флагом у встроенного сервера нельзя.
+
+## Обновление на healthcheck 2.2 / logger 2.1 / metrics 2.2 / profiling 2.2 / logic 2.0.0-rc.1 (2026-10-23 UTC)
+
+- metrics-bundle 2.2 жёстко требует `msstc4symfony/sql-labeller`, а он тоже только на GitHub: composer не читает vcs-репозитории
+  зависимостей → `sql-labeller` прописан в `repositories` всех трёх приложений (иначе «could not be found»). Так же — оба новых моста.
+- Docker-сборка (`composer install` в Dockerfile) обошлась без `COMPOSER_AUTH`: репозитории публичные. Локальный
+  `composer update` с `gh auth token` работает только вне песочницы Claude (keyring недоступен внутри).
+- `msstc4symfony/logic-bundle: ^2.0@rc` (только orders) — флаг стабильности нужен, пока нет финального тега; после тега заменить на `^2.0`.
+- Пул `metrics.cache` (`config/packages/cache.yaml`, адаптер `cache.adapter.redis`) добавлен во все приложения: без него throttle
+  метрик падает на `cache.app`, и в `cache_request` попадали бы его лукапы. Побочный эффект: в readiness появился чекер
+  `healthcheck.checker.cache.pool.metrics.cache`. Autowiring `$metricsCache` по имени давал INFO-deprecation Symfony 8.1 («use the #[Target] attribute») при сборке контейнера на
+  metrics-bundle 2.2.0 — дефект бандла, исправлен в metrics-bundle 2.2.1 (`AliasThrottleCachePass` передаёт пул throttle явно); приложения требуют `^2.2.1`, предупреждение при сборке исчезло.
+- `cache.pools` перечислен только у gateway (идемпотентность читает `cache.app`): у orders/billing `cache.app` не читается
+  приложением, серия бы не росла. Очередь: `queue_depth` у orders и billing, транспорты `process_payment`/`payment_processed`/`failed` (Doctrine, умеет считать), `period: PT5S`
+  (по умолчанию PT1M — e2e ждал бы минуту). Сэмплируют `kernel.terminate` и холостой цикл воркера, поэтому у остановленного
+  consumer глубину пишет HTTP-ядро или воркер другого процесса того же приложения.
+- tracing-bridge-profiling не открывает trace span для detached-спанов: у `http <METHOD> <host>` (gateway) в `context` нет
+  `trace_span_id`, он есть только у `sql ...` и прочих обычных спанов; запись спана несёт `span_id` вокруг, не свой.
+  e2e проверяет `trace_span_id` на SQL-спанах, HTTP-спан — только наличие записи.
+- `auto_spans.http_client` включён только в gateway: Elasticsearch-запросы orders идут через собственный
+  `HttpClient::create()` (Elastica), а не `http_client.transport`, спанов `http ...` у orders нет.
+- Статус `degraded` у `healthcheck_checker_run` — упавший non_critical-чекер (Elasticsearch в chaos), проба при этом `passed`.
+- `baggage-echo` монтирует `echo.php` одним файлом: после правки контейнер может видеть старую версию → `docker compose up -d --force-recreate baggage-echo`.
+- Метка `checker` — id сервиса чекера (`healthcheck.checker.doctrine.dbal.default_connection`), readiness-пробу из e2e считать
+  `grows by 1`: liveliness дёргает compose healthcheck каждые 5 с, у него точных ассертов нет.
+- «grows by 0» проходит на первом же опросе по старому скрейпу → нулевой рост проверяется шагом `has not grown after the next scrape`
+  (ждёт скрейп новее шага).
+- Readiness при остановленном Redis стал отвечать за 5–20 с (чекеров Redis-пулов теперь больше: `cache.app`, `property_access`, `metrics.cache`,
+  плюс lock), e2e-клиент с таймаутом 10 с видел «unreachable», а не «down», и chaos-шаг «readiness did not go down» мигал. Поэтому в
+  compose у `REDIS_CACHE_DSN` и `METRICS_STORAGE_DSN` стоит `timeout=1&read_timeout=1` (рекомендация README healthcheck-bundle: границы — на клиенте).
+  Всё равно ответы orders при лежащем Redis бывают 5–17 с (liveliness до 4–5 с: ядро RoadRunner пересобирается после каждого запроса),
+  поэтому `HealthClient` ждёт ответ до 30 с вместо 10 (иначе «unreachable» вместо «down»/«up» в chaos-шагах).

@@ -102,7 +102,10 @@ Multi-stage: `runtime` (расширения через install-php-extensions �
 Monolog → `php://stderr` (stdout у RoadRunner — канал протокола воркера), RoadRunner `logs.mode: raw`. Формат —
 logger-bundle `SwitchFormatter` → JSON одной строкой. Alloy читает docker-логи **только** контейнеров проекта
 (`com.docker.compose.project=bundles-showcase`), метка `service` = имя compose-сервиса. В LogQL поля `extra`
-плющатся: `extra_trace_id`, `extra_span_id`, `extra_parent_span_id`, `extra_runtime_id`, `extra_caller` (tracing 2.0: только W3C; `request_id`/`request_from` удалены).
+плющатся: `extra_runtime_id`, `extra_caller`; `trace_id`, `span_id`, `parent_span_id` лежат на верхнем уровне записи
+(`msstc4symfony_logger.json_top_level_extra`, logger-bundle ^2.1, во всех трёх приложениях). Записи канала `profiling`: сообщение —
+цепочка спанов `request x > sql select orders`, `context` — `duration`, `profiling_automatic`, `trace_span_id`, `trace_parent_span_id`.
+e2e (`LogLine`, `LokiClient`) читает id с верхнего уровня; `baggage-echo` пишет `trace_id` туда же.
 
 ## Порты
 
@@ -116,6 +119,21 @@ Loki не опубликован. Локально у владельца 8080 и
   PHPUnit; затем PHPStan e2e, cs-fixer, Rector dry-run. Нужен Postgres на `127.0.0.1:5432`.
 - CI: `quality.yml` (матрица приложений + e2e-static + style), `e2e.yml` (весь стек + Behat, `@chaos` отдельным прогоном).
 - Версии бандлов — релизные теги из публичных GitHub-репозиториев (`vcs`), обновляет bundle-updates.
-  Ограничения — нижние границы последних релизов (composer `bump-after-update`); с 2026-10-14 UTC — релизы
-  на PHP 8.2 (healthcheck ^1.3, logger ^1.1, logic ^1.2, metrics ^1.4, profiling ^1.1, tracing ^1.3, бриджи ^1.1 /
-  tracing-bridge-logic ^1.2). Сам полигон остаётся на PHP 8.5.
+  Ограничения — нижние границы последних релизов (composer `bump-after-update`); с 2026-10-23 UTC: healthcheck ^2.2,
+  logger ^2.1, metrics ^2.2.1, profiling ^2.2, tracing ^2.1.3, metrics-bridge-profiling ^2.0, `logic-bundle ^2.0@rc` (orders, до
+  финального тега), бриджи logic ^2.0.1, новые metrics-bridge-healthcheck ^1.0 и tracing-bridge-profiling ^1.1 (все приложения),
+  sql-labeller ^1.0 (транзитивно через metrics, нужен vcs-репозиторий). Полигон остаётся на PHP 8.5.
+
+## Конфигурация бандлов 2.2 (2026-10-23 UTC)
+
+| | gateway | orders | billing |
+|---|---|---|---|
+| `json_top_level_extra` | trace_id, span_id, parent_span_id | то же | то же |
+| `profiling.auto_spans` | `http_client` | `dbal` | `dbal` |
+| `metrics.cache.pools` | `cache.app` | — | — |
+| `metrics.messenger.queue_depth` | — | `process_payment`, `payment_processed`, `failed`, PT5S | то же |
+| `metrics-bridge-healthcheck`, `tracing-bridge-profiling` | да | да | да |
+
+Пул `metrics.cache` (redis) объявлен в `cache.yaml` каждого приложения. e2e-покрытие: `metrics.feature` (healthcheck-метрики,
+`cache_request`, глубина очереди, в т.ч. @chaos с остановленным `billing-worker`), `health.feature` (`degraded` при падении
+Elasticsearch), `profiling.feature` (SQL/HTTP-спаны и `trace_span_id` в логах), `tracing.feature` (id на верхнем уровне).

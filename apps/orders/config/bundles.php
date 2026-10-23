@@ -18,4 +18,6 @@ return [
     Msstc4Symfony\MetricsBridgeLogic\MetricsBridgeLogicBundle::class => ['all' => true],
     Msstc4Symfony\ProfilingBridgeLogic\ProfilingBridgeLogicBundle::class => ['all' => true],
     Msstc4Symfony\TracingBridgeLogic\TracingBridgeLogicBundle::class => ['all' => true],
+    Msstc4Symfony\MetricsBridgeHealthcheck\MetricsBridgeHealthcheckBundle::class => ['all' => true],
+    Msstc4Symfony\TracingBridgeProfiling\TracingBridgeProfilingBundle::class => ['all' => true],
 ];

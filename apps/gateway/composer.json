@@ -10,9 +10,11 @@
         "baldinof/roadrunner-bundle": "^3.4",
         "msstc4symfony/healthcheck-bundle": "^2.2",
         "msstc4symfony/logger-bundle": "^2.1",
+        "msstc4symfony/metrics-bridge-healthcheck": "^1.0",
         "msstc4symfony/metrics-bridge-profiling": "^2.0",
-        "msstc4symfony/metrics-bundle": "^2.0",
+        "msstc4symfony/metrics-bundle": "^2.2.1",
         "msstc4symfony/profiling-bundle": "^2.2",
+        "msstc4symfony/tracing-bridge-profiling": "^1.1",
         "msstc4symfony/tracing-bundle": "^2.1.3",
         "symfony/console": "8.1.*",
         "symfony/dotenv": "8.1.*",
@@ -104,6 +106,18 @@
         "name": "logger-bundle",
         "type": "vcs",
         "url": "https://github.com/msstc4symfony/logger-bundle"
+    },{
+        "name": "sql-labeller",
+        "type": "vcs",
+        "url": "https://github.com/msstc4symfony/sql-labeller"
+    },{
+        "name": "metrics-bridge-healthcheck",
+        "type": "vcs",
+        "url": "https://github.com/msstc4symfony/metrics-bridge-healthcheck"
+    },{
+        "name": "tracing-bridge-profiling",
+        "type": "vcs",
+        "url": "https://github.com/msstc4symfony/tracing-bridge-profiling"
     }],
     "require-dev": {
         "phpstan/extension-installer": "^1.4",

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5d899b16ed32e751a65c0d6142acbd85",
+    "content-hash": "65f4174e62343b8b4b65457e78123b5e",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -412,6 +412,90 @@
             "time": "2026-10-22T12:55:22+00:00"
         },
         {
+            "name": "msstc4symfony/metrics-bridge-healthcheck",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/msstc4symfony/metrics-bridge-healthcheck.git",
+                "reference": "ee1710ab831b1b03a6fb97a64252136296870885"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/msstc4symfony/metrics-bridge-healthcheck/zipball/ee1710ab831b1b03a6fb97a64252136296870885",
+                "reference": "ee1710ab831b1b03a6fb97a64252136296870885",
+                "shasum": ""
+            },
+            "require": {
+                "composer-runtime-api": ">=2.2",
+                "monolog/monolog": "^3.5",
+                "msstc4symfony/healthcheck-bundle": "^2.2",
+                "msstc4symfony/metrics-bundle": "^2.0",
+                "php": ">=8.2",
+                "psr/log": "^2.0|^3.0",
+                "symfony/config": "^7.4|^8.0",
+                "symfony/dependency-injection": "^7.4|^8.0",
+                "symfony/event-dispatcher": "^7.4|^8.0",
+                "symfony/http-kernel": "^7.4|^8.0"
+            },
+            "conflict": {
+                "symfony/symfony": "*"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.76",
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan": "^2.1",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpstan/phpstan-symfony": "^2.0",
+                "phpunit/phpunit": ">=11.0",
+                "promphp/prometheus_client_php": "^2.13",
+                "rector/rector": "^2.1",
+                "roave/security-advisories": "dev-latest",
+                "symfony/filesystem": "^7.4|^8.0",
+                "symfony/framework-bundle": "^7.4|^8.0",
+                "symfony/monolog-bundle": "^3.11|^4.0",
+                "symfony/validator": "^7.4|^8.0"
+            },
+            "type": "symfony-bundle",
+            "extra": {
+                "symfony": {
+                    "allow-contrib": false,
+                    "require": "^7.4|^8.0"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Msstc4Symfony\\MetricsBridgeHealthcheck\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Msstc4Symfony\\MetricsBridgeHealthcheck\\Test\\": "tests/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Maxim Shamaev",
+                    "email": "maxim.shamaev@gmail.com"
+                }
+            ],
+            "description": "Exports msstc4symfony/healthcheck-bundle probe and checker results as msstc4symfony/metrics-bundle Prometheus metrics",
+            "keywords": [
+                "healthcheck",
+                "metrics",
+                "php",
+                "prometheus",
+                "symfony"
+            ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/metrics-bridge-healthcheck/tree/v1.0.0",
+                "issues": "https://github.com/msstc4symfony/metrics-bridge-healthcheck/issues"
+            },
+            "time": "2026-10-22T08:19:05+00:00"
+        },
+        {
             "name": "msstc4symfony/metrics-bridge-profiling",
             "version": "v2.0.0",
             "source": {
@@ -494,24 +578,27 @@
         },
         {
             "name": "msstc4symfony/metrics-bundle",
-            "version": "v2.0.0",
+            "version": "v2.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/metrics-bundle.git",
-                "reference": "67d55dbd03d6b4e960e0c309b2755cad84d4ee25"
+                "reference": "a1d9201a5106503955f3144831f2a0d3e8a7b96e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/metrics-bundle/zipball/67d55dbd03d6b4e960e0c309b2755cad84d4ee25",
-                "reference": "67d55dbd03d6b4e960e0c309b2755cad84d4ee25",
+                "url": "https://api.github.com/repos/msstc4symfony/metrics-bundle/zipball/a1d9201a5106503955f3144831f2a0d3e8a7b96e",
+                "reference": "a1d9201a5106503955f3144831f2a0d3e8a7b96e",
                 "shasum": ""
             },
             "require": {
                 "composer-runtime-api": ">=2.2",
                 "ext-redis": "*",
                 "monolog/monolog": "^3.5",
+                "msstc4symfony/sql-labeller": "^1.0",
                 "php": ">=8.2",
                 "promphp/prometheus_client_php": "^2.13",
+                "symfony/cache": "^7.4|^8.0",
+                "symfony/cache-contracts": "^3.6",
                 "symfony/console": "^7.4|^8.0",
                 "symfony/event-dispatcher": "^7.4|^8.0",
                 "symfony/framework-bundle": "^7.4|^8.0",
@@ -519,6 +606,7 @@
                 "symfony/polyfill-php84": "^1.31"
             },
             "conflict": {
+                "guzzlehttp/guzzle": "<7.8",
                 "symfony/symfony": "*"
             },
             "require-dev": {
@@ -539,6 +627,7 @@
                 "doctrine/doctrine-bundle": "To register the DBAL query metrics middleware on its connections",
                 "ext-apcu": "To store metrics in APCu (apc:// and apcng:// storage DSNs)",
                 "ext-mongodb": "To collect MongoDB driver command metrics",
+                "guzzlehttp/guzzle": "To collect outbound HTTP request metrics of Guzzle clients",
                 "mongodb/mongodb": "To use MongoDB ODM TimingSubscriber",
                 "ruflin/elastica": "To collect Elastica request metrics",
                 "symfony/http-client": "To collect outbound HTTP request metrics",
@@ -577,9 +666,9 @@
                 "symfony"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/metrics-bundle/tree/v2.0.0"
+                "source": "https://github.com/msstc4symfony/metrics-bundle/tree/v2.2.1"
             },
-            "time": "2026-10-20T10:25:16+00:00"
+            "time": "2026-10-23T09:12:18+00:00"
         },
         {
             "name": "msstc4symfony/profiling-bundle",
@@ -674,6 +763,151 @@
                 "source": "https://github.com/msstc4symfony/profiling-bundle/tree/v2.2.0"
             },
             "time": "2026-10-23T07:34:39+00:00"
+        },
+        {
+            "name": "msstc4symfony/sql-labeller",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/msstc4symfony/sql-labeller.git",
+                "reference": "1bd8a3214d983f888673ef6c82752db35d645a46"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/msstc4symfony/sql-labeller/zipball/1bd8a3214d983f888673ef6c82752db35d645a46",
+                "reference": "1bd8a3214d983f888673ef6c82752db35d645a46",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.76",
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan": "^2.1",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpunit/phpunit": ">=11.0",
+                "rector/rector": "^2.1",
+                "roave/security-advisories": "dev-latest"
+            },
+            "type": "library",
+            "extra": {
+                "bundle-standard": {
+                    "kind": "library"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Msstc4Symfony\\SqlLabeller\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Msstc4Symfony\\SqlLabeller\\Test\\": "tests/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Maxim Shamaev",
+                    "email": "maxim.shamaev@gmail.com"
+                }
+            ],
+            "description": "Statement type and table of an SQL string, for metric labels and span names",
+            "keywords": [
+                "doctrine",
+                "metrics",
+                "php",
+                "profiling",
+                "sql"
+            ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/sql-labeller/tree/v1.0.0",
+                "issues": "https://github.com/msstc4symfony/sql-labeller/issues"
+            },
+            "time": "2026-10-22T12:05:55+00:00"
+        },
+        {
+            "name": "msstc4symfony/tracing-bridge-profiling",
+            "version": "v1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/msstc4symfony/tracing-bridge-profiling.git",
+                "reference": "1866b0ecf92eebf31034de9baf24f9075cea9ea7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/msstc4symfony/tracing-bridge-profiling/zipball/1866b0ecf92eebf31034de9baf24f9075cea9ea7",
+                "reference": "1866b0ecf92eebf31034de9baf24f9075cea9ea7",
+                "shasum": ""
+            },
+            "require": {
+                "composer-runtime-api": ">=2.2",
+                "msstc4symfony/profiling-bundle": "^2.1",
+                "msstc4symfony/tracing-bundle": "^2.0",
+                "php": ">=8.2",
+                "symfony/config": "^7.4|^8.0",
+                "symfony/dependency-injection": "^7.4|^8.0",
+                "symfony/http-kernel": "^7.4|^8.0",
+                "symfony/service-contracts": "^3.5"
+            },
+            "conflict": {
+                "symfony/symfony": "*"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.76",
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan": "^2.1",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpstan/phpstan-symfony": "^2.0",
+                "phpunit/phpunit": ">=11.0",
+                "psr/log": "^3.0",
+                "rector/rector": "^2.1",
+                "roave/security-advisories": "dev-latest",
+                "symfony/filesystem": "^7.4|^8.0",
+                "symfony/framework-bundle": "^7.4|^8.0",
+                "symfony/monolog-bundle": "^3.11|^4.0"
+            },
+            "type": "symfony-bundle",
+            "extra": {
+                "symfony": {
+                    "allow-contrib": false,
+                    "require": "^7.4|^8.0"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Msstc4Symfony\\TracingBridgeProfiling\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Msstc4Symfony\\TracingBridgeProfiling\\Test\\": "tests/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Maxim Shamaev",
+                    "email": "maxim.shamaev@gmail.com"
+                }
+            ],
+            "description": "Makes msstc4symfony/profiling-bundle spans child spans of the msstc4symfony/tracing-bundle trace",
+            "keywords": [
+                "php",
+                "profiling",
+                "symfony",
+                "tracing"
+            ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/tracing-bridge-profiling/tree/v1.1.0",
+                "issues": "https://github.com/msstc4symfony/tracing-bridge-profiling/issues"
+            },
+            "time": "2026-10-23T07:17:18+00:00"
         },
         {
             "name": "msstc4symfony/tracing-bundle",

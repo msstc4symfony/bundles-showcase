@@ -1183,6 +1183,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  * @psalm-type Msstc4symfonyLoggerConfig = array{
  *     application_name?: string|Param, // Value of the "application" field in JSON logs and Sentry tags. // Default: "%env(default:msstc4symfony_logger.unknown:APPLICATION_NAME)%"
  *     component_name?: string|Param, // Value of the "component" field in JSON logs and Sentry tags. // Default: "%env(default:msstc4symfony_logger.unknown:COMPONENT_NAME)%"
+ *     json_top_level_extra?: list<string|Param>,
  *     exception_classes?: list<scalar|Param|null>,
  * }
  * @psalm-type Msstc4symfonyProfilingConfig = array{
@@ -1192,6 +1193,11 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     spans?: array{ // Span message prefixes; set at most one list. Unset = record everything.
  *         whitelist?: mixed, // Default: null
  *         blacklist?: mixed, // Default: null
+ *     },
+ *     auto_spans?: array{ // Automatic spans for libraries; each needs its library installed.
+ *         dbal?: bool|Param, // Doctrine DBAL queries get a "sql <type> <table>" span (needs DoctrineBundle and msstc4symfony/sql-labeller). // Default: false
+ *         http_client?: bool|Param, // Symfony HttpClient requests get a detached "http <METHOD> <host>" span (decorates http_client.transport). // Default: false
+ *         guzzle?: bool|Param, // Requests of Guzzle client services get a detached "http <METHOD> <host>" span. // Default: false
  *     },
  * }
  * @psalm-type Msstc4symfonyMetricsConfig = array{
@@ -1209,6 +1215,16 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     },
  *     elastica?: array{
  *         sanitize_path?: bool|Param, // Replace document ids and other identifiers in Elastica request paths with placeholders to bound the "path" label. // Default: true
+ *     },
+ *     cache?: array{
+ *         pools?: list<scalar|Param|null>,
+ *     },
+ *     messenger?: array{
+ *         queue_depth?: bool|array{ // Samples the number of messages waiting in each transport that can count them (messenger_queue_depth).
+ *             enabled?: bool|Param, // Default: false
+ *             transports?: list<scalar|Param|null>,
+ *             period?: string|Param, // ISO 8601 interval: the transports are sampled at most once per period across all processes sharing the metrics.cache pool. // Default: "PT1M"
+ *         },
  *     },
  *     metric_enums?: list<scalar|Param|null>,
  * }
@@ -1459,6 +1475,9 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     enable_profiler?: bool|Param, // Whether or not to enable the profiler collector to calculate and visualize migration status. This adds some queries overhead. // Default: false
  *     transactional?: bool|Param, // Whether or not to wrap migrations in a single transaction. // Default: true
  * }
+ * @psalm-type Msstc4symfonyTracingBridgeProfilingConfig = array{
+ *     extra_unit_span_prefixes?: list<string|Param>,
+ * }
  * @psalm-type ConfigType = array{
  *     imports?: ImportsConfig,
  *     parameters?: ParametersConfig,
@@ -1474,6 +1493,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     baldinof_road_runner?: BaldinofRoadRunnerConfig,
  *     doctrine?: DoctrineConfig,
  *     doctrine_migrations?: DoctrineMigrationsConfig,
+ *     msstc4symfony_tracing_bridge_profiling?: Msstc4symfonyTracingBridgeProfilingConfig,
  *     "when@dev"?: array{
  *         imports?: ImportsConfig,
  *         parameters?: ParametersConfig,
@@ -1489,6 +1509,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         baldinof_road_runner?: BaldinofRoadRunnerConfig,
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
+ *         msstc4symfony_tracing_bridge_profiling?: Msstc4symfonyTracingBridgeProfilingConfig,
  *     },
  *     "when@prod"?: array{
  *         imports?: ImportsConfig,
@@ -1505,6 +1526,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         baldinof_road_runner?: BaldinofRoadRunnerConfig,
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
+ *         msstc4symfony_tracing_bridge_profiling?: Msstc4symfonyTracingBridgeProfilingConfig,
  *     },
  *     "when@test"?: array{
  *         imports?: ImportsConfig,
@@ -1521,6 +1543,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         baldinof_road_runner?: BaldinofRoadRunnerConfig,
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
+ *         msstc4symfony_tracing_bridge_profiling?: Msstc4symfonyTracingBridgeProfilingConfig,
  *     },
  *     ...<string, ExtensionType|array{ // extra keys must follow the when@%env% pattern or match an extension alias
  *         imports?: ImportsConfig,
