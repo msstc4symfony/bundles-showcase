@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d4e6f76a2ea63c824c658e9b6181835a",
+    "content-hash": "210c9ae9084740e64636fdc9fb5f0b0a",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -831,21 +831,21 @@
         },
         {
             "name": "msstc4symfony/tracing-bridge-profiling",
-            "version": "v1.1.0",
+            "version": "v1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/tracing-bridge-profiling.git",
-                "reference": "1866b0ecf92eebf31034de9baf24f9075cea9ea7"
+                "reference": "03e08f37277b79269161387ea219de2ab17ab6c1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/tracing-bridge-profiling/zipball/1866b0ecf92eebf31034de9baf24f9075cea9ea7",
-                "reference": "1866b0ecf92eebf31034de9baf24f9075cea9ea7",
+                "url": "https://api.github.com/repos/msstc4symfony/tracing-bridge-profiling/zipball/03e08f37277b79269161387ea219de2ab17ab6c1",
+                "reference": "03e08f37277b79269161387ea219de2ab17ab6c1",
                 "shasum": ""
             },
             "require": {
                 "composer-runtime-api": ">=2.2",
-                "msstc4symfony/profiling-bundle": "^2.1",
+                "msstc4symfony/profiling-bundle": "^2.2",
                 "msstc4symfony/tracing-bundle": "^2.0",
                 "php": ">=8.2",
                 "symfony/config": "^7.4|^8.0",
@@ -904,10 +904,10 @@
                 "tracing"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/tracing-bridge-profiling/tree/v1.1.0",
+                "source": "https://github.com/msstc4symfony/tracing-bridge-profiling/tree/v1.2.0",
                 "issues": "https://github.com/msstc4symfony/tracing-bridge-profiling/issues"
             },
-            "time": "2026-10-23T07:17:18+00:00"
+            "time": "2026-10-24T04:40:29+00:00"
         },
         {
             "name": "msstc4symfony/tracing-bundle",
