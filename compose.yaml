@@ -8,6 +8,8 @@ x-liveliness: &liveliness
 x-common-env: &common-env
   APP_SECRET: showcase-demo-secret
   APPLICATION_NAME: showcase
+  # tracing-bridge-otlp sends spans to Alloy's OTLP receiver, which forwards them to Tempo.
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://alloy:4318
 
 x-gateway-env: &gateway-env
   <<: *common-env
@@ -158,6 +160,7 @@ services:
       GATEWAY_URL: http://gateway:8080
       PROMETHEUS_URL: http://prometheus:9090
       LOKI_URL: http://loki:3100
+      TEMPO_URL: http://tempo:3200
       RABBITMQ_URL: http://rabbitmq:15672
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest

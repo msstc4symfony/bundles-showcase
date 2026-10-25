@@ -15,4 +15,5 @@ return [
     Doctrine\Bundle\MigrationsBundle\DoctrineMigrationsBundle::class => ['all' => true],
     Msstc4Symfony\MetricsBridgeHealthcheck\MetricsBridgeHealthcheckBundle::class => ['all' => true],
     Msstc4Symfony\TracingBridgeProfiling\TracingBridgeProfilingBundle::class => ['all' => true],
+    Msstc4Symfony\TracingBridgeOtlp\TracingBridgeOtlpBundle::class => ['all' => true],
 ];

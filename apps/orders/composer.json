@@ -23,6 +23,7 @@
         "msstc4symfony/profiling-bundle": "^2.2",
         "msstc4symfony/sql-labeller": "^1.0",
         "msstc4symfony/tracing-bridge-logic": "^2.0.1",
+        "msstc4symfony/tracing-bridge-otlp": "^1.0.1",
         "msstc4symfony/tracing-bridge-profiling": "^1.2",
         "msstc4symfony/tracing-bundle": "^2.2.0",
         "ruflin/elastica": "^8.0",
@@ -98,6 +99,10 @@
         }
     },
     "repositories": [{
+        "name": "msstc4symfony-tracing-bridge-otlp",
+        "type": "vcs",
+        "url": "https://github.com/msstc4symfony/tracing-bridge-otlp"
+    },{
         "name": "metrics-bridge-profiling",
         "type": "vcs",
         "url": "https://github.com/msstc4symfony/metrics-bridge-profiling"

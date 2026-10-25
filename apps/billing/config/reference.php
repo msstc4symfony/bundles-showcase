@@ -1235,6 +1235,9 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     baggage?: array{
  *         allowed_hosts?: null|list<string|Param>,
  *     },
+ *     sampling?: array{
+ *         ratio?: float|Param, // Share of new traces marked sampled (0..1); an incoming traceparent keeps its own flag. // Default: 1.0
+ *     },
  * }
  * @psalm-type BaldinofRoadRunnerConfig = array{
  *     kernel_reboot?: array{
@@ -1479,6 +1482,14 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  * @psalm-type Msstc4symfonyTracingBridgeProfilingConfig = array{
  *     extra_unit_span_prefixes?: list<string|Param>,
  * }
+ * @psalm-type Msstc4symfonyTracingBridgeOtlpConfig = array{
+ *     enabled?: bool|Param, // false: no export service is registered. // Default: true
+ *     service_name?: string|Param, // service.name of the exported spans; ~: OTEL_SERVICE_NAME / OTEL_RESOURCE_ATTRIBUTES, else the basename of kernel.project_dir. // Default: null
+ *     endpoint?: string|Param, // Base URL like OTEL_EXPORTER_OTLP_ENDPOINT (/v1/traces is appended for HTTP); ~: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT, OTEL_EXPORTER_OTLP_ENDPOINT, http://localhost:4318. // Default: null
+ *     protocol?: "http/protobuf"|"http/json"|"grpc"|Param, // ~: OTEL_EXPORTER_OTLP_TRACES_PROTOCOL, OTEL_EXPORTER_OTLP_PROTOCOL, http/protobuf. grpc needs open-telemetry/transport-grpc. // Default: null
+ *     timeout_ms?: int|Param, // Export timeout; OTEL_EXPORTER_OTLP_TIMEOUT is ignored. // Default: 1000
+ *     max_buffered_spans?: int|Param, // Spans kept per unit of work; a full buffer is exported early. // Default: 2048
+ * }
  * @psalm-type ConfigType = array{
  *     imports?: ImportsConfig,
  *     parameters?: ParametersConfig,
@@ -1495,6 +1506,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     doctrine?: DoctrineConfig,
  *     doctrine_migrations?: DoctrineMigrationsConfig,
  *     msstc4symfony_tracing_bridge_profiling?: Msstc4symfonyTracingBridgeProfilingConfig,
+ *     msstc4symfony_tracing_bridge_otlp?: Msstc4symfonyTracingBridgeOtlpConfig,
  *     "when@dev"?: array{
  *         imports?: ImportsConfig,
  *         parameters?: ParametersConfig,
@@ -1511,6 +1523,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
  *         msstc4symfony_tracing_bridge_profiling?: Msstc4symfonyTracingBridgeProfilingConfig,
+ *         msstc4symfony_tracing_bridge_otlp?: Msstc4symfonyTracingBridgeOtlpConfig,
  *     },
  *     "when@prod"?: array{
  *         imports?: ImportsConfig,
@@ -1528,6 +1541,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
  *         msstc4symfony_tracing_bridge_profiling?: Msstc4symfonyTracingBridgeProfilingConfig,
+ *         msstc4symfony_tracing_bridge_otlp?: Msstc4symfonyTracingBridgeOtlpConfig,
  *     },
  *     "when@test"?: array{
  *         imports?: ImportsConfig,
@@ -1545,6 +1559,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
  *         msstc4symfony_tracing_bridge_profiling?: Msstc4symfonyTracingBridgeProfilingConfig,
+ *         msstc4symfony_tracing_bridge_otlp?: Msstc4symfonyTracingBridgeOtlpConfig,
  *     },
  *     ...<string, ExtensionType|array{ // extra keys must follow the when@%env% pattern or match an extension alias
  *         imports?: ImportsConfig,

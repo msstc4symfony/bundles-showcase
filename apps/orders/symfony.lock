@@ -89,6 +89,9 @@
     "msstc4symfony/tracing-bridge-logic": {
         "version": "v1.0.0"
     },
+    "msstc4symfony/tracing-bridge-otlp": {
+        "version": "v1.0.0"
+    },
     "msstc4symfony/tracing-bridge-profiling": {
         "version": "v1.1.0"
     },

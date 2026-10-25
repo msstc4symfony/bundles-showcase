@@ -7,6 +7,7 @@ use App\E2e\Context\IdempotencyContext;
 use App\E2e\Context\MetricsContext;
 use App\E2e\Context\OrderContext;
 use App\E2e\Context\ProfilingContext;
+use App\E2e\Context\TraceExportContext;
 use App\E2e\Context\TracingContext;
 use App\E2e\Context\WorkerResetContext;
 use Behat\Config\Config;
@@ -17,5 +18,5 @@ return new Config()
     ->withProfile(new Profile('default')
         ->withSuite(new Suite('showcase')
             ->withPaths('%paths.base%/features')
-            ->withContexts(OrderContext::class, IdempotencyContext::class, TracingContext::class, WorkerResetContext::class, MetricsContext::class, HealthContext::class, ProfilingContext::class)))
+            ->withContexts(OrderContext::class, IdempotencyContext::class, TracingContext::class, WorkerResetContext::class, MetricsContext::class, HealthContext::class, ProfilingContext::class, TraceExportContext::class)))
 ;

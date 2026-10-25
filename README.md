@@ -22,7 +22,7 @@ client ──HTTP──▶ gateway ──HTTP──▶ orders ──AMQP: Proces
 | `orders` | Stores the order as `pending`, then sends `ProcessPayment` and indexes the order in Elasticsearch through FOSElasticaBundle. Applies `PaymentProcessed` and moves the order to `paid` or `declined`. | RoadRunner + `messenger:consume payment_processed`; one-shots `orders-migrate` (schema) and `orders-search-index` (Elasticsearch index) before start |
 | `billing` | Records the payment. Amounts above `BILLING_DECLINE_ABOVE` (100000) are declined. | RoadRunner (service routes) + `messenger:consume process_payment` |
 
-Infrastructure: PostgreSQL 18, Redis 7, RabbitMQ 4, Elasticsearch 9 (single node, used by orders). Observability: Prometheus, Loki, Alloy and Grafana.
+Infrastructure: PostgreSQL 18, Redis 7, RabbitMQ 4, Elasticsearch 9 (single node, used by orders). Observability: Prometheus, Loki, Tempo, Alloy and Grafana.
 
 ## Run it
 
@@ -38,10 +38,11 @@ make down          # stop and drop volumes
 | Gateway API | http://localhost:8080/orders |
 | Grafana (anonymous admin) | http://localhost:3000, dashboards "Showcase — services" and "Showcase — profiling spans" |
 | Prometheus | http://localhost:9090 |
+| Tempo API | http://localhost:3200 (traces at `/api/v2/traces/<trace id>`; browse them in Grafana → Explore → Tempo) |
 | RabbitMQ management | http://localhost:15672 (guest / guest) |
 
 All ports bind to `127.0.0.1` only. When a port is already taken, override it:
-`SHOWCASE_GATEWAY_PORT`, `SHOWCASE_GRAFANA_PORT`, `SHOWCASE_PROMETHEUS_PORT`,
+`SHOWCASE_GATEWAY_PORT`, `SHOWCASE_GRAFANA_PORT`, `SHOWCASE_PROMETHEUS_PORT`, `SHOWCASE_TEMPO_PORT`,
 `SHOWCASE_RABBITMQ_PORT`, `SHOWCASE_POSTGRES_PORT`.
 
 ## Follow one request
@@ -69,6 +70,12 @@ The gateway sends its baggage to orders only (`msstc4symfony_tracing.baggage.all
 (`GET /_probe/baggage` and `/_probe/redirect`, both on only when `BAGGAGE_ECHO_URL` is set), and the echo
 logs that neither call carried baggage.
 
+The spans of that trace are in Tempo too: every service exports them through
+[tracing-bridge-otlp](https://github.com/msstc4symfony/tracing-bridge-otlp) to Alloy's OTLP receiver
+(`OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4318`), which forwards them to Tempo. In Loki the `trace_id` of a log line
+is a link (derived field) that opens the trace in Tempo; from a span, "Logs for this span" goes back to Loki. The span
+ids are the `span_id` values of the logs.
+
 Switching a running stack from the 1.x bundles: drain RabbitMQ first — the tracing stamp class moved in 2.0 and
 messages stamped by 1.x cannot be decoded.
 
@@ -84,6 +91,7 @@ messages stamped by 1.x cannot be decoded.
 | [metrics-bridge-profiling](https://github.com/msstc4symfony/metrics-bridge-profiling) | Span durations exported as the `symfony_profiling_span_duration_histogram_seconds` metric |
 | [metrics-bridge-healthcheck](https://github.com/msstc4symfony/metrics-bridge-healthcheck) | Readiness and liveliness runs as `symfony_healthcheck_probe_run{probe,status}`, `symfony_healthcheck_checker_run{checker,probe,status}` (`degraded` for a failed non-critical checker) and `symfony_healthcheck_checker_duration_histogram_seconds` |
 | [tracing-bridge-profiling](https://github.com/msstc4symfony/tracing-bridge-profiling) | Every non-detached profiling span runs in its own trace span; its `profiling` record carries `trace_span_id` and `trace_parent_span_id` in `context` |
+| [tracing-bridge-otlp](https://github.com/msstc4symfony/tracing-bridge-otlp) | Every sampled profiling span exported over OTLP with the trace and span ids of the logs; one export per request or message; a stopped collector costs one `OTLP span export failed` warning per 30 seconds and nothing else (e2e `@chaos`) |
 | [logic-bundle](https://github.com/msstc4symfony/logic-bundle) | orders creates an order through an `Action` (`src/Application/Order/Create/`): `Start/Finish application action` log records around it and validation of its `Input`. No lock: the gateway idempotency store already serialises duplicate `POST /orders`, and a non-blocking lock would answer 409 instead of the stored response |
 
 ## Elasticsearch in orders

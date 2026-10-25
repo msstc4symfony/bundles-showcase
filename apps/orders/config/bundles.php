@@ -20,4 +20,5 @@ return [
     Msstc4Symfony\TracingBridgeLogic\TracingBridgeLogicBundle::class => ['all' => true],
     Msstc4Symfony\MetricsBridgeHealthcheck\MetricsBridgeHealthcheckBundle::class => ['all' => true],
     Msstc4Symfony\TracingBridgeProfiling\TracingBridgeProfilingBundle::class => ['all' => true],
+    Msstc4Symfony\TracingBridgeOtlp\TracingBridgeOtlpBundle::class => ['all' => true],
 ];

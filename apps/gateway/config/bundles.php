@@ -13,4 +13,5 @@ return [
     Baldinof\RoadRunnerBundle\BaldinofRoadRunnerBundle::class => ['all' => true],
     Msstc4Symfony\MetricsBridgeHealthcheck\MetricsBridgeHealthcheckBundle::class => ['all' => true],
     Msstc4Symfony\TracingBridgeProfiling\TracingBridgeProfilingBundle::class => ['all' => true],
+    Msstc4Symfony\TracingBridgeOtlp\TracingBridgeOtlpBundle::class => ['all' => true],
 ];

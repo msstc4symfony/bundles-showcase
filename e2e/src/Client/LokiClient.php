@@ -42,13 +42,30 @@ final readonly class LokiClient
     }
 
     /**
+     * Lines of one compose service that contain a text.
+     *
+     * @return list<LogLine>
+     */
+    public function linesOfServiceContaining(string $service, string $text, float $sinceUnix): array
+    {
+        return $this->run(sprintf('{service="%s"} |= `%s`', $service, $text), $sinceUnix);
+    }
+
+    /**
      * @param non-empty-string $label
      *
      * @return list<LogLine>
      */
     private function query(string $label, string $value, float $sinceUnix): array
     {
-        $query = sprintf('{service=~".+"} | json | %s=`%s`', $label, $value);
+        return $this->run(sprintf('{service=~".+"} | json | %s=`%s`', $label, $value), $sinceUnix);
+    }
+
+    /**
+     * @return list<LogLine>
+     */
+    private function run(string $query, float $sinceUnix): array
+    {
         $data = $this->http->request('GET', '/loki/api/v1/query_range', ['query' => [
             'query' => $query,
             'start' => (string) (int) ($sinceUnix * 1e9),

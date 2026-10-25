@@ -274,3 +274,22 @@
   healthcheck 2.3.0 пробует пулы на одном подключении один раз за прогон (остальные: `shared connection probe via
   Cache (... : cache.app) connection failed`), readiness при лежащем Redis — 0,1–1,7 с (замер 2026-10-23 UTC), поэтому
   `HealthClient` снова ждёт 10 с. `timeouts.probe_ms` в приложениях не задан: с общей пробой он не нужен.
+
+## Экспорт спанов в Tempo (2026-10-25 UTC)
+
+- Путь: apps (tracing-bridge-otlp 1.0.1, `OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4318` в `x-common-env`,
+  `service_name: %env(COMPONENT_NAME)%`) → Alloy `otelcol.receiver.otlp` (http 4318) → `otelcol.exporter.otlp` → Tempo
+  2.10.8 (gRPC 4317, single binary, local storage). Grafana: datasource Tempo (`tracesToLogsV2` → Loki), Loki derived
+  field `"trace_id":"<32 hex>"` → Tempo.
+- **Tempo JSON отдаёт id в base64** (`/api/v2/traces/{id}`): `TraceTree` декодирует `bin2hex(base64_decode())`. 404 —
+  трейса ещё нет.
+- **Alloy после правки `alloy.alloy` надо пересоздать** (`up -d --force-recreate alloy`): bind-mount конфига не
+  перечитывается сам.
+- **Alloy возит и логи**: в `@chaos` (Alloy остановлен) warning `OTLP span export failed` попадает в Loki только после
+  `I start "alloy"` (позиции docker-источника сохраняются в контейнере). Спаны, отправленные во время остановки,
+  теряются — так и задумано (пауза 30 с в мосте).
+- **Первый прогон с мостом 1.0.0 сломал `metrics.feature:43`**: мост читал общую паузу из `cache.app`, а metrics-bundle
+  считает обращения к нему (miss рос на 2). Исправлено в мосте 1.0.1 (свой FilesystemAdapter), showcase бандлы не
+  чинит.
+- Tempo 3.x не взят: v3.1.0 — новая архитектура, монолитный конфиг не проверен; 2.10.8 — последний 2.x старше двух
+  недель на 2026-10-25.

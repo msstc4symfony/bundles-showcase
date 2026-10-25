@@ -173,6 +173,11 @@ final class TracingContext implements Context
         return $this->traceId ?? throw new LogicException('Send a traceparent first.');
     }
 
+    public function clientSpanId(): string
+    {
+        return $this->clientSpanId ?? throw new LogicException('Send a traceparent first.');
+    }
+
     public function startedAt(): float
     {
         return $this->startedAt;
