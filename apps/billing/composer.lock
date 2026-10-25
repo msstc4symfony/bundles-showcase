@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6c99ffbff4d5fa39e2109e2553703041",
+    "content-hash": "e49083f4f274c6cca487e4ea2ed3e433",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
