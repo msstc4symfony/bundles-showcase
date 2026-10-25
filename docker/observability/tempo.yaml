@@ -1,4 +1,7 @@
-# Single binary, local storage: enough for the showcase, nothing survives "down -v".
+# Single binary, local storage in the container: traces are gone when it is recreated.
+usage_report:
+  reporting_enabled: false
+
 server:
   http_listen_port: 3200
 

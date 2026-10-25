@@ -10,7 +10,7 @@ datasources:
     type: loki
     url: http://loki:3100
     jsonData:
-      # The apps log JSON: "trace_id" in "extra" opens the trace in Tempo.
+      # The apps log JSON with a top-level "trace_id": it opens the trace in Tempo.
       derivedFields:
         - name: trace_id
           matcherRegex: '"trace_id":"([0-9a-f]{32})"'
@@ -21,8 +21,10 @@ datasources:
     type: tempo
     url: http://tempo:3200
     jsonData:
+      # By trace id alone: a span's service.name (orders) is not the Loki service label (orders-worker).
       tracesToLogsV2:
         datasourceUid: loki
-        filterByTraceID: true
         spanStartTimeShift: '-5m'
         spanEndTimeShift: '5m'
+        customQuery: true
+        query: '{service=~".+"} | json | trace_id="$${__trace.traceId}"'

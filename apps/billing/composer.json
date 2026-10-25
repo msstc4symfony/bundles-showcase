@@ -91,7 +91,7 @@
         }
     },
     "repositories": [{
-        "name": "msstc4symfony-tracing-bridge-otlp",
+        "name": "tracing-bridge-otlp",
         "type": "vcs",
         "url": "https://github.com/msstc4symfony/tracing-bridge-otlp"
     },{

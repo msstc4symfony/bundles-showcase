@@ -279,8 +279,9 @@
 
 - Путь: apps (tracing-bridge-otlp 1.0.1, `OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4318` в `x-common-env`,
   `service_name: %env(COMPONENT_NAME)%`) → Alloy `otelcol.receiver.otlp` (http 4318) → `otelcol.exporter.otlp` → Tempo
-  2.10.8 (gRPC 4317, single binary, local storage). Grafana: datasource Tempo (`tracesToLogsV2` → Loki), Loki derived
-  field `"trace_id":"<32 hex>"` → Tempo.
+  2.10.8 (gRPC 4317, single binary, storage в контейнере, `usage_report` выключен); в Alloy `otelcol.processor.batch`.
+  Grafana: datasource Tempo (`tracesToLogsV2` с custom query по `trace_id`: `service.name` спана — `orders`, а метка
+  Loki — `orders-worker`, фильтр по тегам терял бы логи воркеров), Loki derived field `"trace_id":"<32 hex>"` → Tempo.
 - **Tempo JSON отдаёт id в base64** (`/api/v2/traces/{id}`): `TraceTree` декодирует `bin2hex(base64_decode())`. 404 —
   трейса ещё нет.
 - **Alloy после правки `alloy.alloy` надо пересоздать** (`up -d --force-recreate alloy`): bind-mount конфига не
@@ -293,3 +294,8 @@
   чинит.
 - Tempo 3.x не взят: v3.1.0 — новая архитектура, монолитный конфиг не проверен; 2.10.8 — последний 2.x старше двух
   недель на 2026-10-25.
+- **После `@chaos` traces.feature каждый процесс на паузе до 30 с**: сценарий заканчивается шагом «trace of a new
+  order reaches Tempo from every service» (заказы шлются, пока один трейс не дойдёт целиком), так что следующие
+  сценарии/прогоны не видят потерянных спанов. `TempoClient` трактует любой не-200 и ошибку транспорта как «ещё нет».
+- **e2e проверяет и строгие связи**: у каждого спана трейса родитель в трейсе или span клиента (корней нет, клиент
+  слал traceparent), и каждый `span_id` из логов трейса есть в Tempo.

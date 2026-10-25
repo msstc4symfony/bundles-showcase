@@ -173,6 +173,24 @@ final class TracingContext implements Context
         return $this->traceId ?? throw new LogicException('Send a traceparent first.');
     }
 
+    /**
+     * @return list<LogLine>
+     */
+    public function linesOfThatTrace(): array
+    {
+        return $this->loki->linesOfTrace($this->traceId(), $this->startedAt);
+    }
+
+    #[Then('within :seconds seconds the :service logs contain :text')]
+    public function theLogsContain(int $seconds, string $service, string $text): void
+    {
+        Wait::until(
+            fn (): bool => $this->loki->linesOfServiceContaining($service, $text, $this->startedAt) !== [],
+            $seconds,
+            sprintf('The "%s" logs did not contain "%s" in time.', $service, $text),
+        );
+    }
+
     public function clientSpanId(): string
     {
         return $this->clientSpanId ?? throw new LogicException('Send a traceparent first.');

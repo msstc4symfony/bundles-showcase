@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1d5be1796c0641f2c903dcdbc298b5b7",
+    "content-hash": "b6e67f4d263050ac544037f40a1ae8c1",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -2057,7 +2057,7 @@
             "version": "v2.3.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/msstc4symfony/healthcheck-bundle.git",
+                "url": "git@github.com:msstc4symfony/healthcheck-bundle.git",
                 "reference": "ed05288da4e8fe4cbd2791a72d0348c942c5d5a9"
             },
             "dist": {
@@ -2145,7 +2145,7 @@
             "version": "v2.1.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/msstc4symfony/logger-bundle.git",
+                "url": "git@github.com:msstc4symfony/logger-bundle.git",
                 "reference": "aba8a89b0d3e44f12e2a695ace3cb5e22db88c24"
             },
             "dist": {
@@ -2222,7 +2222,7 @@
             "version": "v2.0.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/msstc4symfony/logic-bundle.git",
+                "url": "git@github.com:msstc4symfony/logic-bundle.git",
                 "reference": "fc1edccba5ddd10e9c10ae7abe1563d7f83adc66"
             },
             "dist": {
@@ -2298,7 +2298,7 @@
             "version": "v1.0.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/msstc4symfony/metrics-bridge-healthcheck.git",
+                "url": "git@github.com:msstc4symfony/metrics-bridge-healthcheck.git",
                 "reference": "ee1710ab831b1b03a6fb97a64252136296870885"
             },
             "dist": {
@@ -2382,7 +2382,7 @@
             "version": "v2.0.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/msstc4symfony/metrics-bridge-logic.git",
+                "url": "git@github.com:msstc4symfony/metrics-bridge-logic.git",
                 "reference": "156e773077177a83fc460fc482c048fb0c4da438"
             },
             "dist": {
@@ -2465,7 +2465,7 @@
             "version": "v2.0.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/msstc4symfony/metrics-bridge-profiling.git",
+                "url": "git@github.com:msstc4symfony/metrics-bridge-profiling.git",
                 "reference": "7823a4d85ca1c7bc3b66253b24301dc6da5c04fa"
             },
             "dist": {
@@ -2546,7 +2546,7 @@
             "version": "v2.2.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/msstc4symfony/metrics-bundle.git",
+                "url": "git@github.com:msstc4symfony/metrics-bundle.git",
                 "reference": "a1d9201a5106503955f3144831f2a0d3e8a7b96e"
             },
             "dist": {
@@ -2640,7 +2640,7 @@
             "version": "v2.0.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/msstc4symfony/profiling-bridge-logic.git",
+                "url": "git@github.com:msstc4symfony/profiling-bridge-logic.git",
                 "reference": "0354fc995cc0ac67c920aa075abad43183c3d5bf"
             },
             "dist": {
@@ -2720,7 +2720,7 @@
             "version": "v2.2.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/msstc4symfony/profiling-bundle.git",
+                "url": "git@github.com:msstc4symfony/profiling-bundle.git",
                 "reference": "dc4755fb51bd68d3775f3134faf4c639cfc076ee"
             },
             "dist": {
@@ -2814,7 +2814,7 @@
             "version": "v1.0.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/msstc4symfony/sql-labeller.git",
+                "url": "git@github.com:msstc4symfony/sql-labeller.git",
                 "reference": "1bd8a3214d983f888673ef6c82752db35d645a46"
             },
             "dist": {
@@ -2879,7 +2879,7 @@
             "version": "v2.0.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/msstc4symfony/tracing-bridge-logic.git",
+                "url": "git@github.com:msstc4symfony/tracing-bridge-logic.git",
                 "reference": "e591305cb67f0a22cdbdbb68f612460c214abb0f"
             },
             "dist": {
@@ -2959,7 +2959,7 @@
             "version": "v1.0.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/msstc4symfony/tracing-bridge-otlp.git",
+                "url": "git@github.com:msstc4symfony/tracing-bridge-otlp.git",
                 "reference": "4e0d3080372d414cc98270d5f4b9458e1fad88ac"
             },
             "dist": {
@@ -3059,7 +3059,7 @@
             "version": "v1.2.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/msstc4symfony/tracing-bridge-profiling.git",
+                "url": "git@github.com:msstc4symfony/tracing-bridge-profiling.git",
                 "reference": "03e08f37277b79269161387ea219de2ab17ab6c1"
             },
             "dist": {
@@ -3139,7 +3139,7 @@
             "version": "v2.2.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/msstc4symfony/tracing-bundle.git",
+                "url": "git@github.com:msstc4symfony/tracing-bundle.git",
                 "reference": "5bc1f580d533898f96dd5a57afcacdb497984ce4"
             },
             "dist": {

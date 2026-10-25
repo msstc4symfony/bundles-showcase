@@ -12,7 +12,7 @@ use Webmozart\Assert\Assert;
 final readonly class TraceTree
 {
     /**
-     * @param list<array{service: string, name: string, spanId: string, parentSpanId: string}> $spans ids in hex; '' for a root
+     * @param list<TraceSpan> $spans
      */
     private function __construct(
         public array $spans,
@@ -31,12 +31,9 @@ final readonly class TraceTree
             $service = self::serviceName($resourceSpans);
             foreach (self::list($resourceSpans, 'scopeSpans') as $scopeSpans) {
                 foreach (self::list($scopeSpans, 'spans') as $span) {
-                    $spans[] = [
-                        'service' => $service,
-                        'name' => is_string($span['name'] ?? null) ? $span['name'] : '',
-                        'spanId' => self::hex($span['spanId'] ?? null),
-                        'parentSpanId' => self::hex($span['parentSpanId'] ?? null),
-                    ];
+                    Assert::string($span['name'] ?? null, 'A span in Tempo has no name.');
+                    $parent = $span['parentSpanId'] ?? '';
+                    $spans[] = new TraceSpan($service, $span['name'], self::hex($span['spanId'] ?? null), $parent === '' ? '' : self::hex($parent));
                 }
             }
         }
@@ -49,14 +46,31 @@ final readonly class TraceTree
      */
     public function services(): array
     {
-        $services = array_values(array_unique(array_column($this->spans, 'service')));
+        $services = array_values(array_unique(array_map(static fn (TraceSpan $span): string => $span->service, $this->spans)));
         sort($services);
 
         return $services;
     }
 
     /**
+     * @param list<string> $expected sorted
+     */
+    public function hasSpansOf(array $expected): bool
+    {
+        return array_values(array_intersect($expected, $this->services())) === $expected;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function spanIds(): array
+    {
+        return array_map(static fn (TraceSpan $span): string => $span->spanId, $this->spans);
+    }
+
+    /**
      * Spans whose parent is neither in the trace nor one of the given span ids (the client's), as "service name".
+     * A span without parent is an orphan too: the client sent a traceparent, so the trace has no root of its own.
      *
      * @param list<string> $outsideParents
      *
@@ -64,11 +78,11 @@ final readonly class TraceTree
      */
     public function orphans(array $outsideParents): array
     {
-        $known = [...array_column($this->spans, 'spanId'), ...$outsideParents, ''];
+        $known = [...$this->spanIds(), ...$outsideParents];
         $orphans = [];
         foreach ($this->spans as $span) {
-            if (!in_array($span['parentSpanId'], $known, true)) {
-                $orphans[] = $span['service'] . ' ' . $span['name'];
+            if (!in_array($span->parentSpanId, $known, true)) {
+                $orphans[] = $span->label();
             }
         }
 
@@ -106,14 +120,16 @@ final readonly class TraceTree
         return '';
     }
 
+    /**
+     * @return non-empty-string
+     */
     private static function hex(mixed $base64): string
     {
-        if (!is_string($base64) || $base64 === '') {
-            return '';
-        }
-
+        Assert::stringNotEmpty($base64, 'A span id in Tempo is missing or not a string.');
         $bytes = base64_decode($base64, true);
+        Assert::string($bytes, sprintf('The span id "%s" from Tempo is not base64.', $base64));
+        Assert::same(strlen($bytes), 8, sprintf('The span id "%s" from Tempo is not 8 bytes.', $base64));
 
-        return $bytes === false ? '' : bin2hex($bytes);
+        return bin2hex($bytes);
     }
 }

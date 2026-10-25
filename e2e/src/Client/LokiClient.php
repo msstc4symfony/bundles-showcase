@@ -12,6 +12,8 @@ final readonly class LokiClient
 {
     private const int LIMIT = 1000;
 
+    private const string SERVICE_NAME = '/^[a-z0-9_-]+$/D';
+
     private HttpClientInterface $http;
 
     public function __construct(?string $baseUri = null)
@@ -48,6 +50,9 @@ final readonly class LokiClient
      */
     public function linesOfServiceContaining(string $service, string $text, float $sinceUnix): array
     {
+        Assert::regex($service, self::SERVICE_NAME, sprintf('"%s" is not a compose service name.', $service));
+        $this->assertRawString($text);
+
         return $this->run(sprintf('{service="%s"} |= `%s`', $service, $text), $sinceUnix);
     }
 
@@ -58,6 +63,8 @@ final readonly class LokiClient
      */
     private function query(string $label, string $value, float $sinceUnix): array
     {
+        $this->assertRawString($value);
+
         return $this->run(sprintf('{service=~".+"} | json | %s=`%s`', $label, $value), $sinceUnix);
     }
 
@@ -117,5 +124,13 @@ final readonly class LokiClient
         }
 
         return $streams;
+    }
+
+    /**
+     * A LogQL raw string (backticks) cannot escape a backtick: such a value would end the string early.
+     */
+    private function assertRawString(string $value): void
+    {
+        Assert::notContains($value, '`', 'A LogQL raw string cannot hold a backtick.');
     }
 }
