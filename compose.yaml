@@ -185,12 +185,19 @@ services:
     volumes: ["./docker/observability/loki.yaml:/etc/loki/loki.yaml:ro"]
     mem_limit: 512m
 
+  tempo:
+    image: grafana/tempo:2.10.8
+    command: ["-config.file=/etc/tempo/tempo.yaml"]
+    volumes: ["./docker/observability/tempo.yaml:/etc/tempo/tempo.yaml:ro"]
+    ports: ["127.0.0.1:${SHOWCASE_TEMPO_PORT:-3200}:3200"]
+    mem_limit: 512m
+
   alloy:
     image: grafana/alloy:v1.20.1
     command: ["run", "/etc/alloy/config.alloy"]
     volumes: ["./docker/observability/alloy.alloy:/etc/alloy/config.alloy:ro"]
     networks: [default, docker-api]
-    depends_on: [loki, docker-proxy]
+    depends_on: [loki, tempo, docker-proxy]
 
   grafana:
     image: grafana/grafana:13.2.3
@@ -202,7 +209,7 @@ services:
       - ./docker/observability/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./docker/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
     mem_limit: 512m
-    depends_on: [prometheus, loki]
+    depends_on: [prometheus, loki, tempo]
 
 networks:
   default: {}
