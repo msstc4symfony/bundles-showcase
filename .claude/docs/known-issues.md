@@ -302,3 +302,9 @@
   seconds`): процессы одного трейса (orders и orders-worker с одним `service.name`) экспортируют в конце своих единиц
   работы, Tempo заполняется за несколько секунд. Lock-файлы держат https-URL пакетов (локальный `insteadOf` на SSH
   иначе протекает в `source.url`).
+- **Повторный `make e2e` на том же стенде после Redis-chaos (2026-10-25 UTC)**: в части RoadRunner-воркеров gateway
+  соединение lock store (`LOCK_DSN`) остаётся «went away», а кеш-соединение живо, поэтому `RedisConnectionGuard`
+  (пингует только `cache.default_redis_provider`) ядро не перезагружает → idempotency и readiness gateway падают
+  (`Lock store (lock.default) failed`). CI не затронут (свежий стенд, один прогон); локально — `docker compose
+  restart gateway`. Не исправлено в этой итерации: кандидат — пинговать в guard и lock-соединение. С мостом не
+  связано.
