@@ -23,8 +23,7 @@ final readonly class TraceSpan
     ) {
         Assert::regex($spanId, LogLine::SPAN_ID_PATTERN, sprintf('"%s" is not a span id.', $spanId));
         if ($parentSpanId !== '') {
-            $message = sprintf('"%s" is not a parent span id.', $parentSpanId);
-            Assert::regex($parentSpanId, LogLine::SPAN_ID_PATTERN, $message);
+            Assert::regex($parentSpanId, LogLine::SPAN_ID_PATTERN, sprintf('"%s" is not a parent id.', $parentSpanId));
         }
     }
 

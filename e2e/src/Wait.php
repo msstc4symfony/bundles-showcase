@@ -9,7 +9,7 @@ use RuntimeException;
 
 final class Wait
 {
-    private const int POLL_MICROSECONDS = 250_000;
+    public const float POLL_SECONDS = 0.25;
 
     /**
      * @param Closure(): bool $condition
@@ -30,13 +30,18 @@ final class Wait
     public static function within(Closure $condition, float $timeoutSeconds): bool
     {
         $deadline = microtime(true) + $timeoutSeconds;
-        do {
+        while (true) {
             if ($condition()) {
                 return true;
             }
 
-            usleep(self::POLL_MICROSECONDS);
-        } while (microtime(true) < $deadline);
+            $left = $deadline - microtime(true);
+            if ($left <= 0) {
+                break;
+            }
+
+            usleep((int) (min(self::POLL_SECONDS, $left) * 1_000_000));
+        }
 
         return false;
     }

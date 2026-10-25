@@ -77,7 +77,11 @@ final class TraceExportContext implements Context
                 return $this->problems === [];
             },
             $seconds,
-            fn (): string => sprintf('Spans whose parent is not in the trace: %s.', implode(', ', $this->problems)),
+            fn (): string => sprintf(
+                'Spans whose parent is not in the trace: %s (%s).',
+                implode(', ', $this->problems),
+                $this->lastReason(),
+            ),
         );
     }
 
@@ -101,7 +105,11 @@ final class TraceExportContext implements Context
                 return $this->problems === [];
             },
             $seconds,
-            fn (): string => sprintf('Logged span ids not in Tempo: %s.', implode(', ', $this->problems)),
+            fn (): string => sprintf(
+                'Logged span ids not in Tempo: %s (%s).',
+                implode(', ', $this->problems),
+                $this->lastReason(),
+            ),
         );
     }
 
@@ -124,6 +132,11 @@ final class TraceExportContext implements Context
             );
             if ($reached) {
                 return;
+            }
+
+            // A failing gateway must not be flooded with orders.
+            if ($lastStatus !== self::CREATED) {
+                usleep((int) (min(Wait::POLL_SECONDS, max(0.0, $deadline - microtime(true))) * 1_000_000));
             }
         }
 
