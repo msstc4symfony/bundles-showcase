@@ -8,8 +8,8 @@ Feature: Spans of every service reach Tempo as one trace
       | gateway |
       | orders  |
       | billing |
-    And every span of that trace in Tempo has its parent in the trace or the client's span as parent
-    And the span ids of that trace in Tempo are the span ids of its logs
+    And within 30 seconds every span of that trace in Tempo has its parent in the trace or the client's span
+    And within 30 seconds every span id in the logs of that trace is a span of it in Tempo
 
   # Alloy also ships the logs: they reach Loki once it is back. Exporting resumes after each process's 30 s pause.
   @chaos

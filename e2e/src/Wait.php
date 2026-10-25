@@ -17,15 +17,27 @@ final class Wait
      */
     public static function until(Closure $condition, float $timeoutSeconds, string|Closure $failureMessage): void
     {
+        if (!self::within($condition, $timeoutSeconds)) {
+            throw new RuntimeException(is_string($failureMessage) ? $failureMessage : $failureMessage());
+        }
+    }
+
+    /**
+     * @param Closure(): bool $condition
+     *
+     * @return bool whether the condition held before the timeout
+     */
+    public static function within(Closure $condition, float $timeoutSeconds): bool
+    {
         $deadline = microtime(true) + $timeoutSeconds;
         do {
             if ($condition()) {
-                return;
+                return true;
             }
 
             usleep(self::POLL_MICROSECONDS);
         } while (microtime(true) < $deadline);
 
-        throw new RuntimeException(is_string($failureMessage) ? $failureMessage : $failureMessage());
+        return false;
     }
 }

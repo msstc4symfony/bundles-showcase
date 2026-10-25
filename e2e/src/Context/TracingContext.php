@@ -334,7 +334,10 @@ final class TracingContext implements Context
         return $names;
     }
 
-    private function newTraceParent(): string
+    /**
+     * Starts the scenario's trace: the client's span is the parent of the gateway's.
+     */
+    public function newTraceParent(): string
     {
         $this->traceId = bin2hex(random_bytes(16));
         $this->clientSpanId = bin2hex(random_bytes(8));

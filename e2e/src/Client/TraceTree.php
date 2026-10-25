@@ -33,7 +33,12 @@ final readonly class TraceTree
                 foreach (self::list($scopeSpans, 'spans') as $span) {
                     Assert::string($span['name'] ?? null, 'A span in Tempo has no name.');
                     $parent = $span['parentSpanId'] ?? '';
-                    $spans[] = new TraceSpan($service, $span['name'], self::hex($span['spanId'] ?? null), $parent === '' ? '' : self::hex($parent));
+                    $spans[] = new TraceSpan(
+                        $service,
+                        $span['name'],
+                        self::hex($span['spanId'] ?? null),
+                        $parent === '' ? '' : self::hex($parent),
+                    );
                 }
             }
         }
@@ -46,18 +51,19 @@ final readonly class TraceTree
      */
     public function services(): array
     {
-        $services = array_values(array_unique(array_map(static fn (TraceSpan $span): string => $span->service, $this->spans)));
+        $services = array_map(static fn (TraceSpan $span): string => $span->service, $this->spans);
+        $services = array_values(array_unique($services));
         sort($services);
 
         return $services;
     }
 
     /**
-     * @param list<string> $expected sorted
+     * @param list<string> $services
      */
-    public function hasSpansOf(array $expected): bool
+    public function hasSpansOf(array $services): bool
     {
-        return array_values(array_intersect($expected, $this->services())) === $expected;
+        return array_diff($services, $this->services()) === [];
     }
 
     /**
@@ -112,7 +118,8 @@ final readonly class TraceTree
         Assert::isArray($resource);
         foreach (self::list($resource, 'attributes') as $attribute) {
             $value = $attribute['value'] ?? [];
-            if (($attribute['key'] ?? null) === 'service.name' && is_array($value) && is_string($value['stringValue'] ?? null)) {
+            $isServiceName = ($attribute['key'] ?? null) === 'service.name';
+            if ($isServiceName && is_array($value) && is_string($value['stringValue'] ?? null)) {
                 return $value['stringValue'];
             }
         }

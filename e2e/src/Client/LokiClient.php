@@ -12,7 +12,7 @@ final readonly class LokiClient
 {
     private const int LIMIT = 1000;
 
-    private const string SERVICE_NAME = '/^[a-z0-9_-]+$/D';
+    private const string SERVICE_NAME_PATTERN = '/^[a-z0-9_-]+$/D';
 
     private HttpClientInterface $http;
 
@@ -50,7 +50,7 @@ final readonly class LokiClient
      */
     public function linesOfServiceContaining(string $service, string $text, float $sinceUnix): array
     {
-        Assert::regex($service, self::SERVICE_NAME, sprintf('"%s" is not a compose service name.', $service));
+        Assert::regex($service, self::SERVICE_NAME_PATTERN, sprintf('"%s" is not a compose service name.', $service));
         $this->assertRawString($text);
 
         return $this->run(sprintf('{service="%s"} |= `%s`', $service, $text), $sinceUnix);
