@@ -207,8 +207,8 @@
 - `Action` пока зависит от `EntityManagerInterface`/`MessageBusInterface`/`App\Entity\Order` напрямую — перенос 1:1
   из контроллера; порты (репозиторий заказов, запрос оплаты) — отдельной итерацией. `OrderView` остался в `App\Order`.
 - Бриджи logic (2026-10-12 UTC): бандлы в `bundles.php` прописал Flex auto-generated recipe — руками не трогать.
-  `CreateOrderActionWiringTest` проверяет порядок middleware через приватное `ActionPipeline::$middlewares`
-  (публичного API порядка нет) — при падении после обновления logic-bundle сначала проверить имя свойства.
+  `CreateOrderActionWiringTest` проверяет порядок middleware через `MiddlewareChainInterface::middlewares()`
+  (logic-bundle 2.1.0; приложения требуют `^2.1`).
   `LogicBridgesTest` ищет лейблы метрики по имени через `$family->getLabelNames()` (`Sample::getLabelNames()`
   у `_count` пуст). e2e фильтрует span-метрику по `message`, поэтому новые спаны `action …` сценарии не задевают.
 
