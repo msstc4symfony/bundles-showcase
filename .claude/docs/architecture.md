@@ -123,6 +123,8 @@ Loki не опубликован. Локально у владельца 8080 и
   logger ^2.1, metrics ^2.2.1, profiling ^2.2, tracing ^2.1.3, metrics-bridge-profiling ^2.0, `logic-bundle ^2.0` (orders; на rc.1 через
   `^2.0@rc` до финального тега 2026-10-23 UTC), бриджи logic ^2.0.1, новые metrics-bridge-healthcheck ^1.0 и tracing-bridge-profiling ^1.1 (все приложения),
   sql-labeller ^1.0 (транзитивно через metrics, нужен vcs-репозиторий). Полигон остаётся на PHP 8.5.
+  С 2026-10-26 UTC: tracing ^2.3.0 (флаг random, `ot=th` при ratio < 1 — showcase ratio не задаёт, провод `03`
+  без tracestate), tracing-bridge-otlp ^1.1.0 (`pause_pool`; showcase его не задаёт — пауза в файлах, по контейнеру).
 
 ## Конфигурация бандлов 2.2 (2026-10-23 UTC)
 

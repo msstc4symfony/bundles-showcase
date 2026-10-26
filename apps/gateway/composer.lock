@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d214faf879931e2b3270cd39eb8e2c51",
+    "content-hash": "2542b328d097cec040fcb6b0bacb4868",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -968,16 +968,16 @@
         },
         {
             "name": "msstc4symfony/tracing-bridge-otlp",
-            "version": "v1.0.1",
+            "version": "v1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/tracing-bridge-otlp.git",
-                "reference": "4e0d3080372d414cc98270d5f4b9458e1fad88ac"
+                "reference": "5ce24e3cb04e0e12d505efb66603b9a9d55ae679"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/tracing-bridge-otlp/zipball/4e0d3080372d414cc98270d5f4b9458e1fad88ac",
-                "reference": "4e0d3080372d414cc98270d5f4b9458e1fad88ac",
+                "url": "https://api.github.com/repos/msstc4symfony/tracing-bridge-otlp/zipball/5ce24e3cb04e0e12d505efb66603b9a9d55ae679",
+                "reference": "5ce24e3cb04e0e12d505efb66603b9a9d55ae679",
                 "shasum": ""
             },
             "require": {
@@ -1061,10 +1061,10 @@
                 "tracing"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/tracing-bridge-otlp/tree/v1.0.1",
+                "source": "https://github.com/msstc4symfony/tracing-bridge-otlp/tree/v1.1.0",
                 "issues": "https://github.com/msstc4symfony/tracing-bridge-otlp/issues"
             },
-            "time": "2026-10-25T12:08:44+00:00"
+            "time": "2026-10-26T06:45:19+00:00"
         },
         {
             "name": "msstc4symfony/tracing-bridge-profiling",
@@ -1148,16 +1148,16 @@
         },
         {
             "name": "msstc4symfony/tracing-bundle",
-            "version": "v2.2.0",
+            "version": "v2.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/tracing-bundle.git",
-                "reference": "5bc1f580d533898f96dd5a57afcacdb497984ce4"
+                "reference": "a2297f4ffa45652b84c4223d771c3bd0e9f37202"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/tracing-bundle/zipball/5bc1f580d533898f96dd5a57afcacdb497984ce4",
-                "reference": "5bc1f580d533898f96dd5a57afcacdb497984ce4",
+                "url": "https://api.github.com/repos/msstc4symfony/tracing-bundle/zipball/a2297f4ffa45652b84c4223d771c3bd0e9f37202",
+                "reference": "a2297f4ffa45652b84c4223d771c3bd0e9f37202",
                 "shasum": ""
             },
             "require": {
@@ -1223,9 +1223,9 @@
                 "tracing"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/tracing-bundle/tree/v2.2.0"
+                "source": "https://github.com/msstc4symfony/tracing-bundle/tree/v2.3.0"
             },
-            "time": "2026-10-25T10:36:16+00:00"
+            "time": "2026-10-26T06:25:10+00:00"
         },
         {
             "name": "nyholm/psr7",

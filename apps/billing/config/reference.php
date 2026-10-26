@@ -1484,11 +1484,12 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  * }
  * @psalm-type Msstc4symfonyTracingBridgeOtlpConfig = array{
  *     enabled?: bool|Param, // false: no export service is registered. // Default: true
- *     service_name?: string|Param, // service.name of the exported spans; ~: OTEL_SERVICE_NAME / OTEL_RESOURCE_ATTRIBUTES, else the basename of kernel.project_dir. // Default: null
- *     endpoint?: string|Param, // Base URL like OTEL_EXPORTER_OTLP_ENDPOINT (/v1/traces is appended for HTTP); ~: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT, OTEL_EXPORTER_OTLP_ENDPOINT, http://localhost:4318. // Default: null
+ *     service_name?: scalar|Param|null, // service.name of the exported spans; ~: OTEL_SERVICE_NAME / OTEL_RESOURCE_ATTRIBUTES, else the basename of kernel.project_dir. // Default: null
+ *     endpoint?: scalar|Param|null, // Base URL like OTEL_EXPORTER_OTLP_ENDPOINT (/v1/traces is appended for HTTP); ~: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT, OTEL_EXPORTER_OTLP_ENDPOINT, http://localhost:4318. // Default: null
  *     protocol?: "http/protobuf"|"http/json"|"grpc"|Param, // ~: OTEL_EXPORTER_OTLP_TRACES_PROTOCOL, OTEL_EXPORTER_OTLP_PROTOCOL, http/protobuf. grpc needs open-telemetry/transport-grpc. // Default: null
  *     timeout_ms?: int|Param, // Export timeout; OTEL_EXPORTER_OTLP_TIMEOUT is ignored. // Default: 1000
  *     max_buffered_spans?: int|Param, // Spans kept per unit of work; a full buffer is exported early. // Default: 2048
+ *     pause_pool?: scalar|Param|null, // PSR-6 pool (service id) sharing the pause after a failed export between hosts; ~: files in kernel.share_dir (else kernel.cache_dir), shared by the processes on one host. // Default: null
  * }
  * @psalm-type ConfigType = array{
  *     imports?: ImportsConfig,
