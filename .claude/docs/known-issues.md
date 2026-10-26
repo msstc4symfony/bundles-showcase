@@ -112,8 +112,8 @@
   порядок — медленный ответ orders переживёт лок или маркер, и повтор создаст дубль.
 - Ошибка вызова orders (включая таймаут) снимает маркер, и повтор разрешён. При таймауте заказ мог создаться в
   orders — у orders нет своей идемпотентности, поэтому дубль в этом случае возможен (осознанная граница showcase).
-- `RedisConnectionGuard` пингует только соединение кеша: lock и кеш живут на одном Redis, поэтому ломаются
-  вместе. Пока Redis лежит, RoadRunner перезагружает ядро после каждого запроса, а Messenger-воркер
+- `RedisConnectionGuard` gateway проверяет соединение кеша и lock store: они на одном Redis, но у lock своё
+  соединение, и оно может остаться сломанным, пока кешевое живо (см. ниже, 2026-10-25). Пока Redis лежит, RoadRunner перезагружает ядро после каждого запроса, а Messenger-воркер
   перезапускается — это ожидаемо.
 
 ## Инструменты: Rector и docker-proxy (2026-10-02 UTC)
@@ -305,6 +305,8 @@
 - **Повторный `make e2e` на том же стенде после Redis-chaos (2026-10-25 UTC)**: в части RoadRunner-воркеров gateway
   соединение lock store (`LOCK_DSN`) остаётся «went away», а кеш-соединение живо, поэтому `RedisConnectionGuard`
   (пингует только `cache.default_redis_provider`) ядро не перезагружает → idempotency и readiness gateway падают
-  (`Lock store (lock.default) failed`). CI не затронут (свежий стенд, один прогон); локально — `docker compose
-  restart gateway`. Не исправлено в этой итерации: кандидат — пинговать в guard и lock-соединение. С мостом не
-  связано.
+  (`Lock store (lock.default) failed`). **Исправлено 2026-10-26 UTC**: guard gateway проверяет и lock store —
+  `LockFactory::createLock('redis-connection-guard', autoRelease: false)->isAcquired()` (одна команда к
+  хранилищу; id store FrameworkBundle скрытый `.lock.default.store.<hash>`, поэтому через фабрику). С `flock`
+  (dev/test) проверка всегда проходит. `UnreachableLockStore` в тестах теперь бросает и в `exists()`.
+  Проверено: два `make e2e` подряд с `@chaos` без рестарта gateway.

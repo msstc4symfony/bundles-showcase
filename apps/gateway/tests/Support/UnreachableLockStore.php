@@ -24,9 +24,9 @@ final class UnreachableLockStore implements PersistingStoreInterface
     }
 
     #[Override]
-    public function exists(Key $key): bool
+    public function exists(Key $key): never
     {
-        return false;
+        throw new LockStorageException('Connection refused');
     }
 
     #[Override]
