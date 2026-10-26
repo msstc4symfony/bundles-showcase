@@ -263,6 +263,14 @@
   `HttpClient::create()` (Elastica), а не `http_client.transport`, спанов `http ...` у orders нет.
 - Статус `degraded` у `healthcheck_checker_run` — упавший non_critical-чекер (Elasticsearch в chaos), проба при этом `passed`.
 - `baggage-echo` монтирует `echo.php` одним файлом: после правки контейнер может видеть старую версию → `docker compose up -d --force-recreate baggage-echo`.
+- `sampling.feature`: решение по trace id (младшие 14 hex ≥ `80000000000000` при ratio 0.5) e2e считает сам и сверяет с
+  флагами `traceresponse` и echo. `/via-orders` отправляет gateway (его HttpClient идёт по 307 orders), а не orders —
+  продолжение трассы в orders видно только в Tempo (спаны orders есть лишь у сэмплированных). У трасс probe-маршрутов
+  нет корневых спанов запроса: profiling строит их только для `routes:` (`gateway_create_order`, …), поэтому в Tempo
+  лишь `http GET …` и `sql …` — проверка «все родители в трассе» к ним неприменима.
+- Tempo на неизвестный trace id отвечает `200 {"trace":{}}`, не 404: `TraceLookup::$notFound` = 404 или пустая трасса;
+  ошибка транспорта/5xx его не ставит (иначе «dropped-трассы нет в Tempo» прошло бы впустую).
+- e2e-образ копирует код: после правки `e2e/` запускать с `--build` (`make e2e` это делает), иначе Behat гоняет старый код.
 - Метка `checker` — id сервиса чекера (`healthcheck.checker.doctrine.dbal.default_connection`), readiness-пробу из e2e считать
   `grows by 1`: liveliness дёргает compose healthcheck каждые 5 с, у него точных ассертов нет.
 - «grows by 0» проходит на первом же опросе по старому скрейпу → нулевой рост проверяется шагом `has not grown after the next scrape`

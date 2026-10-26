@@ -13,7 +13,8 @@
 | `billing` | `app` (APP=billing) | RoadRunner (только `/_/metrics`, `/_/healthcheck/*`) | — |
 | `billing-worker` | `app` (APP=billing) | `messenger:consume process_payment` | платёж + ответ `PaymentProcessed` |
 | `billing-migrate` | `app` (APP=billing) | one-shot миграции | — |
-| `baggage-echo` | `php:8.5.10-cli` | `php -S` + `docker/baggage-echo/echo.php` | хост вне `allowed_hosts` gateway: логирует `trace_id`, `path`, `baggage` для e2e (кроме `/_/*`); gateway ждёт его healthy только ради `up --wait` перед e2e |
+| `gateway-sampled` | `app` (APP=gateway) | RoadRunner | gateway с `TRACING_SAMPLING_RATIO=0.5` (у `gateway` env по умолчанию `1`) — только для `sampling.feature`; Prometheus его не скрейпит |
+| `baggage-echo` | `php:8.5.10-cli` | `php -S` + `docker/baggage-echo/echo.php` | хост вне `allowed_hosts` gateway: логирует `trace_id`, `path`, `traceparent`, `tracestate`, `baggage` для e2e (кроме `/_/*`); gateway ждёт его healthy только ради `up --wait` перед e2e |
 | `e2e` (profile `e2e`) | `e2e` | Behat 4 (`behat.php`) | сценарии; docker CLI для `@chaos` |
 
 Три приложения независимы (свой `composer.json/lock`, свой Kernel), общий только `docker/php/Dockerfile`.
@@ -69,11 +70,11 @@
 
 ## Redis
 
-| DB | gateway | orders | billing |
-|---|---|---|---|
-| кеш (`REDIS_CACHE_DSN`) | 0 | 2 | 4 |
-| метрики (`METRICS_STORAGE_DSN`) | 1 | 3 | 5 |
-| lock (`LOCK_DSN`) | 0 | — | — |
+| DB | gateway | orders | billing | gateway-sampled |
+|---|---|---|---|---|
+| кеш (`REDIS_CACHE_DSN`) | 0 | 2 | 4 | 6 |
+| метрики (`METRICS_STORAGE_DSN`) | 1 | 3 | 5 | 7 |
+| lock (`LOCK_DSN`) | 0 | — | — | 6 |
 
 HTTP-процесс и воркер одного приложения пишут метрики в одну DB → `/_/metrics` сервиса показывает и метрики воркера.
 
@@ -138,4 +139,5 @@ Loki не опубликован. Локально у владельца 8080 и
 
 Пул `metrics.cache` (redis) объявлен в `cache.yaml` каждого приложения. e2e-покрытие: `metrics.feature` (healthcheck-метрики,
 `cache_request`, глубина очереди, в т.ч. @chaos с остановленным `billing-worker`), `health.feature` (`degraded` при падении
-Elasticsearch), `profiling.feature` (SQL/HTTP-спаны и `trace_span_id` в логах), `tracing.feature` (id на верхнем уровне).
+Elasticsearch), `profiling.feature` (SQL/HTTP-спаны и `trace_span_id` в логах), `tracing.feature` (id на верхнем уровне),
+`sampling.feature` (20 проб `gateway-sampled`: флаги `03`/`02` и `ot=th:8` по trace id, в Tempo только сэмплированные).

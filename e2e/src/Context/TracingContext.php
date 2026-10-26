@@ -6,6 +6,7 @@ namespace App\E2e\Context;
 
 use App\E2e\Client\LogLine;
 use App\E2e\Client\LokiClient;
+use App\E2e\Client\TraceParent;
 use App\E2e\Wait;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\Environment\InitializedContextEnvironment;
@@ -213,16 +214,16 @@ final class TracingContext implements Context
     public function theResponseHeaderContinuesThatTrace(string $name): void
     {
         $traceId = $this->traceId();
-        $parts = $this->traceResponseParts($name);
+        $response = $this->traceResponse($name);
 
-        Assert::same($parts[1], $traceId);
-        Assert::notSame($parts[2], $this->clientSpanId, 'The server must answer with its own span.');
+        Assert::same($response->traceId, $traceId);
+        Assert::notSame($response->spanId, $this->clientSpanId, 'The server must answer with its own span.');
     }
 
     #[Then('the response has a :name header with a new trace id')]
     public function theResponseHasAHeaderWithANewTraceId(string $name): void
     {
-        $this->traceId = $this->traceResponseParts($name)[1];
+        $this->traceId = $this->traceResponse($name)->traceId;
     }
 
     #[Then('the :service logs of that trace have caller :caller')]
@@ -259,21 +260,9 @@ final class TracingContext implements Context
         }
     }
 
-    /**
-     * @return array{non-empty-string, non-empty-string, non-empty-string, non-empty-string} version, trace id, span id, flags
-     */
-    private function traceResponseParts(string $name): array
+    private function traceResponse(string $name): TraceParent
     {
-        $value = $this->orders->scenario->lastResponse()->header($name) ?? '';
-        Assert::regex($value, '/^00-(?!0{32})[0-9a-f]{32}-(?!0{16})[0-9a-f]{16}-[0-9a-f]{2}$/D', sprintf('"%s: %s" is not a valid traceparent-shaped value.', $name, $value));
-
-        [$version, $traceId, $spanId, $flags] = explode('-', $value);
-        Assert::stringNotEmpty($version);
-        Assert::stringNotEmpty($traceId);
-        Assert::stringNotEmpty($spanId);
-        Assert::stringNotEmpty($flags);
-
-        return [$version, $traceId, $spanId, $flags];
+        return TraceParent::fromHeader($this->orders->scenario->lastResponse()->header($name), $name);
     }
 
     /**

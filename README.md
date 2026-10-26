@@ -70,6 +70,11 @@ The gateway sends its baggage to orders only (`msstc4symfony_tracing.baggage.all
 (`GET /_probe/baggage` and `/_probe/redirect`, both on only when `BAGGAGE_ECHO_URL` is set), and the echo
 logs that neither call carried baggage.
 
+`gateway-sampled` is the gateway with `msstc4symfony_tracing.sampling.ratio` 0.5 (`TRACING_SAMPLING_RATIO`; the
+gateway itself keeps 1). Each new trace's id decides whether it is sampled: its `traceparent` flags are `03` or `02`, a
+sampled one sends `tracestate: ot=th:8` (the OpenTelemetry threshold of 0.5), and only sampled traces reach Tempo. The
+e2e stand works out each decision from the trace id and checks the flags, the echo's headers and Tempo against it.
+
 The spans of that trace are in Tempo too: every service exports them through
 [tracing-bridge-otlp](https://github.com/msstc4symfony/tracing-bridge-otlp) to Alloy's OTLP receiver
 (`OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4318`), which forwards them to Tempo. In Loki the `trace_id` of a log line
@@ -84,7 +89,7 @@ messages stamped by 1.x cannot be decoded.
 | Bundle | Seen here as |
 |---|---|
 | [logger-bundle](https://github.com/msstc4symfony/logger-bundle) | One JSON log record per line on stderr; `json_top_level_extra` lifts `trace_id`, `span_id` and `parent_span_id` to the top level of the record, while `caller`, `runtime_id` and the container id stay in `extra` |
-| [tracing-bundle](https://github.com/msstc4symfony/tracing-bundle) | W3C `traceparent`/`tracestate`/`baggage` carried across HTTP and RabbitMQ in both directions, `traceresponse` on every response; a fresh runtime id for every request and message on reused workers (`extra_runtime_id` in Loki) |
+| [tracing-bundle](https://github.com/msstc4symfony/tracing-bundle) | W3C `traceparent`/`tracestate`/`baggage` carried across HTTP and RabbitMQ in both directions, `traceresponse` on every response; trace-id-based sampling with the OpenTelemetry threshold in `tracestate` (`gateway-sampled`); a fresh runtime id for every request and message on reused workers (`extra_runtime_id` in Loki) |
 | [metrics-bundle](https://github.com/msstc4symfony/metrics-bundle) | `/_/metrics` on every service: routes, statuses, latency, outbound HTTP, Doctrine queries per connection name, Messenger messages sent and handled, Elasticsearch requests of the FOSElasticaBundle client (`symfony_elastica_request_success{method="PUT",path="orders/_doc/<id>"}`), errors; opt-in `cache_request` hits and misses of gateway's `cache.app` and `messenger_queue_depth` of the orders and billing transports |
 | [healthcheck-bundle](https://github.com/msstc4symfony/healthcheck-bundle) | `/_/healthcheck/liveliness` (used by the compose healthchecks) and `/_/healthcheck/readiness` (Redis, Postgres, RabbitMQ, lock store, Elasticsearch through `fos_elastica.client.default`; `?_format=json` for JSON) |
 | [profiling-bundle](https://github.com/msstc4symfony/profiling-bundle) | A span for every request and consumed message; automatic `sql <type> <table>` spans (orders, billing) and `http <METHOD> <host>` spans (gateway) |

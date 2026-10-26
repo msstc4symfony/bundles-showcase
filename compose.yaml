@@ -56,6 +56,24 @@ services:
       orders: { condition: service_healthy }
       baggage-echo: { condition: service_healthy }
 
+  # The gateway with sampling.ratio 0.5, for the sampling e2e. Its own Redis databases keep its cache and metrics
+  # apart; Prometheus does not scrape it (prometheus.yml keeps gateway, orders and billing only).
+  gateway-sampled:
+    restart: unless-stopped
+    build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: gateway } }
+    environment:
+      <<: *gateway-env
+      COMPONENT_NAME: gateway-sampled
+      TRACING_SAMPLING_RATIO: "0.5"
+      REDIS_CACHE_DSN: redis://redis:6379/6?timeout=1&read_timeout=1
+      METRICS_STORAGE_DSN: redis://redis:6379?database=7&timeout=1&read_timeout=1
+      LOCK_DSN: redis://redis:6379/6
+    healthcheck: *liveliness
+    depends_on:
+      redis: { condition: service_healthy }
+      orders: { condition: service_healthy }
+      baggage-echo: { condition: service_healthy }
+
   orders-migrate:
     build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: orders } }
     command: ["php", "bin/console", "doctrine:migrations:migrate", "--no-interaction", "--allow-no-migration"]
@@ -158,6 +176,7 @@ services:
     profiles: [e2e]
     environment:
       GATEWAY_URL: http://gateway:8080
+      SAMPLING_GATEWAY_URL: http://gateway-sampled:8080
       PROMETHEUS_URL: http://prometheus:9090
       LOKI_URL: http://loki:3100
       TEMPO_URL: http://tempo:3200

@@ -20,7 +20,7 @@
         "msstc4symfony/sql-labeller": "^1.0",
         "msstc4symfony/tracing-bridge-otlp": "^1.1.0",
         "msstc4symfony/tracing-bridge-profiling": "^1.2",
-        "msstc4symfony/tracing-bundle": "^2.3.0",
+        "msstc4symfony/tracing-bundle": "^2.3.1",
         "symfony/amqp-messenger": "8.1.*",
         "symfony/clock": "8.1.*",
         "symfony/console": "8.1.*",

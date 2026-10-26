@@ -77,6 +77,16 @@ final readonly class LogLine
         return $this->extraString('baggage');
     }
 
+    public function traceParent(): ?string
+    {
+        return $this->extraString('traceparent');
+    }
+
+    public function traceState(): ?string
+    {
+        return $this->extraString('tracestate');
+    }
+
     public function contextString(string $key): ?string
     {
         return $this->nestedString('context', $key);

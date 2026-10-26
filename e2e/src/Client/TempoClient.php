@@ -13,6 +13,8 @@ final readonly class TempoClient
 {
     private const int OK = 200;
 
+    private const int NOT_FOUND = 404;
+
     private HttpClientInterface $http;
 
     public function __construct(?string $baseUri = null)
@@ -26,7 +28,8 @@ final readonly class TempoClient
     }
 
     /**
-     * No tree until Tempo has the trace: 404, Tempo not ready yet, a transport error.
+     * No tree until Tempo has the trace: 404, Tempo not ready yet, a transport error. Tempo answers an unknown trace
+     * id with 200 and an empty trace; that and a 404 set notFound.
      */
     public function trace(string $traceId): TraceLookup
     {
@@ -34,7 +37,7 @@ final readonly class TempoClient
             $response = $this->http->request('GET', '/api/v2/traces/' . $traceId);
             $status = $response->getStatusCode();
             if ($status !== self::OK) {
-                return new TraceLookup(null, sprintf('HTTP %d', $status));
+                return new TraceLookup(null, sprintf('HTTP %d', $status), $status === self::NOT_FOUND);
             }
 
             $tree = TraceTree::fromTempo($response->toArray());
@@ -43,7 +46,7 @@ final readonly class TempoClient
         }
 
         return $tree->spans === []
-            ? new TraceLookup(null, 'no spans')
+            ? new TraceLookup(null, 'no spans', true)
             : new TraceLookup($tree, sprintf('spans of %s', implode(', ', $tree->services())));
     }
 }

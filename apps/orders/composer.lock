@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c7c7a11dd547e42300827614d381b766",
+    "content-hash": "e1f3800670edbb606d67118d3f312f35",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -3136,16 +3136,16 @@
         },
         {
             "name": "msstc4symfony/tracing-bundle",
-            "version": "v2.3.0",
+            "version": "v2.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/tracing-bundle.git",
-                "reference": "a2297f4ffa45652b84c4223d771c3bd0e9f37202"
+                "reference": "dad12de43a8c988c47675808823f3dfc557dc462"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/tracing-bundle/zipball/a2297f4ffa45652b84c4223d771c3bd0e9f37202",
-                "reference": "a2297f4ffa45652b84c4223d771c3bd0e9f37202",
+                "url": "https://api.github.com/repos/msstc4symfony/tracing-bundle/zipball/dad12de43a8c988c47675808823f3dfc557dc462",
+                "reference": "dad12de43a8c988c47675808823f3dfc557dc462",
                 "shasum": ""
             },
             "require": {
@@ -3211,9 +3211,9 @@
                 "tracing"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/tracing-bundle/tree/v2.3.0"
+                "source": "https://github.com/msstc4symfony/tracing-bundle/tree/v2.3.1"
             },
-            "time": "2026-10-26T06:25:10+00:00"
+            "time": "2026-10-26T10:31:00+00:00"
         },
         {
             "name": "nyholm/psr7",

@@ -16,7 +16,7 @@
         "msstc4symfony/profiling-bundle": "^2.2",
         "msstc4symfony/tracing-bridge-otlp": "^1.1.0",
         "msstc4symfony/tracing-bridge-profiling": "^1.2",
-        "msstc4symfony/tracing-bundle": "^2.3.0",
+        "msstc4symfony/tracing-bundle": "^2.3.1",
         "symfony/console": "8.1.*",
         "symfony/dotenv": "8.1.*",
         "symfony/flex": "^2",

@@ -1,4 +1,10 @@
+parameters:
+    env(TRACING_SAMPLING_RATIO): '1'
+
 msstc4symfony_tracing:
     baggage:
         # The gateway's baggage goes to the orders service only; every other host gets the trace headers alone.
         allowed_hosts: ['%env(string:key:host:url:ORDERS_URL)%']
+    sampling:
+        # gateway-sampled sets 0.5, for the sampling e2e.
+        ratio: '%env(float:TRACING_SAMPLING_RATIO)%'
