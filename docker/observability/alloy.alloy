@@ -31,7 +31,7 @@ loki.write "local" {
   }
 }
 
-// Spans of the apps (tracing-bridge-otlp, OTLP over HTTP) to Tempo.
+// Spans and logs of the apps (tracing-bridge-otlp, OTLP over HTTP): spans to Tempo, logs to Loki's OTLP endpoint.
 otelcol.receiver.otlp "apps" {
   http {
     endpoint = "0.0.0.0:4318"
@@ -39,12 +39,20 @@ otelcol.receiver.otlp "apps" {
 
   output {
     traces = [otelcol.processor.batch.apps.input]
+    logs   = [otelcol.processor.batch.apps.input]
   }
 }
 
 otelcol.processor.batch "apps" {
   output {
     traces = [otelcol.exporter.otlp.tempo.input]
+    logs   = [otelcol.exporter.otlphttp.loki.input]
+  }
+}
+
+otelcol.exporter.otlphttp "loki" {
+  client {
+    endpoint = "http://loki:3100/otlp"
   }
 }
 

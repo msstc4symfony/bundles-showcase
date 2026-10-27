@@ -16,6 +16,12 @@ datasources:
           matcherRegex: '"trace_id":"([0-9a-f]{32})"'
           datasourceUid: tempo
           url: '$${__value.raw}'
+        # OTLP records (tracing-bridge-otlp logs) carry it as structured metadata, their body is the message alone.
+        - name: TraceID
+          matcherType: label
+          matcherRegex: trace_id
+          datasourceUid: tempo
+          url: '$${__value.raw}'
   - name: Tempo
     uid: tempo
     type: tempo

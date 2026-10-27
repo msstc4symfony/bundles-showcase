@@ -1271,6 +1271,11 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     timeout_ms?: int|Param, // Export timeout; OTEL_EXPORTER_OTLP_TIMEOUT is ignored. // Default: 1000
  *     max_buffered_spans?: int|Param, // Spans kept per unit of work; a full buffer is exported early. // Default: 2048
  *     pause_pool?: scalar|Param|null, // PSR-6 pool (service id) sharing the pause after a failed export between hosts; ~: files in kernel.share_dir (else kernel.cache_dir), shared by the processes on one host. // Default: null
+ *     logs?: bool|array{ // Monolog records over OTLP through the handler msstc4symfony_tracing_bridge_otlp.logs_handler (add it to monolog.handlers as type: service).
+ *         enabled?: bool|Param, // Default: false
+ *         level?: "debug"|"info"|"notice"|"warning"|"error"|"critical"|"alert"|"emergency"|Param, // Lowest level exported. // Default: "info"
+ *         max_buffered_logs?: int|Param, // Log records kept per unit of work; a full buffer is exported early. // Default: 2048
+ *     },
  * }
  * @psalm-type ConfigType = array{
  *     imports?: ImportsConfig,

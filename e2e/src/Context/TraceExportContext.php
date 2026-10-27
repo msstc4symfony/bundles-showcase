@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\E2e\Context;
 
 use App\E2e\Client\LogLine;
+use App\E2e\Client\LokiClient;
 use App\E2e\Client\TempoClient;
 use App\E2e\Client\TraceLookup;
+use App\E2e\Client\TraceTree;
 use App\E2e\Wait;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
@@ -28,11 +30,15 @@ final class TraceExportContext implements Context
 
     private const int CREATED = 201;
 
+    private const string CLIENT_KIND = 'SPAN_KIND_CLIENT';
+
     private TracingContext $tracing;
 
     private OrderContext $orders;
 
     private TempoClient $tempo;
+
+    private LokiClient $loki;
 
     private ?TraceLookup $lookup = null;
 
@@ -45,6 +51,7 @@ final class TraceExportContext implements Context
         $this->tracing = TracingContext::from($scope);
         $this->orders = OrderContext::from($scope);
         $this->tempo = new TempoClient();
+        $this->loki = new LokiClient();
         $this->lookup = null;
         $this->problems = [];
     }
@@ -82,6 +89,60 @@ final class TraceExportContext implements Context
                 implode(', ', $this->problems),
                 $this->lastReason(),
             ),
+        );
+    }
+
+    /**
+     * tracing-bundle 2.4 sends the id of profiling's HTTP client span in traceparent: the receiver's request span is its
+     * child, not a sibling under the span around the call.
+     */
+    #[Then('within :seconds seconds every :callee request span of that trace is a child of a :caller client span')]
+    public function everyRequestSpanIsAChildOfAClientSpan(int $seconds, string $callee, string $caller): void
+    {
+        Wait::until(
+            function () use ($callee, $caller): bool {
+                $this->lookup = $this->tempo->trace($this->tracing->traceId());
+                $tree = $this->lookup->tree;
+                if (!$tree instanceof TraceTree) {
+                    $this->problems = ['no trace'];
+
+                    return false;
+                }
+
+                $requests = $tree->spansOf($callee, 'request ');
+                $this->problems = $requests === [] ? [sprintf('no %s request span', $callee)] : [];
+                foreach ($requests as $request) {
+                    $parent = $tree->span($request->parentSpanId);
+                    if ($parent?->service !== $caller || $parent->kind !== self::CLIENT_KIND) {
+                        $this->problems[] = sprintf('%s under %s', $request->label(), $parent?->label() ?? ($request->parentSpanId === '' ? 'no parent' : $request->parentSpanId));
+                    }
+                }
+
+                return $this->problems === [];
+            },
+            $seconds,
+            fn (): string => sprintf('Request spans not under a client span: %s (%s).', implode(', ', $this->problems), $this->lastReason()),
+        );
+    }
+
+    /**
+     * The records reach Loki twice: as stderr lines Alloy ships (label "service") and over OTLP (label "service_name").
+     */
+    #[Then('within :seconds seconds Loki has OTLP log records of that trace from:')]
+    public function lokiHasOtlpLogRecordsOfThatTrace(int $seconds, TableNode $services): void
+    {
+        $expected = array_map(static fn (array $row): string => (string) $row[0], $services->getRows());
+        Wait::until(
+            function () use ($expected): bool {
+                $this->problems = array_values(array_filter(
+                    $expected,
+                    fn (string $service): bool => !$this->loki->hasOtlpRecordsOfTrace($service, $this->tracing->traceId(), $this->tracing->startedAt()),
+                ));
+
+                return $this->problems === [];
+            },
+            $seconds,
+            fn (): string => sprintf('No OTLP log record of the trace from: %s.', implode(', ', $this->problems)),
         );
     }
 
@@ -141,6 +202,34 @@ final class TraceExportContext implements Context
         }
 
         throw new RuntimeException(sprintf('No new order reached Tempo from %s within %d seconds (last order: HTTP %s, last lookup: %s).', implode(', ', self::SERVICES), $seconds, $lastStatus ?? 'none', $this->lastReason()));
+    }
+
+    #[Then('within :seconds seconds the OTLP log records of a new order reach Loki from every service')]
+    public function theLogRecordsOfANewOrderReachLoki(int $seconds): void
+    {
+        $deadline = microtime(true) + $seconds;
+        $missing = self::SERVICES;
+        while (($left = $deadline - microtime(true)) > 0) {
+            $traceParent = $this->tracing->newTraceParent();
+            $status = $this->orders->gateway->createOrder(5000, headers: ['traceparent' => $traceParent])->status;
+            $traceId = $this->tracing->traceId();
+            $reached = $status === self::CREATED && Wait::within(
+                function () use ($traceId, &$missing): bool {
+                    $missing = array_values(array_filter(
+                        self::SERVICES,
+                        fn (string $service): bool => !$this->loki->hasOtlpRecordsOfTrace($service, $traceId, $this->tracing->startedAt()),
+                    ));
+
+                    return $missing === [];
+                },
+                min(self::RECOVERY_TRY_SECONDS, $left),
+            );
+            if ($reached) {
+                return;
+            }
+        }
+
+        throw new RuntimeException(sprintf("No new order's OTLP log records reached Loki from %s within %d seconds.", implode(', ', $missing), $seconds));
     }
 
     /**

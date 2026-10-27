@@ -38,6 +38,7 @@ final readonly class TraceTree
                         $span['name'],
                         self::hex($span['spanId'] ?? null),
                         $parent === '' ? '' : self::hex($parent),
+                        is_string($span['kind'] ?? null) ? $span['kind'] : '',
                     );
                 }
             }
@@ -72,6 +73,30 @@ final readonly class TraceTree
     public function spanIds(): array
     {
         return array_map(static fn (TraceSpan $span): string => $span->spanId, $this->spans);
+    }
+
+    /**
+     * Spans of one service whose name starts with the prefix ("request ", "http ").
+     *
+     * @return list<TraceSpan>
+     */
+    public function spansOf(string $service, string $namePrefix): array
+    {
+        return array_values(array_filter(
+            $this->spans,
+            static fn (TraceSpan $span): bool => $span->service === $service && str_starts_with($span->name, $namePrefix),
+        ));
+    }
+
+    public function span(string $spanId): ?TraceSpan
+    {
+        foreach ($this->spans as $span) {
+            if ($span->spanId === $spanId) {
+                return $span;
+            }
+        }
+
+        return null;
     }
 
     /**

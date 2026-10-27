@@ -10,6 +10,8 @@ final readonly class LogLine
 {
     public const string SPAN_ID_PATTERN = '/^(?!0{16})[0-9a-f]{16}$/D';
 
+    public const string TRACE_ID_PATTERN = '/^(?!0{32})[0-9a-f]{32}$/D';
+
     /**
      * @param array<array-key, mixed> $record the decoded JSON record; empty for a line that is not JSON
      */

@@ -1,2 +1,4 @@
 msstc4symfony_tracing_bridge_otlp:
     service_name: '%env(COMPONENT_NAME)%'
+    logs:
+        enabled: true

@@ -64,14 +64,21 @@ final class ProfilingContext implements Context
         Assert::same($span->contextString('trace_parent_span_id'), $around, sprintf('Span "%s": trace_parent_span_id is not the span around it.', $span->message));
     }
 
-    #[Then('that span is detached and runs in the trace span around it')]
-    public function thatSpanIsDetached(): void
+    /**
+     * Detached HTTP span (tracing-bridge-profiling 1.3): the record's span_id is the span around the call, its
+     * trace_span_id the client span sent in traceparent, a child of it.
+     */
+    #[Then('that span is detached and carries a client span under the span around it')]
+    public function thatSpanIsDetachedWithAClientSpan(): void
     {
         $span = $this->span();
-        Assert::regex($span->spanId() ?? '', LogLine::SPAN_ID_PATTERN, sprintf('Detached span "%s" has no span_id around it.', $span->message));
-        Assert::false($span->hasContextKey('trace_parent_span_id'), sprintf('Detached span "%s" has a trace parent span.', $span->message));
         Assert::true($span->contextBool('profiling_detached'), sprintf('Span "%s" is not detached.', $span->message));
-        Assert::false($span->hasContextKey('trace_span_id'), sprintf('Detached span "%s" has a trace span of its own.', $span->message));
+        Assert::true($span->contextBool('profiling_outgoing_request'), sprintf('Span "%s" is no outgoing request.', $span->message));
+        $around = $span->spanId();
+        Assert::regex($around ?? '', LogLine::SPAN_ID_PATTERN, sprintf('Detached span "%s" has no span_id around it.', $span->message));
+        Assert::regex($span->contextString('trace_span_id') ?? '', LogLine::SPAN_ID_PATTERN, sprintf('Span "%s" has no client span.', $span->message));
+        Assert::same($span->contextString('trace_parent_span_id'), $around, sprintf('The client span of "%s" is not under the span around it.', $span->message));
+        Assert::notSame($span->contextString('trace_span_id'), $around, sprintf('The client span of "%s" is the span around it.', $span->message));
     }
 
     private function span(): LogLine

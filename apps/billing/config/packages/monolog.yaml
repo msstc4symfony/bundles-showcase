@@ -7,6 +7,11 @@ monolog:
       level: info
       channels: ["!event", "!deprecation"]
       formatter: Msstc4Symfony\LoggerBundle\Framework\Monolog\Formatter\SwitchFormatter
+    # The same records over OTLP (tracing-bridge-otlp logs), in the trace context of the span they were written in.
+    otlp:
+      type: service
+      id: msstc4symfony_tracing_bridge_otlp.logs_handler
+      channels: ["!event", "!deprecation"]
 
 when@test:
   monolog:

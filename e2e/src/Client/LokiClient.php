@@ -57,6 +57,21 @@ final readonly class LokiClient
     }
 
     /**
+     * Whether one service sent records of one trace over OTLP. Loki's OTLP endpoint keeps trace_id as structured
+     * metadata and labels the stream with service_name; the stderr lines Alloy ships carry a "service" label instead
+     * (Loki also derives service_name from it), so the selector asks for streams without one.
+     */
+    public function hasOtlpRecordsOfTrace(string $service, string $traceId, float $sinceUnix): bool
+    {
+        Assert::regex($service, self::SERVICE_NAME_PATTERN, sprintf('"%s" is not a compose service name.', $service));
+        Assert::regex($traceId, LogLine::TRACE_ID_PATTERN, sprintf('"%s" is not a trace id.', $traceId));
+
+        $query = sprintf('{service_name="%s", service=""} | trace_id="%s"', $service, $traceId);
+
+        return array_any($this->streams($this->queryRange($query, $sinceUnix)), fn (array $stream): bool => $stream['values'] !== []);
+    }
+
+    /**
      * @param non-empty-string $label
      *
      * @return list<LogLine>
@@ -73,12 +88,7 @@ final readonly class LokiClient
      */
     private function run(string $query, float $sinceUnix): array
     {
-        $data = $this->http->request('GET', '/loki/api/v1/query_range', ['query' => [
-            'query' => $query,
-            'start' => (string) (int) ($sinceUnix * 1e9),
-            'limit' => self::LIMIT,
-            'direction' => 'backward',
-        ]])->toArray();
+        $data = $this->queryRange($query, $sinceUnix);
 
         $lines = [];
         foreach ($this->streams($data) as $stream) {
@@ -93,6 +103,19 @@ final readonly class LokiClient
         }
 
         return $lines;
+    }
+
+    /**
+     * @return array<array-key, mixed>
+     */
+    private function queryRange(string $query, float $sinceUnix): array
+    {
+        return $this->http->request('GET', '/loki/api/v1/query_range', ['query' => [
+            'query' => $query,
+            'start' => (string) (int) ($sinceUnix * 1e9),
+            'limit' => self::LIMIT,
+            'direction' => 'backward',
+        ]])->toArray();
     }
 
     /**

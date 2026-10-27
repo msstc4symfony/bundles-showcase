@@ -79,7 +79,13 @@ The spans of that trace are in Tempo too: every service exports them through
 [tracing-bridge-otlp](https://github.com/msstc4symfony/tracing-bridge-otlp) to Alloy's OTLP receiver
 (`OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4318`), which forwards them to Tempo. In Loki the `trace_id` of a log line
 is a link (derived field) that opens the trace in Tempo; from a span, "Logs for this span" goes back to Loki. The span
-ids are the `span_id` values of the logs.
+ids are the `span_id` values of the logs; an outgoing HTTP call's CLIENT span is the `trace_span_id` of its profiling
+record, and the called service's request span is its child (tracing-bundle 2.4 sends that id in `traceparent`).
+
+The logs also go over OTLP (`logs.enabled` of tracing-bridge-otlp, Monolog handler `otlp`): Alloy forwards them to
+Loki's OTLP endpoint, where they carry the label `service_name`, no `service` label, and `trace_id` / `span_id` as
+structured metadata, next to the stderr lines Alloy ships with the label `service` (e2e `traces.feature`). In Grafana the
+`trace_id` of both kinds links to Tempo.
 
 Switching a running stack from the 1.x bundles: drain RabbitMQ first — the tracing stamp class moved in 2.0 and
 messages stamped by 1.x cannot be decoded.
@@ -96,7 +102,7 @@ messages stamped by 1.x cannot be decoded.
 | [metrics-bridge-profiling](https://github.com/msstc4symfony/metrics-bridge-profiling) | Span durations exported as the `symfony_profiling_span_duration_histogram_seconds` metric |
 | [metrics-bridge-healthcheck](https://github.com/msstc4symfony/metrics-bridge-healthcheck) | Readiness and liveliness runs as `symfony_healthcheck_probe_run{probe,status}`, `symfony_healthcheck_checker_run{checker,probe,status}` (`degraded` for a failed non-critical checker) and `symfony_healthcheck_checker_duration_histogram_seconds` |
 | [tracing-bridge-profiling](https://github.com/msstc4symfony/tracing-bridge-profiling) | Every non-detached profiling span runs in its own trace span; its `profiling` record carries `trace_span_id` and `trace_parent_span_id` in `context` |
-| [tracing-bridge-otlp](https://github.com/msstc4symfony/tracing-bridge-otlp) | Every sampled profiling span exported over OTLP with the trace and span ids of the logs; one export per request or message; a stopped collector costs one `OTLP span export failed` warning per 30 seconds and nothing else (e2e `@chaos`) |
+| [tracing-bridge-otlp](https://github.com/msstc4symfony/tracing-bridge-otlp) | Every sampled profiling span exported over OTLP with the trace and span ids of the logs, HTTP calls as CLIENT spans that the callee's request span hangs under, plus the logs over OTLP; one export per request or message; a stopped collector costs one `OTLP span export failed` and one `OTLP log export failed` warning per 30 seconds and the OTLP records of that time — the stderr lines still reach Loki (e2e `@chaos`) |
 | [logic-bundle](https://github.com/msstc4symfony/logic-bundle) | orders creates an order through an `Action` (`src/Application/Order/Create/`): `Start/Finish application action` log records around it and validation of its `Input`. No lock: the gateway idempotency store already serialises duplicate `POST /orders`, and a non-blocking lock would answer 409 instead of the stored response |
 
 ## Elasticsearch in orders
@@ -125,7 +131,8 @@ No pull request is involved: GitHub Actions may not open pull requests in this o
 `GITHUB_TOKEN` does not start the `main` push workflows; the gate has already run on that exact commit.
 
 Each app requires a bundle at the release it relies on, a minor or a patch (`^2.2.1` for metrics, `^2.2` for
-profiling, `^2.3` for healthcheck, `^2.1` for logger, `^2.3` for tracing, `^1.1` for tracing-bridge-otlp), so every later release of the same major is
+profiling-bundle `^2.3.1`, `^2.3` for healthcheck, `^2.1` for logger, `^2.4` for tracing, `^1.3` for
+tracing-bridge-profiling, `^1.2.2` for tracing-bridge-otlp), so every later release of the same major is
 picked up by that run. A major release goes through an rc tag first (`vX.0.0-rc.N`) and gets its final tag only after
 e2e is green here: until then the app requires it as `^X.0@rc` (logic-bundle 2.0.0 went this way), and the final
 tag replaces that with `^X.0`.

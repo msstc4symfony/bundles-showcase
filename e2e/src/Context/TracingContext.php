@@ -288,6 +288,11 @@ final class TracingContext implements Context
                 $span = $line->spanId();
                 if ($span !== null && $belongs($line) && in_array($line->parentSpanId(), $parents, true)) {
                     $spans[$span] = true;
+                    // An outgoing request sends the client span tracing-bridge-profiling reserved, not the unit's span.
+                    $clientSpan = $line->contextBool('profiling_outgoing_request') ? $line->contextString('trace_span_id') : null;
+                    if ($clientSpan !== null) {
+                        $spans[$clientSpan] = true;
+                    }
                 }
             }
 

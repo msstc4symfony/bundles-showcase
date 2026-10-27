@@ -20,6 +20,7 @@ final readonly class TraceSpan
         public string $name,
         public string $spanId,
         public string $parentSpanId,
+        public string $kind = '',
     ) {
         Assert::regex($spanId, LogLine::SPAN_ID_PATTERN, sprintf('"%s" is not a span id.', $spanId));
         if ($parentSpanId !== '') {
