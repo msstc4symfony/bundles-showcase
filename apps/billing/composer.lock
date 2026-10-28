@@ -476,16 +476,16 @@
         },
         {
             "name": "doctrine/doctrine-bundle",
-            "version": "3.3.2",
+            "version": "3.3.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/DoctrineBundle.git",
-                "reference": "e6cd6aca912a5701fdc9bf4f0ad8f18f3f1448ed"
+                "reference": "a371e286af45e4971535361f9c1aa2653e37f52f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/DoctrineBundle/zipball/e6cd6aca912a5701fdc9bf4f0ad8f18f3f1448ed",
-                "reference": "e6cd6aca912a5701fdc9bf4f0ad8f18f3f1448ed",
+                "url": "https://api.github.com/repos/doctrine/DoctrineBundle/zipball/a371e286af45e4971535361f9c1aa2653e37f52f",
+                "reference": "a371e286af45e4971535361f9c1aa2653e37f52f",
                 "shasum": ""
             },
             "require": {
@@ -519,6 +519,7 @@
                 "symfony/doctrine-messenger": "^6.4 || ^7.0 || ^8.0",
                 "symfony/expression-language": "^6.4 || ^7.0 || ^8.0",
                 "symfony/http-kernel": "^6.4 || ^7.0 || ^8.0",
+                "symfony/lock": "^6.4 || ^7.0 || ^8.0",
                 "symfony/messenger": "^6.4 || ^7.0 || ^8.0",
                 "symfony/property-info": "^6.4 || ^7.0 || ^8.0",
                 "symfony/runtime": "^6.4 || ^7.0 || ^8.0",
@@ -574,7 +575,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/DoctrineBundle/issues",
-                "source": "https://github.com/doctrine/DoctrineBundle/tree/3.3.2"
+                "source": "https://github.com/doctrine/DoctrineBundle/tree/3.3.3"
             },
             "funding": [
                 {
@@ -590,7 +591,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-09T11:58:04+00:00"
+            "time": "2026-10-24T21:36:43+00:00"
         },
         {
             "name": "doctrine/doctrine-migrations-bundle",
@@ -1204,16 +1205,16 @@
         },
         {
             "name": "doctrine/persistence",
-            "version": "4.2.0",
+            "version": "4.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/persistence.git",
-                "reference": "49ab73e0d3e2ac8d1f5ecda3dd8acd5503781e8b"
+                "reference": "d8293831c5b99449b2f63eb1e1bbdc202118daa6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/persistence/zipball/49ab73e0d3e2ac8d1f5ecda3dd8acd5503781e8b",
-                "reference": "49ab73e0d3e2ac8d1f5ecda3dd8acd5503781e8b",
+                "url": "https://api.github.com/repos/doctrine/persistence/zipball/d8293831c5b99449b2f63eb1e1bbdc202118daa6",
+                "reference": "d8293831c5b99449b2f63eb1e1bbdc202118daa6",
                 "shasum": ""
             },
             "require": {
@@ -1278,7 +1279,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/persistence/issues",
-                "source": "https://github.com/doctrine/persistence/tree/4.2.0"
+                "source": "https://github.com/doctrine/persistence/tree/4.2.1"
             },
             "funding": [
                 {
@@ -1294,7 +1295,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-04-26T12:12:52+00:00"
+            "time": "2026-10-03T14:15:35+00:00"
         },
         {
             "name": "doctrine/sql-formatter",
@@ -4657,16 +4658,16 @@
         },
         {
             "name": "symfony/doctrine-bridge",
-            "version": "v8.1.8",
+            "version": "v8.1.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/doctrine-bridge.git",
-                "reference": "29ba9e0b21f3ac0f7f73d2d2b7b7755a4ff557e7"
+                "reference": "1ada49a9fd7484e39b6831472a62a2c3d61000dc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/doctrine-bridge/zipball/29ba9e0b21f3ac0f7f73d2d2b7b7755a4ff557e7",
-                "reference": "29ba9e0b21f3ac0f7f73d2d2b7b7755a4ff557e7",
+                "url": "https://api.github.com/repos/symfony/doctrine-bridge/zipball/1ada49a9fd7484e39b6831472a62a2c3d61000dc",
+                "reference": "1ada49a9fd7484e39b6831472a62a2c3d61000dc",
                 "shasum": ""
             },
             "require": {
@@ -4738,7 +4739,7 @@
             "description": "Provides integration for Doctrine with various Symfony components",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/doctrine-bridge/tree/v8.1.8"
+                "source": "https://github.com/symfony/doctrine-bridge/tree/v8.1.9"
             },
             "funding": [
                 {
@@ -4758,7 +4759,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-28T19:13:15+00:00"
+            "time": "2026-10-13T17:38:22+00:00"
         },
         {
             "name": "symfony/doctrine-messenger",
@@ -6295,16 +6296,16 @@
         },
         {
             "name": "symfony/polyfill-intl-grapheme",
-            "version": "v1.43.0",
+            "version": "v1.43.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-intl-grapheme.git",
-                "reference": "5cac8f4db97208823aa353f59a01faad2da52c75"
+                "reference": "5a8f33c87aeecffce24e721b5064fab05f4becf8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-intl-grapheme/zipball/5cac8f4db97208823aa353f59a01faad2da52c75",
-                "reference": "5cac8f4db97208823aa353f59a01faad2da52c75",
+                "url": "https://api.github.com/repos/symfony/polyfill-intl-grapheme/zipball/5a8f33c87aeecffce24e721b5064fab05f4becf8",
+                "reference": "5a8f33c87aeecffce24e721b5064fab05f4becf8",
                 "shasum": ""
             },
             "require": {
@@ -6353,7 +6354,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-intl-grapheme/tree/v1.43.0"
+                "source": "https://github.com/symfony/polyfill-intl-grapheme/tree/v1.43.3"
             },
             "funding": [
                 {
@@ -6373,7 +6374,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-25T15:46:47+00:00"
+            "time": "2026-10-15T09:18:53+00:00"
         },
         {
             "name": "symfony/polyfill-intl-normalizer",
