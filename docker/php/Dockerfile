@@ -1,6 +1,6 @@
 FROM ghcr.io/roadrunner-server/roadrunner:2025.1.15 AS roadrunner
 FROM mlocati/php-extension-installer:2.12 AS extension-installer
-FROM composer:2.10.3 AS composer
+FROM composer:2.11.0 AS composer
 
 FROM php:8.5.10-cli AS runtime
 COPY --from=extension-installer /usr/bin/install-php-extensions /usr/local/bin/
