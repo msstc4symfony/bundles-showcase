@@ -39,12 +39,20 @@ slo-check: ## SLO catalog gates per app, stale generated files fail; then promto
 	done
 	$(MAKE) --no-print-directory promtool
 
-# The mounts mirror compose.yaml, so "check config" also checks every rule file prometheus.yml lists.
+SLO_RULE_FILES = $(foreach a,$(APPS),$(wildcard apps/$(a)/infrastructure/observability/prometheus/slo-*.rules.yml))
+
+# The mounts mirror compose.yaml, so "check config" also checks every rule file prometheus.yml lists. A rule_files
+# glob that matches nothing passes "check config", hence the per-app guard and "check rules" on the explicit list.
 promtool: ## promtool check of prometheus.yml and every generated rule file (needs Docker)
+	@for f in $(foreach a,$(APPS),$(foreach k,recording alerts,apps/$(a)/infrastructure/observability/prometheus/slo-$(k).rules.yml)); do \
+		[ -f $$f ] || { echo "$$f is missing (run make slo-generate)" >&2; exit 1; }; \
+	done
 	docker run --rm --entrypoint promtool \
 		-v $(CURDIR)/docker/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro \
 		$(foreach a,$(APPS),-v $(CURDIR)/apps/$(a)/infrastructure/observability/prometheus:/etc/prometheus/slo/$(a):ro) \
 		prom/prometheus:v3.15.0 check config /etc/prometheus/prometheus.yml
+	docker run --rm --entrypoint promtool -v $(CURDIR)/apps:/apps:ro prom/prometheus:v3.15.0 \
+		check rules $(SLO_RULE_FILES:apps/%=/apps/%)
 
 # Per project with its own autoloader: the apps share class names (App\\...) with different signatures,
 # so one Rector run over all of them resolves a class to the wrong app.

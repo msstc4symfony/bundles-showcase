@@ -38,7 +38,9 @@ final readonly class OrderContext implements Context
     {
         $this->scenario->lastResponse = $response;
         if ($response->status === 201) {
-            $this->scenario->lastOrderId = $response->field('id');
+            $id = $response->field('id');
+            Assert::stringNotEmpty($id);
+            $this->scenario->lastOrderId = $id;
         }
     }
 
@@ -49,33 +51,52 @@ final readonly class OrderContext implements Context
     }
 
     /**
-     * One after another; the last response is the one checked.
+     * One after another; "the response status is" then checks every one of them.
      */
     #[When('I create :count orders for :amount')]
     public function iCreateOrdersFor(int $count, int $amount): void
     {
         Assert::positiveInteger($count);
+        $batch = [];
         for ($i = 0; $i < $count; $i++) {
-            $this->recordCreation($this->gateway->createOrder($amount));
+            $response = $this->gateway->createOrder($amount);
+            $this->recordCreation($response);
+            $batch[] = $response;
         }
+
+        $this->scenario->batch = $batch;
     }
 
     #[When('I look up the order :id')]
     public function iLookUpTheOrder(string $id): void
     {
+        Assert::stringNotEmpty($id);
         $this->scenario->lastResponse = $this->gateway->showOrder($id);
     }
 
     #[When('I send GET :path to the gateway')]
     public function iSendGetToTheGateway(string $path): void
     {
+        Assert::stringNotEmpty($path);
         $this->scenario->lastResponse = $this->gateway->get($path);
     }
 
     #[Then('the response status is :status')]
     public function theResponseStatusIs(int $status): void
     {
-        Assert::same($this->scenario->lastResponse()->status, $status);
+        $last = $this->scenario->lastResponse();
+        $batch = $this->scenario->batch;
+        if ($batch !== [] && $batch[array_key_last($batch)] === $last) {
+            Assert::same(
+                array_map(static fn (GatewayResponse $response): int => $response->status, $batch),
+                array_fill(0, \count($batch), $status),
+                'Not every created order got the status.',
+            );
+
+            return;
+        }
+
+        Assert::same($last->status, $status);
     }
 
     #[Then('the order becomes :status within :seconds seconds')]

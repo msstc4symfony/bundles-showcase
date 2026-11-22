@@ -6,6 +6,7 @@ namespace App\E2e;
 
 use App\E2e\Client\PrometheusClient;
 use App\E2e\Client\RabbitMqClient;
+use Webmozart\Assert\Assert;
 
 /**
  * Values read "as of" a moment must include everything before it: earlier scenarios' messages consumed and every
@@ -18,6 +19,9 @@ final readonly class ScrapeBarrier
     private const int SCRAPED_SERVICES = 3;
 
     private const int RABBITMQ_STATS_INTERVAL_SECONDS = 6;
+
+    // global.scrape_interval in docker/observability/prometheus.yml.
+    private const int SCRAPE_INTERVAL_SECONDS = 5;
 
     public function __construct(
         private PrometheusClient $prometheus = new PrometheusClient(),
@@ -62,10 +66,11 @@ final readonly class ScrapeBarrier
      */
     public function awaitTargetsScrapedFor(int $seconds, float $timeoutSeconds): void
     {
+        Assert::greaterThanEq($seconds, self::SCRAPE_INTERVAL_SECONDS, 'A window shorter than the scrape interval holds no scrape.');
         $steady = sprintf(
             'count(max by (service) ((min_over_time(up{job="showcase"}[%1$ds]) == 1) and (count_over_time(up{job="showcase"}[%1$ds]) >= %2$d)))',
             $seconds,
-            intdiv($seconds, 5),
+            intdiv($seconds, self::SCRAPE_INTERVAL_SECONDS),
         );
         Wait::until(
             fn (): bool => $this->prometheus->value($steady) >= self::SCRAPED_SERVICES,

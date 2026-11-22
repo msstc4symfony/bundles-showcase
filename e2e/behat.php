@@ -9,6 +9,7 @@ use App\E2e\Context\OrderContext;
 use App\E2e\Context\ProfilingContext;
 use App\E2e\Context\SamplingContext;
 use App\E2e\Context\SloContext;
+use App\E2e\Context\SteadyScrapesContext;
 use App\E2e\Context\TraceExportContext;
 use App\E2e\Context\TracingContext;
 use App\E2e\Context\WorkerResetContext;
@@ -20,5 +21,5 @@ return new Config()
     ->withProfile(new Profile('default')
         ->withSuite(new Suite('showcase')
             ->withPaths('%paths.base%/features')
-            ->withContexts(OrderContext::class, IdempotencyContext::class, TracingContext::class, WorkerResetContext::class, MetricsContext::class, HealthContext::class, ProfilingContext::class, TraceExportContext::class, SamplingContext::class, SloContext::class)))
+            ->withContexts(OrderContext::class, IdempotencyContext::class, TracingContext::class, WorkerResetContext::class, MetricsContext::class, HealthContext::class, ProfilingContext::class, TraceExportContext::class, SamplingContext::class, SloContext::class, SteadyScrapesContext::class)))
 ;

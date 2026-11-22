@@ -52,7 +52,9 @@ final class SloCatalogTest extends KernelTestCase
             $strategies = [];
             foreach ($entry['objectives'] as $objective) {
                 self::assertIsArray($objective);
-                $strategies[$this->nonEmptyString($objective['kind'] ?? null)] = $this->nonEmptyString($objective['strategy'] ?? null);
+                $kind = $this->nonEmptyString($objective['kind'] ?? null);
+                self::assertArrayNotHasKey($kind, $strategies, sprintf('Objective kind "%s" is listed twice.', $kind));
+                $strategies[$kind] = $this->nonEmptyString($objective['strategy'] ?? null);
             }
 
             $slos[$this->nonEmptyString($entry['name'] ?? null)] = [

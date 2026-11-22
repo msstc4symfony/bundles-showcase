@@ -23,7 +23,7 @@ final class HealthContext implements Context
 
     private ?HealthReport $lastReport = null;
 
-    /** @var list<string> services stopped by this scenario and not started again yet */
+    /** @var list<non-empty-string> services stopped by this scenario and not started again yet */
     private array $stopped = [];
 
     public function __construct()
@@ -65,6 +65,7 @@ final class HealthContext implements Context
     #[When('I stop :service')]
     public function iStop(string $service): void
     {
+        Assert::stringNotEmpty($service);
         $this->docker->stop($service);
         $this->stopped[] = $service;
     }
@@ -72,6 +73,7 @@ final class HealthContext implements Context
     #[When('I start :service')]
     public function iStart(string $service): void
     {
+        Assert::stringNotEmpty($service);
         $this->docker->start($service);
         $this->stopped = array_values(array_diff($this->stopped, [$service]));
     }

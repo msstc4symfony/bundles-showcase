@@ -24,13 +24,13 @@ final readonly class RecordingOperationHandle implements OperationHandleInterfac
     #[Override]
     public function failExpected(?Throwable $reason = null): void
     {
-        $this->monitor->record('failExpected', $reason);
+        $this->monitor->recordFailure($reason, expected: true);
     }
 
     #[Override]
     public function fail(?Throwable $reason = null): void
     {
-        $this->monitor->record('fail', $reason);
+        $this->monitor->recordFailure($reason, expected: false);
     }
 
     #[Override]

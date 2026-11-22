@@ -175,7 +175,7 @@ Loki не опубликован. Локально у владельца 8080 и
   NoData, ревизия `deadbeef` (1000 bad в Redis gateway DB 1 не двигают `slo:sli:ratio`), `@chaos` 5xx → availability bad, не latency.
   `health.feature`: 201 без ключа идемпотентности при лежащем Redis, счёт SLO после рестарта, bad `orders.search_index` без Elasticsearch.
 - Клиенты: `PrometheusClient::{recordingRule, ruleGroups, sample}`, `GrafanaClient`, `DockerClient::exec`, `MetricsStorageClient`
-  (redis-cli в контейнере `redis`); `App\E2e\ScrapeBarrier` — общий барьер «очереди пусты + свежий scrape».
+  (redis-cli в контейнере `redis`, создаются лениво); `App\E2e\ScrapeBarrier` — общий барьер «очереди пусты + свежий scrape»; `SteadyScrapesContext` (`#[BeforeSuite]`) ждёт 20 с непрерывных скрейпов всех сервисов.
 
 ## Конфигурация бандлов 2.2 (2026-10-23 UTC)
 

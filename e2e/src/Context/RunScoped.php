@@ -12,6 +12,9 @@ final class RunScoped
 {
     private static ?string $suffix = null;
 
+    /**
+     * @return non-empty-string
+     */
     public static function id(string $readable): string
     {
         self::$suffix ??= bin2hex(random_bytes(4));

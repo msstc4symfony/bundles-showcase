@@ -19,47 +19,72 @@ final readonly class MetricsStorageClient
     }
 
     /**
+     * @param non-negative-int $database
+     * @param non-empty-string $metric
+     *
      * @return non-empty-string
      */
     public function counterKey(int $database, string $metric): string
     {
         $keys = $this->lines($this->redis($database, '--scan', '--pattern', '*:counter:' . $metric));
         Assert::count($keys, 1, sprintf('Expected one counter hash of %s in Redis DB %d, found: %s.', $metric, $database, implode(', ', $keys)));
-        Assert::stringNotEmpty($keys[0]);
 
         return $keys[0];
     }
 
     /**
-     * @return list<string>
+     * @param non-negative-int $database
+     * @param non-empty-string $key
+     *
+     * @return list<non-empty-string>
      */
     public function fields(int $database, string $key): array
     {
         return $this->lines($this->redis($database, 'hkeys', $key));
     }
 
+    /**
+     * @param non-negative-int $database
+     * @param non-empty-string $key
+     * @param non-empty-string $field
+     */
     public function increment(int $database, string $key, string $field, int $by): void
     {
         $reply = trim($this->redis($database, 'hincrbyfloat', $key, $field, (string) $by));
         Assert::numeric($reply, sprintf('HINCRBYFLOAT %s failed: %s', $key, $reply));
     }
 
+    /**
+     * @param non-negative-int $database
+     * @param non-empty-string $key
+     * @param non-empty-string $field
+     */
     public function delete(int $database, string $key, string $field): void
     {
         $reply = trim($this->redis($database, 'hdel', $key, $field));
         Assert::inArray($reply, ['0', '1'], sprintf('HDEL %s failed: %s', $key, $reply));
     }
 
+    /**
+     * @param non-negative-int $database
+     */
     private function redis(int $database, string ...$arguments): string
     {
         return $this->docker->exec(self::SERVICE, ['redis-cli', '-n', (string) $database, ...array_values($arguments)]);
     }
 
     /**
-     * @return list<string>
+     * @return list<non-empty-string>
      */
     private function lines(string $output): array
     {
-        return array_values(array_filter(explode("\n", $output), static fn (string $line): bool => $line !== ''));
+        $lines = [];
+        foreach (explode("\n", $output) as $line) {
+            if ($line !== '') {
+                $lines[] = $line;
+            }
+        }
+
+        return $lines;
     }
 }

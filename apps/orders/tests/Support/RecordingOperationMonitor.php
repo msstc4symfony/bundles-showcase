@@ -13,9 +13,11 @@ use Throwable;
 final class RecordingOperationMonitor implements OperationMonitorInterface
 {
     /** @var list<non-empty-string> e.g. "start orders.search_index", "succeed", "end" */
-    public array $calls = [];
+    private array $calls = [];
 
-    public ?Throwable $failure = null;
+    private ?Throwable $failure = null;
+
+    private ?Throwable $expectedFailure = null;
 
     #[Override]
     public function start(string $name): OperationHandleInterface
@@ -43,9 +45,36 @@ final class RecordingOperationMonitor implements OperationMonitorInterface
     /**
      * @param non-empty-string $call
      */
-    public function record(string $call, ?Throwable $reason = null): void
+    public function record(string $call): void
     {
         $this->calls[] = $call;
-        $this->failure ??= $reason;
+    }
+
+    public function recordFailure(?Throwable $reason, bool $expected): void
+    {
+        $this->calls[] = $expected ? 'failExpected' : 'fail';
+        if ($expected) {
+            $this->expectedFailure ??= $reason;
+        } else {
+            $this->failure ??= $reason;
+        }
+    }
+
+    /**
+     * @return list<non-empty-string>
+     */
+    public function calls(): array
+    {
+        return $this->calls;
+    }
+
+    public function failure(): ?Throwable
+    {
+        return $this->failure;
+    }
+
+    public function expectedFailure(): ?Throwable
+    {
+        return $this->expectedFailure;
     }
 }

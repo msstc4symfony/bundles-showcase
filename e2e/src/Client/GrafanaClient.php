@@ -20,6 +20,8 @@ final readonly class GrafanaClient
     }
 
     /**
+     * @param non-empty-string $tag
+     *
      * @return list<array{uid: string, title: string, folderTitle: string}> folderTitle is "" outside a folder
      */
     public function dashboards(string $tag): array

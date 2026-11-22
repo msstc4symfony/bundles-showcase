@@ -22,6 +22,7 @@ final readonly class GatewayClient
     }
 
     /**
+     * @param non-empty-string|null $idempotencyKey
      * @param array<string, string> $headers
      */
     public function createOrder(int $amount, ?string $idempotencyKey = null, array $headers = []): GatewayResponse
@@ -37,6 +38,7 @@ final readonly class GatewayClient
      * Requests are sent before any response is read, so HttpClient keeps them in flight together.
      *
      * @param positive-int $count
+     * @param non-empty-string $idempotencyKey
      *
      * @return list<GatewayResponse>
      */
@@ -54,6 +56,7 @@ final readonly class GatewayClient
     }
 
     /**
+     * @param non-empty-string $id
      * @param array<string, string> $headers
      */
     public function showOrder(string $id, array $headers = []): GatewayResponse
@@ -62,6 +65,7 @@ final readonly class GatewayClient
     }
 
     /**
+     * @param non-empty-string $path
      * @param array<string, string> $headers
      */
     public function get(string $path, array $headers = []): GatewayResponse

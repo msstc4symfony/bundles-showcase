@@ -22,17 +22,24 @@ final readonly class DockerClient
         $this->project = $project;
     }
 
+    /**
+     * @param non-empty-string $service
+     */
     public function stop(string $service): void
     {
         $this->docker(['stop', ...$this->containers($service)]);
     }
 
+    /**
+     * @param non-empty-string $service
+     */
     public function start(string $service): void
     {
         $this->docker(['start', ...$this->containers($service)]);
     }
 
     /**
+     * @param non-empty-string $service
      * @param non-empty-list<string> $command
      *
      * @return string the command's standard output
@@ -46,6 +53,8 @@ final readonly class DockerClient
     }
 
     /**
+     * @param non-empty-string $service
+     *
      * @return non-empty-list<string>
      */
     private function containers(string $service): array

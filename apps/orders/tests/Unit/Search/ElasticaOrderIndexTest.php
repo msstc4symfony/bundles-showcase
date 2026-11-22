@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Search;
 use App\Entity\Order;
 use App\Search\ElasticaOrderIndex;
 use App\Tests\Support\RecordingOperationMonitor;
+use App\Tests\Support\ThrowingOperationMonitor;
 use DateTimeInterface;
 use Elastic\Transport\Exception\NoNodeAvailableException;
 use Elastica\Document;
@@ -54,11 +55,11 @@ final class ElasticaOrderIndexTest extends TestCase
 
         new ElasticaOrderIndex($index, $operations, new NullLogger())->add(new Order(5000));
 
-        self::assertSame(['start orders.search_index', 'succeed', 'end'], $operations->calls);
-        self::assertNull($operations->failure);
+        self::assertSame(['start orders.search_index', 'succeed', 'end'], $operations->calls());
+        self::assertNull($operations->failure());
     }
 
-    public function testAFailedIndexingFailsTheOperationAndKeepsTheOrder(): void
+    public function testAFailedIndexingFailsTheOperationLogsAndDoesNotThrow(): void
     {
         $failure = new NoNodeAvailableException('No alive nodes');
         $index = self::createStub(Index::class);
@@ -68,8 +69,8 @@ final class ElasticaOrderIndexTest extends TestCase
 
         new ElasticaOrderIndex($index, $operations, $logger)->add(new Order(5000));
 
-        self::assertSame(['start orders.search_index', 'fail', 'end'], $operations->calls);
-        self::assertSame($failure, $operations->failure);
+        self::assertSame(['start orders.search_index', 'fail', 'end'], $operations->calls());
+        self::assertSame($failure, $operations->failure());
         $logs = $logger->cleanLogs();
         self::assertCount(1, $logs);
         self::assertSame('error', $logs[0][0]);
@@ -97,7 +98,36 @@ final class ElasticaOrderIndexTest extends TestCase
 
         $logs = $logger->cleanLogs();
         self::assertCount(1, $logs);
-        self::assertSame('error', $logs[0][0]);
         self::assertSame($order->id(), $logs[0][2]['orderId'] ?? null);
+    }
+
+    /**
+     * @return iterable<string, array{bool, bool}>
+     */
+    public static function brokenMonitors(): iterable
+    {
+        yield 'start throws, indexing works' => [true, false];
+        yield 'start throws, indexing fails' => [true, true];
+        yield 'handle throws, indexing works' => [false, false];
+        yield 'handle throws, indexing fails' => [false, true];
+    }
+
+    #[DataProvider('brokenMonitors')]
+    public function testABrokenMonitorNeverMakesAddThrow(bool $startThrows, bool $indexingFails): void
+    {
+        $index = self::createStub(Index::class);
+        if ($indexingFails) {
+            $index->method('addDocument')->willThrowException(new NoNodeAvailableException('No alive nodes'));
+        } else {
+            $index->method('addDocument')->willReturn(new Response('{"result":"created"}', 201));
+        }
+
+        $logger = new BufferingLogger();
+
+        new ElasticaOrderIndex($index, new ThrowingOperationMonitor($startThrows), $logger)->add(new Order(5000));
+
+        $levels = array_column($logger->cleanLogs(), 0);
+        self::assertContains('warning', $levels);
+        self::assertSame($indexingFails, \in_array('error', $levels, true));
     }
 }

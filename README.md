@@ -130,7 +130,9 @@ Each app declares its SLOs with [slo-bundle](https://github.com/msstc4symfony/sl
 | `orders.create_order` | the create Action `App\Application\Order\Create\Action` | availability 99.9, latency 300ms / 99 | existing_series, dedicated |
 | `orders.search_index` | operation in `ElasticaOrderIndex::add()` (`msstc4symfony_slo.operations`) | availability 99, latency 100ms / 99 | dedicated, dedicated |
 
-Every other route and handler carries `#[IgnoreMonitoring(reason)]`. The generation selector is
+Every other route and handler carries `#[IgnoreMonitoring(reason)]`. Orders' `CreateOrderController` is one of them:
+the `orders.create_order` Action SLO covers it, while `gateway.create_order` also catches the 422 and 5xx answers that
+never reach the Action. The generation selector is
 `{application: showcase, components: [<app>]}`, so each app generates its own set into
 `apps/<app>/infrastructure/observability/`:
 

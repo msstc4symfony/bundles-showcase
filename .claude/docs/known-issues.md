@@ -389,12 +389,14 @@
   `timestamp(sum())` даёт время шага; события 11:19 UTC → значение только с 12:00 UTC. Это корректное состояние
   warming-up (решение контроллера: шаг 5m над 721h ≈ 8.6k точек на оценку), поэтому шаг «has no value yet or evaluates
   to at least 0 and below 1» принимает пустой вектор или [0, 1) и падает на ≥ 1 или NaN; доказательство warming-up —
-  отсутствие ticket-алерта.
-- NoData: t0 = `min(min_over_time(timestamp(symfony_slo_events_total{slo=…})[1d:5s])) - 10`, при этом
+  отсутствие ticket-алерта. Шаг печатает, какая ветка прошла («no value yet (warming up until …)» / «value …»), и
+  требует значение, если `lastEvaluation` правила позже первой целой границы часа после первого события серии из
+  `timestamp(sum(…))` правила.
+- NoData: t0 = `min(min_over_time(timestamp(symfony_slo_events_total{slo=…})[6h:5s])) - 10`, при этом
   `max(up{service=…})` в t0 = 1, иначе шаг падает («run on a fresh stack»). Работает и на повторном прогоне в пределах
-  1d от первого события стека. Сразу после `make up` (образ e2e в кеше) первые сценарии слали заказы раньше, чем
+  6h от первого события стека. Сценарии NoData, warming-up и @chaos 5xx сами создают заказ — запуск по `--name` на свежем стеке проходит. Подзапрос `[6h:5s]` пуст, пока у только что появившейся серии нет шага сетки 5 с → t0 опрашивается до 20 с. Сразу после `make up` (образ e2e в кеше) первые сценарии слали заказы раньше, чем
   Prometheus успевал скрейпнуть orders (первое событие через 5 с после первого скрейпа orders → шаг падал) →
-  `#[BeforeSuite] SloContext::waitForSteadyScrapes` ждёт, пока каждый сервис отвечает на все скрейпы последних 20 с.
+  `#[BeforeSuite] SteadyScrapesContext::waitForSteadyScrapes` (`ScrapeBarrier::awaitTargetsScrapedFor`) ждёт, пока каждый сервис отвечает на все скрейпы последних 20 с.
 - Redis-раскладка promphp (metrics-bundle): hash `PROMETHEUS_:counter:<metric>` в DB метрик приложения (gateway 1),
   поле — JSON-список значений меток в порядке `labelNames` из поля `__meta`. e2e ищет поле по значениям (slo,
   objective, revision), не по позиции. Redis не опубликован → `MetricsStorageClient` = `docker exec redis redis-cli`.
@@ -406,3 +408,9 @@
 - `ScrapeBarrier` (idle RabbitMQ + свежий успешный scrape) общий для `MetricsContext` и «remember»-шагов `SloContext`.
 - PHPStan не видит by-ref присваивание в замыкании `Wait::until` → состояние последнего опроса для текста таймаута
   хранится в свойстве (`SloContext::$lastPoll`).
+- `ElasticaOrderIndex::add()` оборачивает каждый вызов монитора операций (start/succeed/fail/end) — контракт slo-bundle
+  fail-open, но с бросающим монитором `add()` бросал бы из `start()` (до try) и из `finally`; ошибка монитора →
+  warning-лог, индексация и 201 не страдают (`ElasticaOrderIndexTest::testABrokenMonitorNeverMakesAddThrow`).
+- `make promtool`: `check config` молча проходит, если glob `rule_files` ничего не нашёл → цель сначала проверяет наличие
+  `slo-{recording,alerts}.rules.yml` каждого приложения, затем `promtool check rules` по явному списку (проверено:
+  убранный `apps/orders/.../slo-alerts.rules.yml` → exit 2 «… is missing (run make slo-generate)»).
