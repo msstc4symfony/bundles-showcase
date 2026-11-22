@@ -48,6 +48,18 @@ final readonly class OrderContext implements Context
         $this->recordCreation($this->gateway->createOrder($amount));
     }
 
+    /**
+     * One after another; the last response is the one checked.
+     */
+    #[When('I create :count orders for :amount')]
+    public function iCreateOrdersFor(int $count, int $amount): void
+    {
+        Assert::positiveInteger($count);
+        for ($i = 0; $i < $count; $i++) {
+            $this->recordCreation($this->gateway->createOrder($amount));
+        }
+    }
+
     #[When('I look up the order :id')]
     public function iLookUpTheOrder(string $id): void
     {

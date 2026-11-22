@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\E2e\Context;
 
 use App\E2e\Client\PrometheusClient;
-use App\E2e\Client\RabbitMqClient;
+use App\E2e\ScrapeBarrier;
 use App\E2e\Wait;
 use Behat\Behat\Context\Context;
 use Behat\Step\Given;
@@ -17,52 +17,22 @@ use Webmozart\Assert\Assert;
 
 final class MetricsContext implements Context
 {
-    private const int SCRAPE_WAIT_SECONDS = 20;
-
-    private const int SCRAPED_SERVICES = 3;
-
-    private const int RABBITMQ_STATS_INTERVAL_SECONDS = 6;
-
     private readonly PrometheusClient $prometheus;
 
-    private readonly RabbitMqClient $rabbitMq;
+    private readonly ScrapeBarrier $scrapeBarrier;
 
     private ?float $rememberedAt = null;
 
     public function __construct()
     {
         $this->prometheus = new PrometheusClient();
-        $this->rabbitMq = new RabbitMqClient();
+        $this->scrapeBarrier = new ScrapeBarrier($this->prometheus);
     }
 
     #[Given('I remember the current metric values')]
     public function iRememberTheCurrentMetricValues(): void
     {
-        // Values are read later "as of" this moment: earlier scenarios' messages must be consumed and
-        // every target scraped after that, otherwise their traffic counts as growth.
-        // Idle must hold longer than the management API's statistics interval, or a stale "0" passes.
-        $idleSince = null;
-        Wait::until(
-            function () use (&$idleSince): bool {
-                if (!$this->rabbitMq->isIdle()) {
-                    $idleSince = null;
-
-                    return false;
-                }
-
-                $idleSince ??= microtime(true);
-
-                return microtime(true) - $idleSince >= self::RABBITMQ_STATS_INTERVAL_SECONDS;
-            },
-            self::SCRAPE_WAIT_SECONDS,
-            'RabbitMQ queues did not drain in time.',
-        );
-        $requestedAt = microtime(true);
-        Wait::until(
-            fn (): bool => $this->prometheus->oldestSuccessfulScrape(self::SCRAPED_SERVICES) > $requestedAt,
-            self::SCRAPE_WAIT_SECONDS,
-            'Prometheus did not scrape every showcase target successfully in time.',
-        );
+        $this->scrapeBarrier->awaitIdleQueuesAndFreshScrape();
         $this->rememberedAt = microtime(true);
     }
 
@@ -98,12 +68,7 @@ final class MetricsContext implements Context
     {
         $since = $this->rememberedAt ?? throw new LogicException('Remember the metric values first.');
         $before = $this->prometheus->value($query, $since);
-        $requestedAt = microtime(true);
-        Wait::until(
-            fn (): bool => $this->prometheus->oldestSuccessfulScrape(self::SCRAPED_SERVICES) > $requestedAt,
-            self::SCRAPE_WAIT_SECONDS,
-            'Prometheus did not scrape every showcase target successfully in time.',
-        );
+        $this->scrapeBarrier->awaitFreshScrape();
 
         $after = $this->prometheus->value($query);
         Assert::same($after - $before, 0.0, sprintf('%s grew: %s → %s.', $query, $before, $after));

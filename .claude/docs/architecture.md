@@ -168,6 +168,15 @@ Loki не опубликован. Локально у владельца 8080 и
   `components` селектора (`SLO: HTTP Routes (showcase: orders)`) → 18 разных uid (проверено `api/search?tag=slo`).
 - e2e получает `GRAFANA_URL=http://grafana:3000`.
 
+### e2e SLO (2026-11-22 UTC)
+
+- `features/slo.feature` + `SloContext`: загрузка групп/дашбордов, где считается каждая цель (dedicated → `symfony_slo_events_total`,
+  existing_series → правило читает `symfony_messenger_message_handled` / `symfony_logic_action`), спан `operation orders.search_index`,
+  NoData, ревизия `deadbeef` (1000 bad в Redis gateway DB 1 не двигают `slo:sli:ratio`), `@chaos` 5xx → availability bad, не latency.
+  `health.feature`: 201 без ключа идемпотентности при лежащем Redis, счёт SLO после рестарта, bad `orders.search_index` без Elasticsearch.
+- Клиенты: `PrometheusClient::{recordingRule, ruleGroups, sample}`, `GrafanaClient`, `DockerClient::exec`, `MetricsStorageClient`
+  (redis-cli в контейнере `redis`); `App\E2e\ScrapeBarrier` — общий барьер «очереди пусты + свежий scrape».
+
 ## Конфигурация бандлов 2.2 (2026-10-23 UTC)
 
 | | gateway | orders | billing |

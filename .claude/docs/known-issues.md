@@ -376,3 +376,33 @@
 - Сломанное правило (`expr: (`) роняет `make promtool` с `could not parse expression … unclosed left parenthesis` —
   проверено вручную.
 - Повторный `make slo-generate` не меняет файлы (байт-в-байт) — генерация детерминирована.
+
+## e2e SLO-сценарии (slo.feature, 2026-11-22 UTC)
+
+- Правила окна (`slo-<name>-window`, interval 5m: `slo:sli:ratio`, `slo:window:coverage_ratio`) шаги не ждут:
+  `SloContext` берёт загруженное правило (`/api/v1/rules?type=record&rule_name[]=…`, ровно одно по `slo`+`objective`)
+  и вычисляет его `query` сейчас (`PrometheusClient::sample`: пустой вектор → null, NaN → ошибка, не 0). Записанные
+  серии 1m-группы (`slo:error_ratio:rate5m`) проверяются как серии (до 150 с). Одна ступень ждёт до 330 с первую
+  оценку обеих групп.
+- **`slo:window:coverage_ratio` — NoData до первой целой границы часа UTC после первого события**: формула slo-bundle
+  `min_over_time(timestamp(sum(…))[<окно+1h>:1h])` (spec 4.8) — шаги подзапроса на сетке целых часов UTC,
+  `timestamp(sum())` даёт время шага; события 11:19 UTC → значение только с 12:00 UTC. Это корректное состояние
+  warming-up (решение контроллера: шаг 5m над 721h ≈ 8.6k точек на оценку), поэтому шаг «has no value yet or evaluates
+  to at least 0 and below 1» принимает пустой вектор или [0, 1) и падает на ≥ 1 или NaN; доказательство warming-up —
+  отсутствие ticket-алерта.
+- NoData: t0 = `min(min_over_time(timestamp(symfony_slo_events_total{slo=…})[1d:5s])) - 10`, при этом
+  `max(up{service=…})` в t0 = 1, иначе шаг падает («run on a fresh stack»). Работает и на повторном прогоне в пределах
+  1d от первого события стека. Сразу после `make up` (образ e2e в кеше) первые сценарии слали заказы раньше, чем
+  Prometheus успевал скрейпнуть orders (первое событие через 5 с после первого скрейпа orders → шаг падал) →
+  `#[BeforeSuite] SloContext::waitForSteadyScrapes` ждёт, пока каждый сервис отвечает на все скрейпы последних 20 с.
+- Redis-раскладка promphp (metrics-bundle): hash `PROMETHEUS_:counter:<metric>` в DB метрик приложения (gateway 1),
+  поле — JSON-список значений меток в порядке `labelNames` из поля `__meta`. e2e ищет поле по значениям (slo,
+  objective, revision), не по позиции. Redis не опубликован → `MetricsStorageClient` = `docker exec redis redis-cli`.
+- Инъекция ревизии `deadbeef`: новое поле сначала создаётся с 0 (`HINCRBYFLOAT … 0`) и дожидается скрейпа, потом +1000:
+  серия счётчика, появившаяся сразу с 1000, даёт `increase() = 0` (Prometheus не считает первый сэмпл от нуля), и
+  расширенный фильтр `revision=~"<текущая>|deadbeef"` не опускал бы SLI.
+- `#[AfterScenario]` `SloContext::deleteInjectedEvents` удаляет (`HDEL`) все вставленные поля, даже после падения шага,
+  иначе 1000 bad остались бы в стенде и в каждом следующем прогоне.
+- `ScrapeBarrier` (idle RabbitMQ + свежий успешный scrape) общий для `MetricsContext` и «remember»-шагов `SloContext`.
+- PHPStan не видит by-ref присваивание в замыкании `Wait::until` → состояние последнего опроса для текста таймаута
+  хранится в свойстве (`SloContext::$lastPoll`).

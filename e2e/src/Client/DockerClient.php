@@ -8,7 +8,7 @@ use Symfony\Component\Process\Process;
 use Webmozart\Assert\Assert;
 
 /**
- * Stops and starts compose services through the docker socket. The e2e image has the docker
+ * Stops, starts and runs commands in compose services through the docker socket. The e2e image has the docker
  * CLI but no compose plugin, so containers are found by their compose labels.
  */
 final readonly class DockerClient
@@ -30,6 +30,19 @@ final readonly class DockerClient
     public function start(string $service): void
     {
         $this->docker(['start', ...$this->containers($service)]);
+    }
+
+    /**
+     * @param non-empty-list<string> $command
+     *
+     * @return string the command's standard output
+     */
+    public function exec(string $service, array $command): string
+    {
+        $containers = $this->containers($service);
+        Assert::count($containers, 1, sprintf('Compose service "%s" has %d containers, exec needs exactly one.', $service, \count($containers)));
+
+        return $this->docker(['exec', $containers[0], ...$command]);
     }
 
     /**

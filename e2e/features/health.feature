@@ -24,6 +24,8 @@ Feature: Readiness reflects real dependencies
     And "orders" liveliness is up
     When I create an order for 5000 with idempotency key "chaos-key"
     Then the response status is 503
+    When I create an order for 5000
+    Then the response status is 201
     When I start "redis"
     Then within 30 seconds "orders" readiness is up
     # Long-running workers must reconnect their metrics storage, not stay silent until a restart.
@@ -31,6 +33,8 @@ Feature: Readiness reflects real dependencies
     When I create an order for 5000
     Then the order becomes "paid" within 15 seconds
     And within 20 seconds "symfony_messenger_message_handled{component='billing',status='handled'}" grows by 1
+    And within 20 seconds "symfony_slo_events_total{component='gateway',slo='gateway.create_order',objective='availability'}" grows by 1
+    And within 20 seconds "symfony_slo_events_total{component='orders',slo='orders.search_index',objective='availability'}" grows by 1
 
   @chaos
   Scenario: Gateway survives orders being down
@@ -51,6 +55,7 @@ Feature: Readiness reflects real dependencies
     And "orders" liveliness is up
     When I create an order for 5000
     Then the response status is 201
+    And within 20 seconds "symfony_slo_events_total{component='orders',slo='orders.search_index',objective='availability',result='bad'}" grows by 1
     And the order becomes "paid" within 15 seconds
     When I start "elasticsearch"
     # Wait for green|yellow: a run that ends on the red cluster of a fresh start would leave it to the next one.
