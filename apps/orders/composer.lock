@@ -155,7 +155,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-12T10:28:18+00:00"
+            "time": "2026-09-12T10:28:18+00:00",
+            "published-time": "2026-09-12T12:23:30+00:00"
         },
         {
             "name": "composer/semver",
@@ -232,7 +233,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-29T09:13:34+00:00"
+            "time": "2026-10-29T09:13:34+00:00",
+            "published-time": "2026-10-29T09:14:11+00:00"
         },
         {
             "name": "doctrine/collections",
@@ -1614,7 +1616,8 @@
             "support": {
                 "source": "https://github.com/protocolbuffers/protobuf-php/tree/v5.36.2"
             },
-            "time": "2026-09-17T15:56:42+00:00"
+            "time": "2026-09-17T15:56:42+00:00",
+            "published-time": "2026-09-17T15:56:48+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
@@ -2050,7 +2053,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-11-16T10:43:05+00:00"
+            "time": "2026-11-16T10:43:05+00:00",
+            "published-time": "2026-11-16T10:45:37+00:00"
         },
         {
             "name": "msstc4symfony/healthcheck-bundle",
@@ -2288,6 +2292,9 @@
                 "symfony",
                 "use-case"
             ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/logic-bundle/tree/v2.1.0"
+            },
             "time": "2026-10-26T13:28:32+00:00"
         },
         {
@@ -2627,6 +2634,9 @@
                 "php",
                 "symfony"
             ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/metrics-bundle/tree/v2.3.0"
+            },
             "time": "2026-11-22T06:28:33+00:00"
         },
         {
@@ -2798,6 +2808,9 @@
                 "profiling",
                 "symfony"
             ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/profiling-bundle/tree/v2.3.1"
+            },
             "time": "2026-10-27T06:27:45+00:00"
         },
         {
@@ -2881,6 +2894,10 @@
                 "slo",
                 "symfony"
             ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/slo-bridge-logic/tree/v1.0.0",
+                "issues": "https://github.com/msstc4symfony/slo-bridge-logic/issues"
+            },
             "time": "2026-11-22T12:53:29+00:00"
         },
         {
@@ -2958,6 +2975,10 @@
                 "slo",
                 "symfony"
             ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/slo-bridge-profiling/tree/v1.0.0",
+                "issues": "https://github.com/msstc4symfony/slo-bridge-profiling/issues"
+            },
             "time": "2026-11-22T12:54:42+00:00"
         },
         {
@@ -3039,6 +3060,10 @@
                 "php",
                 "symfony"
             ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/slo-bundle/tree/v1.0.0",
+                "issues": "https://github.com/msstc4symfony/slo-bundle/issues"
+            },
             "time": "2026-11-22T12:32:34+00:00"
         },
         {
@@ -3100,6 +3125,10 @@
                 "profiling",
                 "sql"
             ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/sql-labeller/tree/v1.0.0",
+                "issues": "https://github.com/msstc4symfony/sql-labeller/issues"
+            },
             "time": "2026-10-22T12:05:55+00:00"
         },
         {
@@ -3523,7 +3552,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-09-09T07:06:30+00:00"
+            "time": "2024-09-09T07:06:30+00:00",
+            "published-time": "2024-09-09T07:07:05+00:00"
         },
         {
             "name": "nyholm/psr7-server",
@@ -3589,40 +3619,48 @@
                     "type": "github"
                 }
             ],
-            "time": "2023-11-08T09:30:43+00:00"
+            "time": "2023-11-08T09:30:43+00:00",
+            "published-time": "2023-11-08T09:33:01+00:00"
         },
         {
             "name": "open-telemetry/api",
-            "version": "1.10.1",
+            "version": "1.12.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/opentelemetry-php/api.git",
-                "reference": "b2bc26bf8bd6b2b6447b3626b2a1b5733873aa0b"
+                "reference": "b0884741f3f9d5dc60477784c8671bd2acef4ceb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/opentelemetry-php/api/zipball/b2bc26bf8bd6b2b6447b3626b2a1b5733873aa0b",
-                "reference": "b2bc26bf8bd6b2b6447b3626b2a1b5733873aa0b",
+                "url": "https://api.github.com/repos/opentelemetry-php/api/zipball/b0884741f3f9d5dc60477784c8671bd2acef4ceb",
+                "reference": "b0884741f3f9d5dc60477784c8671bd2acef4ceb",
                 "shasum": ""
             },
             "require": {
                 "open-telemetry/context": "^1.4",
-                "php": "^8.1",
-                "psr/log": "^1.1|^2.0|^3.0",
-                "symfony/polyfill-php82": "^1.26"
+                "php": "^8.2",
+                "psr/log": "^1.1|^2.0|^3.0"
             },
             "conflict": {
-                "open-telemetry/sdk": "<=1.11"
+                "open-telemetry/sdk": "<=1.11",
+                "open-telemetry/sdk-configuration": "<0.10"
+            },
+            "suggest": {
+                "symfony/config": "To implement a ComponentProvider for declarative configuration"
             },
             "type": "library",
             "extra": {
                 "spi": {
+                    "OpenTelemetry\\API\\Configuration\\Config\\ComponentProvider": [
+                        "OpenTelemetry\\API\\Baggage\\Propagation\\Config\\TextMapPropagatorBaggage",
+                        "OpenTelemetry\\API\\Trace\\Propagation\\Config\\TextMapPropagatorTraceContext"
+                    ],
                     "OpenTelemetry\\API\\Instrumentation\\AutoInstrumentation\\HookManagerInterface": [
                         "OpenTelemetry\\API\\Instrumentation\\AutoInstrumentation\\ExtensionHookManager"
                     ]
                 },
                 "branch-alias": {
-                    "dev-main": "1.8.x-dev"
+                    "dev-main": "1.12.x-dev"
                 }
             },
             "autoload": {
@@ -3659,25 +3697,25 @@
                 "issues": "https://github.com/open-telemetry/opentelemetry-php/issues",
                 "source": "https://github.com/open-telemetry/opentelemetry-php"
             },
-            "time": "2026-09-16T01:59:09+00:00"
+            "time": "2026-11-19T08:10:15+00:00",
+            "published-time": "2026-11-19T08:15:35+00:00"
         },
         {
             "name": "open-telemetry/context",
-            "version": "1.5.0",
+            "version": "1.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/opentelemetry-php/context.git",
-                "reference": "3c414b246e0dabb7d6145404e6a5e4536ca18d07"
+                "reference": "711e7291d9cf8a984c059c5afd926e45ab444b7f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/opentelemetry-php/context/zipball/3c414b246e0dabb7d6145404e6a5e4536ca18d07",
-                "reference": "3c414b246e0dabb7d6145404e6a5e4536ca18d07",
+                "url": "https://api.github.com/repos/opentelemetry-php/context/zipball/711e7291d9cf8a984c059c5afd926e45ab444b7f",
+                "reference": "711e7291d9cf8a984c059c5afd926e45ab444b7f",
                 "shasum": ""
             },
             "require": {
-                "php": "^8.1",
-                "symfony/polyfill-php82": "^1.26"
+                "php": "^8.2"
             },
             "suggest": {
                 "ext-ffi": "To allow context switching in Fibers"
@@ -3685,7 +3723,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "1.0.x-dev"
+                    "dev-main": "1.6.x-dev"
                 }
             },
             "autoload": {
@@ -3718,33 +3756,40 @@
                 "issues": "https://github.com/open-telemetry/opentelemetry-php/issues",
                 "source": "https://github.com/open-telemetry/opentelemetry-php"
             },
-            "time": "2025-10-19T06:44:33+00:00"
+            "time": "2026-11-05T11:54:49+00:00",
+            "published-time": "2026-11-05T12:00:45+00:00"
         },
         {
             "name": "open-telemetry/exporter-otlp",
-            "version": "1.4.0",
+            "version": "1.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/opentelemetry-php/exporter-otlp.git",
-                "reference": "283a0d66522f2adc6d8d7debfd7686be91c282be"
+                "reference": "78c5ce7646b34b3af449808769eb24430a848049"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/opentelemetry-php/exporter-otlp/zipball/283a0d66522f2adc6d8d7debfd7686be91c282be",
-                "reference": "283a0d66522f2adc6d8d7debfd7686be91c282be",
+                "url": "https://api.github.com/repos/opentelemetry-php/exporter-otlp/zipball/78c5ce7646b34b3af449808769eb24430a848049",
+                "reference": "78c5ce7646b34b3af449808769eb24430a848049",
                 "shasum": ""
             },
             "require": {
                 "open-telemetry/api": "^1.0",
-                "open-telemetry/gen-otlp-protobuf": "^1.1",
-                "open-telemetry/sdk": "^1.0",
-                "php": "^8.1",
-                "php-http/discovery": "^1.14"
+                "open-telemetry/gen-otlp-protobuf": "^1.11.1",
+                "open-telemetry/sdk": "^1.17",
+                "php": "^8.2",
+                "php-http/discovery": "^1.14",
+                "tbachert/spi": "^1.0.5"
             },
             "type": "library",
             "extra": {
+                "spi-config": {
+                    "autoload-files": [
+                        "_register.php"
+                    ]
+                },
                 "branch-alias": {
-                    "dev-main": "1.0.x-dev"
+                    "dev-main": "1.6.x-dev"
                 }
             },
             "autoload": {
@@ -3782,25 +3827,29 @@
                 "issues": "https://github.com/open-telemetry/opentelemetry-php/issues",
                 "source": "https://github.com/open-telemetry/opentelemetry-php"
             },
-            "time": "2026-02-05T09:44:52+00:00"
+            "time": "2026-11-19T08:10:15+00:00",
+            "published-time": "2026-11-19T08:15:24+00:00"
         },
         {
             "name": "open-telemetry/gen-otlp-protobuf",
-            "version": "1.10.0",
+            "version": "1.11.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/opentelemetry-php/gen-otlp-protobuf.git",
-                "reference": "66f04d0e448ad333033bfc7baae1aa56330be088"
+                "reference": "2576debe70233e4f45380e255d3d0b1a82679ca9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/opentelemetry-php/gen-otlp-protobuf/zipball/66f04d0e448ad333033bfc7baae1aa56330be088",
-                "reference": "66f04d0e448ad333033bfc7baae1aa56330be088",
+                "url": "https://api.github.com/repos/opentelemetry-php/gen-otlp-protobuf/zipball/2576debe70233e4f45380e255d3d0b1a82679ca9",
+                "reference": "2576debe70233e4f45380e255d3d0b1a82679ca9",
                 "shasum": ""
             },
             "require": {
-                "google/protobuf": "^3.22 || ^4.0 || ^5.0",
+                "google/protobuf": "^4.31 || ^5.0",
                 "php": "^8.0"
+            },
+            "conflict": {
+                "ext-protobuf": "<4.31"
             },
             "suggest": {
                 "ext-protobuf": "For better performance, when dealing with the protobuf format"
@@ -3845,29 +3894,30 @@
                 "issues": "https://github.com/open-telemetry/opentelemetry-php/issues",
                 "source": "https://github.com/open-telemetry/opentelemetry-php"
             },
-            "time": "2026-06-17T12:06:32+00:00"
+            "time": "2026-11-05T11:54:49+00:00",
+            "published-time": "2026-11-05T12:00:37+00:00"
         },
         {
             "name": "open-telemetry/sdk",
-            "version": "1.15.0",
+            "version": "1.17.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/opentelemetry-php/sdk.git",
-                "reference": "77e1aa73850154abb86937d52a70883edc3b4547"
+                "reference": "5b823e465b0fabdf5019aef6aa2e430285949e7b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/opentelemetry-php/sdk/zipball/77e1aa73850154abb86937d52a70883edc3b4547",
-                "reference": "77e1aa73850154abb86937d52a70883edc3b4547",
+                "url": "https://api.github.com/repos/opentelemetry-php/sdk/zipball/5b823e465b0fabdf5019aef6aa2e430285949e7b",
+                "reference": "5b823e465b0fabdf5019aef6aa2e430285949e7b",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
                 "nyholm/psr7-server": "^1.1",
-                "open-telemetry/api": "^1.8",
+                "open-telemetry/api": "^1.11",
                 "open-telemetry/context": "^1.4",
-                "open-telemetry/sem-conv": "^1.38.0",
-                "php": "^8.1",
+                "open-telemetry/sem-conv": "^1.45.0",
+                "php": "^8.2",
                 "php-http/discovery": "^1.14",
                 "psr/http-client": "^1.0",
                 "psr/http-client-implementation": "^1.0",
@@ -3876,7 +3926,6 @@
                 "psr/log": "^1.1|^2.0|^3.0",
                 "ramsey/uuid": "^3.0 || ^4.0",
                 "symfony/polyfill-mbstring": "^1.23",
-                "symfony/polyfill-php82": "^1.26",
                 "tbachert/spi": "^1.0.5"
             },
             "suggest": {
@@ -3901,17 +3950,19 @@
                         "OpenTelemetry\\API\\Instrumentation\\AutoInstrumentation\\ExtensionHookManager"
                     ]
                 },
+                "spi-config": {
+                    "autoload-files": [
+                        "_register.php"
+                    ]
+                },
                 "branch-alias": {
-                    "dev-main": "1.14.x-dev"
+                    "dev-main": "1.17.x-dev"
                 }
             },
             "autoload": {
                 "files": [
                     "Common/Util/functions.php",
-                    "Logs/Exporter/_register.php",
-                    "Metrics/MetricExporter/_register.php",
-                    "Propagation/_register.php",
-                    "Trace/SpanExporter/_register.php",
+                    "_register.php",
                     "Common/Dev/Compatibility/_load.php",
                     "_autoload.php"
                 ],
@@ -3945,7 +3996,8 @@
                 "issues": "https://github.com/open-telemetry/opentelemetry-php/issues",
                 "source": "https://github.com/open-telemetry/opentelemetry-php"
             },
-            "time": "2026-07-14T13:09:54+00:00"
+            "time": "2026-11-19T08:10:15+00:00",
+            "published-time": "2026-11-19T08:15:20+00:00"
         },
         {
             "name": "open-telemetry/sem-conv",
@@ -4002,7 +4054,8 @@
                 "issues": "https://github.com/open-telemetry/opentelemetry-php/issues",
                 "source": "https://github.com/open-telemetry/opentelemetry-php"
             },
-            "time": "2026-11-03T22:37:22+00:00"
+            "time": "2026-11-03T22:37:22+00:00",
+            "published-time": "2026-11-03T22:42:45+00:00"
         },
         {
             "name": "pagerfanta/pagerfanta",
@@ -4182,7 +4235,8 @@
                 "issues": "https://github.com/php-http/discovery/issues",
                 "source": "https://github.com/php-http/discovery/tree/1.20.0"
             },
-            "time": "2024-10-02T11:20:13+00:00"
+            "time": "2024-10-02T11:20:13+00:00",
+            "published-time": "2024-10-02T11:21:00+00:00"
         },
         {
             "name": "php-http/httplug",
@@ -4361,7 +4415,8 @@
                 "issues": "https://github.com/PromPHP/prometheus_client_php/issues",
                 "source": "https://github.com/PromPHP/prometheus_client_php/tree/v2.15.1"
             },
-            "time": "2026-05-28T07:51:04+00:00"
+            "time": "2026-05-28T07:51:04+00:00",
+            "published-time": "2026-05-28T07:52:01+00:00"
         },
         {
             "name": "psr/cache",
@@ -4410,7 +4465,8 @@
             "support": {
                 "source": "https://github.com/php-fig/cache/tree/3.0.0"
             },
-            "time": "2021-02-03T23:26:27+00:00"
+            "time": "2021-02-03T23:26:27+00:00",
+            "published-time": "2021-02-03T23:27:34+00:00"
         },
         {
             "name": "psr/clock",
@@ -4458,7 +4514,8 @@
                 "issues": "https://github.com/php-fig/clock/issues",
                 "source": "https://github.com/php-fig/clock/tree/1.0.0"
             },
-            "time": "2022-11-25T14:36:26+00:00"
+            "time": "2022-11-25T14:36:26+00:00",
+            "published-time": "2022-11-25T14:59:22+00:00"
         },
         {
             "name": "psr/container",
@@ -4511,7 +4568,8 @@
                 "issues": "https://github.com/php-fig/container/issues",
                 "source": "https://github.com/php-fig/container/tree/2.0.2"
             },
-            "time": "2021-11-05T16:47:00+00:00"
+            "time": "2021-11-05T16:47:00+00:00",
+            "published-time": "2021-11-05T16:53:27+00:00"
         },
         {
             "name": "psr/event-dispatcher",
@@ -4561,7 +4619,8 @@
                 "issues": "https://github.com/php-fig/event-dispatcher/issues",
                 "source": "https://github.com/php-fig/event-dispatcher/tree/1.0.0"
             },
-            "time": "2019-01-08T18:20:26+00:00"
+            "time": "2019-01-08T18:20:26+00:00",
+            "published-time": "2019-03-25T15:31:44+00:00"
         },
         {
             "name": "psr/http-client",
@@ -4613,7 +4672,8 @@
             "support": {
                 "source": "https://github.com/php-fig/http-client"
             },
-            "time": "2023-09-23T14:17:50+00:00"
+            "time": "2023-09-23T14:17:50+00:00",
+            "published-time": "2023-09-23T14:18:12+00:00"
         },
         {
             "name": "psr/http-factory",
@@ -4668,7 +4728,8 @@
             "support": {
                 "source": "https://github.com/php-fig/http-factory"
             },
-            "time": "2024-04-15T12:06:14+00:00"
+            "time": "2024-04-15T12:06:14+00:00",
+            "published-time": "2024-05-10T07:32:19+00:00"
         },
         {
             "name": "psr/http-message",
@@ -4721,7 +4782,8 @@
             "support": {
                 "source": "https://github.com/php-fig/http-message/tree/2.0"
             },
-            "time": "2023-04-04T09:54:51+00:00"
+            "time": "2023-04-04T09:54:51+00:00",
+            "published-time": "2023-04-04T09:55:35+00:00"
         },
         {
             "name": "psr/log",
@@ -4771,7 +4833,8 @@
             "support": {
                 "source": "https://github.com/php-fig/log/tree/3.0.2"
             },
-            "time": "2024-09-11T13:17:53+00:00"
+            "time": "2024-09-11T13:17:53+00:00",
+            "published-time": "2024-09-11T13:21:14+00:00"
         },
         {
             "name": "ralouphie/getallheaders",
@@ -4891,20 +4954,21 @@
                 "issues": "https://github.com/ramsey/collection/issues",
                 "source": "https://github.com/ramsey/collection/tree/2.1.1"
             },
-            "time": "2025-03-22T05:38:12+00:00"
+            "time": "2025-03-22T05:38:12+00:00",
+            "published-time": "2025-03-22T05:39:22+00:00"
         },
         {
             "name": "ramsey/uuid",
-            "version": "4.9.4",
+            "version": "4.10.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ramsey/uuid.git",
-                "reference": "75d73f48d02797c2c285a7e9f348fadc0102ffe2"
+                "reference": "f9aa3efc8015fcbc013d84d699583b268ccb593a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ramsey/uuid/zipball/75d73f48d02797c2c285a7e9f348fadc0102ffe2",
-                "reference": "75d73f48d02797c2c285a7e9f348fadc0102ffe2",
+                "url": "https://api.github.com/repos/ramsey/uuid/zipball/f9aa3efc8015fcbc013d84d699583b268ccb593a",
+                "reference": "f9aa3efc8015fcbc013d84d699583b268ccb593a",
                 "shasum": ""
             },
             "require": {
@@ -4916,23 +4980,22 @@
                 "rhumsaa/uuid": "self.version"
             },
             "require-dev": {
-                "captainhook/captainhook": "^5.25",
-                "captainhook/plugin-composer": "^5.3",
-                "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
-                "ergebnis/composer-normalize": "^2.47",
-                "mockery/mockery": "^1.6",
-                "paragonie/random-lib": "^2",
-                "php-mock/php-mock": "^2.6",
-                "php-mock/php-mock-mockery": "^1.5",
+                "captainhook/captainhook": "^5.29.3",
+                "captainhook/plugin-composer": "^5.3.3",
+                "dealerdirect/phpcodesniffer-composer-installer": "^1.2.1",
+                "mockery/mockery": "^1.6.15",
+                "paragonie/random-lib": "^2.0.3",
+                "php-mock/php-mock": "^2.7.0",
+                "php-mock/php-mock-mockery": "^1.5.0",
                 "php-parallel-lint/php-parallel-lint": "^1.4.0",
                 "phpbench/phpbench": "^1.2.14",
-                "phpstan/extension-installer": "^1.4",
-                "phpstan/phpstan": "^2.1",
-                "phpstan/phpstan-mockery": "^2.0",
-                "phpstan/phpstan-phpunit": "^2.0",
-                "phpunit/phpunit": "^9.6",
-                "slevomat/coding-standard": "^8.18",
-                "squizlabs/php_codesniffer": "^3.13"
+                "phpstan/extension-installer": "^1.4.3",
+                "phpstan/phpstan": "^2.3.5",
+                "phpstan/phpstan-mockery": "^2.0.0",
+                "phpstan/phpstan-phpunit": "^2.1.2",
+                "phpunit/phpunit": "^9.6.39",
+                "slevomat/coding-standard": "^8.31.3",
+                "squizlabs/php_codesniffer": "^4.0.4"
             },
             "suggest": {
                 "ext-bcmath": "Enables faster math with arbitrary-precision integers using BCMath.",
@@ -4967,9 +5030,10 @@
             ],
             "support": {
                 "issues": "https://github.com/ramsey/uuid/issues",
-                "source": "https://github.com/ramsey/uuid/tree/4.9.4"
+                "source": "https://github.com/ramsey/uuid/tree/4.10.0"
             },
-            "time": "2026-09-16T11:39:30+00:00"
+            "time": "2026-11-14T23:23:20+00:00",
+            "published-time": "2026-11-14T23:35:39+00:00"
         },
         {
             "name": "roadrunner-php/roadrunner-api-dto",
@@ -5582,7 +5646,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-11-01T22:27:46+00:00"
+            "time": "2026-11-01T22:27:46+00:00",
+            "published-time": "2026-11-04T11:31:57+00:00"
         },
         {
             "name": "symfony/cache-contracts",
@@ -5662,7 +5727,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-26T07:05:14+00:00"
+            "time": "2026-09-26T07:05:14+00:00",
+            "published-time": "2026-11-04T11:25:38+00:00"
         },
         {
             "name": "symfony/clock",
@@ -5817,7 +5883,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-11-04T08:39:20+00:00"
+            "time": "2026-11-04T08:39:20+00:00",
+            "published-time": "2026-11-04T11:31:48+00:00"
         },
         {
             "name": "symfony/console",
@@ -5998,7 +6065,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-11-01T19:30:44+00:00"
+            "time": "2026-11-01T19:30:44+00:00",
+            "published-time": "2026-11-04T11:32:05+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -6069,7 +6137,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-16T14:15:10+00:00"
+            "time": "2026-09-16T14:15:10+00:00",
+            "published-time": "2026-11-04T11:25:34+00:00"
         },
         {
             "name": "symfony/doctrine-bridge",
@@ -6407,7 +6476,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-10-25T14:40:25+00:00"
+            "time": "2026-10-25T14:40:25+00:00",
+            "published-time": "2026-10-28T18:24:13+00:00"
         },
         {
             "name": "symfony/event-dispatcher",
@@ -6493,7 +6563,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-08-21T17:47:34+00:00"
+            "time": "2026-08-21T17:47:34+00:00",
+            "published-time": "2026-08-22T13:46:58+00:00"
         },
         {
             "name": "symfony/event-dispatcher-contracts",
@@ -6573,7 +6644,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-16T14:15:10+00:00"
+            "time": "2026-09-16T14:15:10+00:00",
+            "published-time": "2026-11-04T11:25:36+00:00"
         },
         {
             "name": "symfony/filesystem",
@@ -6644,7 +6716,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-11-04T08:39:20+00:00"
+            "time": "2026-11-04T08:39:20+00:00",
+            "published-time": "2026-11-04T11:32:01+00:00"
         },
         {
             "name": "symfony/finder",
@@ -7188,7 +7261,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-11-04T08:39:20+00:00"
+            "time": "2026-11-04T08:39:20+00:00",
+            "published-time": "2026-11-04T11:31:54+00:00"
         },
         {
             "name": "symfony/http-kernel",
@@ -7298,7 +7372,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-11-04T11:29:46+00:00"
+            "time": "2026-11-04T11:29:46+00:00",
+            "published-time": "2026-11-04T11:32:19+00:00"
         },
         {
             "name": "symfony/lock",
@@ -7380,7 +7455,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-11-01T22:27:46+00:00"
+            "time": "2026-11-01T22:27:46+00:00",
+            "published-time": "2026-11-04T11:31:13+00:00"
         },
         {
             "name": "symfony/messenger",
@@ -7702,7 +7778,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-05-29T05:06:50+00:00"
+            "time": "2026-05-29T05:06:50+00:00",
+            "published-time": "2026-05-29T08:49:53+00:00"
         },
         {
             "name": "symfony/polyfill-deepclone",
@@ -7789,7 +7866,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-10-14T07:17:09+00:00"
+            "time": "2026-10-14T07:17:09+00:00",
+            "published-time": "2026-10-14T09:42:25+00:00"
         },
         {
             "name": "symfony/polyfill-intl-grapheme",
@@ -8041,7 +8119,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-10-28T09:35:49+00:00"
+            "time": "2026-10-28T09:35:49+00:00",
+            "published-time": "2026-10-28T10:07:45+00:00"
         },
         {
             "name": "symfony/polyfill-php85",
@@ -8121,7 +8200,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-10-30T15:20:09+00:00"
+            "time": "2026-10-30T15:20:09+00:00",
+            "published-time": "2026-11-15T14:20:22+00:00"
         },
         {
             "name": "symfony/polyfill-php86",
@@ -8531,7 +8611,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-11-04T08:39:20+00:00"
+            "time": "2026-11-04T08:39:20+00:00",
+            "published-time": "2026-11-04T11:30:59+00:00"
         },
         {
             "name": "symfony/runtime",
@@ -8717,7 +8798,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-11-04T08:39:20+00:00"
+            "time": "2026-11-04T08:39:20+00:00",
+            "published-time": "2026-11-04T11:31:29+00:00"
         },
         {
             "name": "symfony/security-core",
@@ -8800,7 +8882,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-11-01T19:30:44+00:00"
+            "time": "2026-11-01T19:30:44+00:00",
+            "published-time": "2026-11-04T11:31:01+00:00"
         },
         {
             "name": "symfony/security-csrf",
@@ -8872,7 +8955,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-05-29T05:06:50+00:00"
+            "time": "2026-05-29T05:06:50+00:00",
+            "published-time": "2026-05-29T08:52:10+00:00"
         },
         {
             "name": "symfony/security-http",
@@ -8961,7 +9045,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-11-04T08:39:20+00:00"
+            "time": "2026-11-04T08:39:20+00:00",
+            "published-time": "2026-11-04T11:31:07+00:00"
         },
         {
             "name": "symfony/serializer",
@@ -9147,7 +9232,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-10-20T17:38:25+00:00"
+            "time": "2026-10-20T17:38:25+00:00",
+            "published-time": "2026-11-04T11:25:33+00:00"
         },
         {
             "name": "symfony/stopwatch",
@@ -9729,7 +9815,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-10-26T21:55:04+00:00"
+            "time": "2026-10-26T21:55:04+00:00",
+            "published-time": "2026-10-28T18:25:26+00:00"
         },
         {
             "name": "symfony/var-exporter",
@@ -9812,7 +9899,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-10-22T14:30:01+00:00"
+            "time": "2026-10-22T14:30:01+00:00",
+            "published-time": "2026-10-28T18:24:08+00:00"
         },
         {
             "name": "symfony/yaml",
@@ -9940,7 +10028,8 @@
                 "issues": "https://github.com/Nevay/spi/issues",
                 "source": "https://github.com/Nevay/spi/tree/v1.0.5"
             },
-            "time": "2025-06-29T15:42:06+00:00"
+            "time": "2025-06-29T15:42:06+00:00",
+            "published-time": "2025-06-30T18:37:38+00:00"
         },
         {
             "name": "webmozart/assert",
@@ -12397,5 +12486,5 @@
         "ext-iconv": "*"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }
