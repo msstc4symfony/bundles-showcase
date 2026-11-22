@@ -13,13 +13,8 @@ use Webmozart\Assert\Assert;
  */
 final readonly class DockerClient
 {
-    private string $project;
-
-    public function __construct(?string $project = null)
+    public function __construct(private ?string $project = null)
     {
-        $project ??= getenv('COMPOSE_PROJECT_NAME');
-        Assert::stringNotEmpty($project, 'COMPOSE_PROJECT_NAME is not set.');
-        $this->project = $project;
     }
 
     /**
@@ -61,12 +56,23 @@ final readonly class DockerClient
     {
         $ids = array_values(array_filter(explode("\n", $this->docker([
             'ps', '--all', '--quiet',
-            '--filter', 'label=com.docker.compose.project=' . $this->project,
+            '--filter', 'label=com.docker.compose.project=' . $this->project(),
             '--filter', 'label=com.docker.compose.service=' . $service,
         ]))));
         Assert::notEmpty($ids, sprintf('No container for compose service "%s".', $service));
 
         return $ids;
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    private function project(): string
+    {
+        $project = $this->project ?? getenv('COMPOSE_PROJECT_NAME');
+        Assert::stringNotEmpty($project, 'COMPOSE_PROJECT_NAME is not set; it is required to stop, start or exec in compose services.');
+
+        return $project;
     }
 
     /**
