@@ -13,6 +13,7 @@ use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Throwable;
 
 /**
  * fos:elastica:create fails on an existing index and fos:elastica:reset drops its documents; the stand
@@ -33,7 +34,7 @@ final class CreateOrderIndexCommand extends Command
     #[Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        if ($this->index->exists()) {
+        if ($this->indexExists()) {
             $output->writeln(sprintf('Index "%s" already exists.', $this->index->getName()));
 
             return Command::SUCCESS;
@@ -43,6 +44,25 @@ final class CreateOrderIndexCommand extends Command
         $create = new ArrayInput(['--index' => self::INDEX]);
         $create->setInteractive(false);
 
-        return $application->find('fos:elastica:create')->run($create, $output);
+        try {
+            return $application->find('fos:elastica:create')->run($create, $output);
+        } catch (Throwable $e) {
+            // A create that outlives the client timeout is retried by the transport and then fails as "already exists".
+            if (!$this->indexExists()) {
+                throw $e;
+            }
+
+            $output->writeln(sprintf('Index "%s" was created by a retried request.', $this->index->getName()));
+
+            return Command::SUCCESS;
+        }
+    }
+
+    /**
+     * @phpstan-impure
+     */
+    private function indexExists(): bool
+    {
+        return $this->index->exists();
     }
 }
