@@ -8,6 +8,7 @@ use App\Application\Order\Create\Action;
 use App\Application\Order\Create\Input;
 use App\Application\Order\Create\Output;
 use Msstc4Symfony\LogicBundle\Application\Action\ActionInterface;
+use Msstc4Symfony\SloBundle\Application\Attribute\IgnoreMonitoring;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\AsController;
@@ -27,6 +28,7 @@ final readonly class CreateOrderController
     }
 
     #[Route('/orders', name: 'orders_create', methods: ['POST'], format: 'json')]
+    #[IgnoreMonitoring(reason: 'Measured by the orders.create_order Action SLO')]
     public function __invoke(#[MapRequestPayload(acceptFormat: 'json', validationFailedStatusCode: 422)] Input $input): JsonResponse
     {
         return new JsonResponse($this->create->__invoke($input)->order, JsonResponse::HTTP_CREATED);

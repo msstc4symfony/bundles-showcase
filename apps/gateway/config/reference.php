@@ -1280,6 +1280,61 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         max_buffered_logs?: int|Param, // Log records kept per unit of work; a full buffer is exported early. // Default: 2048
  *     },
  * }
+ * @psalm-type Msstc4symfonySloConfig = array{
+ *     defaults?: array{
+ *         window?: scalar|Param|null, // Default: "30d"
+ *         http?: array{
+ *             bad_statuses?: list<scalar|Param|null>,
+ *             ineligible_statuses?: list<scalar|Param|null>,
+ *         },
+ *         logic?: array{
+ *             expected_failure_is_good?: bool|Param, // Default: true
+ *         },
+ *         messenger?: array{
+ *             count_attempts?: bool|Param, // Default: false
+ *             failure_transports?: mixed, // Default: null
+ *         },
+ *     },
+ *     coverage?: array{
+ *         http_routes?: array{
+ *             required_percent?: int|Param, // Default: 95
+ *             ignored_routes?: list<scalar|Param|null>,
+ *         },
+ *         messenger_handlers?: array{
+ *             required_percent?: int|Param, // Default: 95
+ *         },
+ *         logic_actions?: array{
+ *             required_percent?: int|Param, // Default: 0
+ *         },
+ *     },
+ *     operations?: array<string, array{ // Default: []
+ *         objectives?: list<array{ // Default: []
+ *             type?: "availability"|"latency"|"combined"|Param,
+ *             target?: float|Param,
+ *             threshold?: scalar|Param|null,
+ *             include_errors?: bool|Param,
+ *         }>,
+ *         window?: scalar|Param|null,
+ *         expected_failure_is_good?: bool|Param,
+ *     }>,
+ *     generation?: array{
+ *         selector?: array{
+ *             application?: scalar|Param|null, // Default: null
+ *             components?: list<scalar|Param|null>,
+ *         },
+ *         output_dir?: scalar|Param|null, // Default: "%kernel.project_dir%/infrastructure/observability"
+ *         grafana?: array{
+ *             datasource_uid?: scalar|Param|null, // Default: "prometheus"
+ *             folder?: scalar|Param|null, // Default: "SLO"
+ *         },
+ *         prometheus?: array{
+ *             rules?: bool|Param, // Default: true
+ *             alerts?: bool|Param, // Default: true
+ *             no_events_alert_hours?: int|Param, // Default: null
+ *         },
+ *         sloth?: bool|Param, // Default: false
+ *     },
+ * }
  * @psalm-type ConfigType = array{
  *     imports?: ImportsConfig,
  *     parameters?: ParametersConfig,
@@ -1295,6 +1350,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     baldinof_road_runner?: BaldinofRoadRunnerConfig,
  *     msstc4symfony_tracing_bridge_profiling?: Msstc4symfonyTracingBridgeProfilingConfig,
  *     msstc4symfony_tracing_bridge_otlp?: Msstc4symfonyTracingBridgeOtlpConfig,
+ *     msstc4symfony_slo?: Msstc4symfonySloConfig,
  *     "when@dev"?: array{
  *         imports?: ImportsConfig,
  *         parameters?: ParametersConfig,
@@ -1310,6 +1366,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         baldinof_road_runner?: BaldinofRoadRunnerConfig,
  *         msstc4symfony_tracing_bridge_profiling?: Msstc4symfonyTracingBridgeProfilingConfig,
  *         msstc4symfony_tracing_bridge_otlp?: Msstc4symfonyTracingBridgeOtlpConfig,
+ *         msstc4symfony_slo?: Msstc4symfonySloConfig,
  *     },
  *     "when@prod"?: array{
  *         imports?: ImportsConfig,
@@ -1326,6 +1383,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         baldinof_road_runner?: BaldinofRoadRunnerConfig,
  *         msstc4symfony_tracing_bridge_profiling?: Msstc4symfonyTracingBridgeProfilingConfig,
  *         msstc4symfony_tracing_bridge_otlp?: Msstc4symfonyTracingBridgeOtlpConfig,
+ *         msstc4symfony_slo?: Msstc4symfonySloConfig,
  *     },
  *     "when@test"?: array{
  *         imports?: ImportsConfig,
@@ -1342,6 +1400,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         baldinof_road_runner?: BaldinofRoadRunnerConfig,
  *         msstc4symfony_tracing_bridge_profiling?: Msstc4symfonyTracingBridgeProfilingConfig,
  *         msstc4symfony_tracing_bridge_otlp?: Msstc4symfonyTracingBridgeOtlpConfig,
+ *         msstc4symfony_slo?: Msstc4symfonySloConfig,
  *     },
  *     ...<string, ExtensionType|array{ // extra keys must follow the when@%env% pattern or match an extension alias
  *         imports?: ImportsConfig,

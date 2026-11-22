@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "094839cfe58a1a6bf4eedc6d5ede67f8",
+    "content-hash": "9074507dc9c25bd95fe07bdb7f56c7ff",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -802,6 +802,9 @@
                 "php",
                 "symfony"
             ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/metrics-bundle/tree/v2.3.0"
+            },
             "time": "2026-11-22T06:28:33+00:00"
         },
         {
@@ -899,6 +902,87 @@
             "time": "2026-10-27T06:27:45+00:00"
         },
         {
+            "name": "msstc4symfony/slo-bundle",
+            "version": "v1.0.0-rc.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/msstc4symfony/slo-bundle.git",
+                "reference": "07299a43d2f8122f3dad002a0e32c06d7aa02ba6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/msstc4symfony/slo-bundle/zipball/07299a43d2f8122f3dad002a0e32c06d7aa02ba6",
+                "reference": "07299a43d2f8122f3dad002a0e32c06d7aa02ba6",
+                "shasum": ""
+            },
+            "require": {
+                "composer-runtime-api": ">=2.2",
+                "msstc4symfony/metrics-bundle": "^2.3",
+                "php": ">=8.2",
+                "psr/log": "^2.0|^3.0",
+                "symfony/config": "^7.4|^8.0",
+                "symfony/console": "^7.4|^8.0",
+                "symfony/dependency-injection": "^7.4|^8.0",
+                "symfony/http-kernel": "^7.4|^8.0",
+                "symfony/monolog-bundle": "^3.11|^4.0",
+                "symfony/routing": "^7.4|^8.0",
+                "symfony/yaml": "^7.4|^8.0"
+            },
+            "conflict": {
+                "symfony/symfony": "*"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.76",
+                "justinrainbow/json-schema": "^6.6",
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan": "^2.1",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpstan/phpstan-symfony": "^2.0",
+                "phpunit/phpunit": ">=11.0",
+                "rector/rector": "^2.1",
+                "roave/security-advisories": "dev-latest",
+                "symfony/framework-bundle": "^7.4|^8.0"
+            },
+            "suggest": {
+                "msstc4symfony/logic-bundle": "To declare SLOs on logic-bundle Actions (with msstc4symfony/slo-bridge-logic)",
+                "msstc4symfony/slo-bridge-logic": "To discover and measure msstc4symfony/logic-bundle Actions as SLO points",
+                "msstc4symfony/slo-bridge-profiling": "To open a msstc4symfony/profiling-bundle span around every SLO operation",
+                "symfony/messenger": "To declare SLOs on Messenger messages"
+            },
+            "type": "symfony-bundle",
+            "extra": {
+                "symfony": {
+                    "allow-contrib": false,
+                    "require": "^7.4|^8.0"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Msstc4Symfony\\SloBundle\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Msstc4Symfony\\SloBundle\\Test\\": "tests/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Maxim Shamaev",
+                    "email": "maxim.shamaev@gmail.com"
+                }
+            ],
+            "description": "Declarative SLI/SLO for Symfony: discovery, coverage gate, good/bad counters, Prometheus rules and Grafana dashboards",
+            "keywords": [
+                "php",
+                "symfony"
+            ],
+            "time": "2026-11-22T09:55:55+00:00"
+        },
+        {
             "name": "msstc4symfony/sql-labeller",
             "version": "v1.0.0",
             "source": {
@@ -957,6 +1041,10 @@
                 "profiling",
                 "sql"
             ],
+            "support": {
+                "source": "https://github.com/msstc4symfony/sql-labeller/tree/v1.0.0",
+                "issues": "https://github.com/msstc4symfony/sql-labeller/issues"
+            },
             "time": "2026-10-22T12:05:55+00:00"
         },
         {
@@ -9098,7 +9186,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "msstc4symfony/slo-bundle": 5
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

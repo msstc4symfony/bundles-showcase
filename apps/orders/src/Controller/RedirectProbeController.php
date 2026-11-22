@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use Msstc4Symfony\SloBundle\Application\Attribute\IgnoreMonitoring;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -29,6 +30,7 @@ final readonly class RedirectProbeController
     }
 
     #[Route('/_probe/redirect', name: 'orders_redirect_probe', methods: ['GET'])]
+    #[IgnoreMonitoring(reason: 'e2e probe, not a user path')]
     public function __invoke(): RedirectResponse
     {
         if ($this->echoUrl === null) {

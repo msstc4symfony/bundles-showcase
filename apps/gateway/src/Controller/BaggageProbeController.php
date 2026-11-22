@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use Msstc4Symfony\SloBundle\Application\Attribute\IgnoreMonitoring;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\AsController;
@@ -30,6 +31,7 @@ final readonly class BaggageProbeController
     }
 
     #[Route('/_probe/baggage', name: 'gateway_baggage_probe', methods: ['GET'])]
+    #[IgnoreMonitoring(reason: 'e2e probe, not a user path')]
     public function __invoke(): JsonResponse
     {
         if ($this->echoUrl === null) {

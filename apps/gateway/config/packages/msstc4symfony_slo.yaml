@@ -1,0 +1,6 @@
+msstc4symfony_slo:
+  generation:
+    selector:
+      application: showcase
+      # Not gateway-sampled: Prometheus does not scrape it.
+      components: [gateway]

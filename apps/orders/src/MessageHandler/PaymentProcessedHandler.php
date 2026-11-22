@@ -8,9 +8,11 @@ use App\Entity\Order;
 use App\Message\PaymentProcessed;
 use App\Repository\OrderRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Msstc4Symfony\SloBundle\Application\Attribute\IgnoreMonitoring;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
+#[IgnoreMonitoring(reason: 'Status projection of billing.process_payment')]
 final readonly class PaymentProcessedHandler
 {
     public function __construct(

@@ -344,3 +344,21 @@
 - `cache:clear --env=test` regenerates `config/reference.php` (new `http.ignored_routes` key) — commit it with the lock.
 - `make check` runs `composer audit --locked`: Symfony advisories published against 8.1.10 and older broke it on `main`
   too (http-client, serializer, yaml, validator, config, filesystem); fixed by `composer update <flagged> -w` (8.1.11).
+
+## slo-bundle 1.0.0-rc.3 в приложениях (2026-11-22 UTC)
+
+- **Находка бандла (не исправлена):** discovery считает хендлер асинхронным, только если **это же** приложение
+  маршрутизирует его сообщение (`MessengerRouting::isAsync` читает `messenger.senders_locator`). У потребителей
+  (billing — `ProcessPayment`, orders — `PaymentProcessed`) routing нет, поэтому `slo:coverage` пишет
+  `unsupported … sync handling is not measured`, а `slo:validate` — ложный `WARNING … the SLO never records events`
+  для `billing.process_payment`. По факту SLO работает: стратегия existing_series, правила читают
+  `symfony_messenger_message_handled{message="ProcessPayment"}`, которые воркер пишет. Следствие: coverage-гейт для
+  `messenger_handler` в billing/orders пуст (100 % из нуля) и не заметит хендлер без `#[Slo]`. Обход в showcase
+  (фиктивный routing) не делали — чинить в бандле (учитывать `from_transport`/consume-only транспорты).
+- `KernelTestCase` (FrameworkBundle 8.1) уже содержит статический `runCommand()` (`ConsoleCommandAssertionsTrait`) —
+  свой хелпер с таким именем даёт фатал «Cannot make static method … non static».
+- slo-bridge-logic добавляет `SloMiddleware` в цепочку Action → `CreateOrderActionWiringTest` ожидает его между
+  `MetricsMiddleware` и `LoggingMiddleware`.
+- Flex ставит бандлы auto-generated рецептом в конец `bundles.php` (после `MetricsBundle`, как требует slo-bundle);
+  `composer require` снова записал `git@github.com:` в `source.url` lock-файлов — нормализовано sed-ом.
+- В test-окружении хранилище метрик `inmemory://` (`.env.test`) — отдельного стаба для slo-bundle не понадобилось.

@@ -127,6 +127,24 @@ Loki не опубликован. Локально у владельца 8080 и
   С 2026-10-26 UTC: tracing ^2.3.0 (флаг random, `ot=th` при ratio < 1 — showcase ratio не задаёт, провод `03`
   без tracestate), tracing-bridge-otlp ^1.1.0 (`pause_pool`; showcase его не задаёт — пауза в файлах, по контейнеру).
   С 2026-11-22 UTC: metrics ^2.3 (роутерные 404 и error-страницы попадают в `http_response`, см. known-issues).
+  С 2026-11-22 UTC: slo-bundle ^1.0.0-rc.3 (все приложения), slo-bridge-logic и slo-bridge-profiling ^1.0.0-rc.1 (orders);
+  RC разрешены только явным RC-ограничением в корневом `require` (`minimum-stability: stable`).
+
+## SLO (slo-bundle, 2026-11-22 UTC)
+
+| SLO | Точка | Цели (окно 30d) | Стратегия |
+|---|---|---|---|
+| `gateway.create_order` | маршрут `gateway_create_order` | Availability 99.5, Latency 200ms/99, `StrategyPreference::Dedicated` | dedicated, dedicated |
+| `billing.process_payment` | `ProcessPaymentHandler` (`ProcessPayment`) | Availability 99.9, Latency 1s/99 (бакет Messenger) | existing_series, existing_series |
+| `orders.create_order` | Action `App\Application\Order\Create\Action` | Availability 99.9, Latency 300ms/99 (не бакет logic) | existing_series, dedicated |
+| `orders.search_index` | операция в `ElasticaOrderIndex::add()` (`msstc4symfony_slo.operations`) | Availability 99, Latency 100ms/99 | dedicated, dedicated |
+
+- Остальные маршруты и хендлеры — `#[IgnoreMonitoring(reason)]`, coverage-гейт с дефолтными процентами;
+  `SloCatalogTest` каждого приложения закрепляет имена, `point_type`, стратегии и `slo:validate`/`slo:coverage` = 0.
+- `generation.selector`: `application: showcase`, `components: [<app>]` (`gateway-sampled` не скрейпится — не входит);
+  `output_dir` по умолчанию — `apps/<app>/infrastructure/observability`.
+- orders: `SloMiddleware` (slo-bridge-logic, приоритет 350) стоит между `MetricsMiddleware` и `LoggingMiddleware`
+  (`CreateOrderActionWiringTest`); slo-bridge-profiling открывает спан `operation orders.search_index`.
 
 ## Конфигурация бандлов 2.2 (2026-10-23 UTC)
 

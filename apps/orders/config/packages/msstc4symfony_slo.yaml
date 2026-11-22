@@ -1,0 +1,10 @@
+msstc4symfony_slo:
+  operations:
+    orders.search_index:
+      objectives:
+        - { type: availability, target: 99 }
+        - { type: latency, threshold: 100ms, target: 99 }
+  generation:
+    selector:
+      application: showcase
+      components: [orders]

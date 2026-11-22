@@ -21,6 +21,9 @@
         "msstc4symfony/metrics-bundle": "^2.3",
         "msstc4symfony/profiling-bridge-logic": "^2.0.1",
         "msstc4symfony/profiling-bundle": "^2.3.1",
+        "msstc4symfony/slo-bridge-logic": "^1.0.0-rc.1",
+        "msstc4symfony/slo-bridge-profiling": "^1.0.0-rc.1",
+        "msstc4symfony/slo-bundle": "^1.0.0-rc.3",
         "msstc4symfony/sql-labeller": "^1.0",
         "msstc4symfony/tracing-bridge-logic": "^2.0.1",
         "msstc4symfony/tracing-bridge-otlp": "^1.2.2",
@@ -154,6 +157,18 @@
         "name": "tracing-bridge-profiling",
         "type": "vcs",
         "url": "https://github.com/msstc4symfony/tracing-bridge-profiling"
+    },{
+        "name": "slo-bundle",
+        "type": "vcs",
+        "url": "https://github.com/msstc4symfony/slo-bundle"
+    },{
+        "name": "slo-bridge-logic",
+        "type": "vcs",
+        "url": "https://github.com/msstc4symfony/slo-bridge-logic"
+    },{
+        "name": "slo-bridge-profiling",
+        "type": "vcs",
+        "url": "https://github.com/msstc4symfony/slo-bridge-profiling"
     }],
     "require-dev": {
         "phpstan/extension-installer": "^1.4",

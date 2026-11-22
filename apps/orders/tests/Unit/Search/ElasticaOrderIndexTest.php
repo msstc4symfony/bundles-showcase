@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Search;
 
 use App\Entity\Order;
 use App\Search\ElasticaOrderIndex;
+use App\Tests\Support\RecordingOperationMonitor;
 use DateTimeInterface;
 use Elastic\Transport\Exception\NoNodeAvailableException;
 use Elastica\Document;
@@ -42,7 +43,36 @@ final class ElasticaOrderIndexTest extends TestCase
             ->willReturn(new Response('{"result":"created"}', 201))
         ;
 
-        new ElasticaOrderIndex($index, new NullLogger())->add($order);
+        new ElasticaOrderIndex($index, new RecordingOperationMonitor(), new NullLogger())->add($order);
+    }
+
+    public function testASuccessfulIndexingSucceedsTheOperation(): void
+    {
+        $index = self::createStub(Index::class);
+        $index->method('addDocument')->willReturn(new Response('{"result":"created"}', 201));
+        $operations = new RecordingOperationMonitor();
+
+        new ElasticaOrderIndex($index, $operations, new NullLogger())->add(new Order(5000));
+
+        self::assertSame(['start orders.search_index', 'succeed', 'end'], $operations->calls);
+        self::assertNull($operations->failure);
+    }
+
+    public function testAFailedIndexingFailsTheOperationAndKeepsTheOrder(): void
+    {
+        $failure = new NoNodeAvailableException('No alive nodes');
+        $index = self::createStub(Index::class);
+        $index->method('addDocument')->willThrowException($failure);
+        $operations = new RecordingOperationMonitor();
+        $logger = new BufferingLogger();
+
+        new ElasticaOrderIndex($index, $operations, $logger)->add(new Order(5000));
+
+        self::assertSame(['start orders.search_index', 'fail', 'end'], $operations->calls);
+        self::assertSame($failure, $operations->failure);
+        $logs = $logger->cleanLogs();
+        self::assertCount(1, $logs);
+        self::assertSame('error', $logs[0][0]);
     }
 
     /**
@@ -63,7 +93,7 @@ final class ElasticaOrderIndexTest extends TestCase
         $index->method('addDocument')->willThrowException($failure);
         $logger = new BufferingLogger();
 
-        new ElasticaOrderIndex($index, $logger)->add($order);
+        new ElasticaOrderIndex($index, new RecordingOperationMonitor(), $logger)->add($order);
 
         $logs = $logger->cleanLogs();
         self::assertCount(1, $logs);

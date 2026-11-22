@@ -1,0 +1,5 @@
+msstc4symfony_slo:
+  generation:
+    selector:
+      application: showcase
+      components: [billing]

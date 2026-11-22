@@ -65,6 +65,9 @@
     "msstc4symfony/profiling-bundle": {
         "version": "v1.0.0"
     },
+    "msstc4symfony/slo-bundle": {
+        "version": "v1.0.0-rc.3"
+    },
     "msstc4symfony/tracing-bridge-otlp": {
         "version": "v1.0.0"
     },

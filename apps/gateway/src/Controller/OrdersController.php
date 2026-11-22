@@ -12,6 +12,11 @@ use App\Orders\OrdersClient;
 use App\Orders\OrdersResponse;
 use App\Orders\OrdersUnavailable;
 use Closure;
+use Msstc4Symfony\SloBundle\Application\Attribute\Availability;
+use Msstc4Symfony\SloBundle\Application\Attribute\IgnoreMonitoring;
+use Msstc4Symfony\SloBundle\Application\Attribute\Latency;
+use Msstc4Symfony\SloBundle\Application\Attribute\Slo;
+use Msstc4Symfony\SloBundle\Domain\Enum\StrategyPreference;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,6 +34,11 @@ final readonly class OrdersController
     }
 
     #[Route('/orders', name: 'gateway_create_order', methods: ['POST'])]
+    #[Slo(
+        name: 'gateway.create_order',
+        objectives: [new Availability(99.5), new Latency('200ms', 99.0)],
+        strategy: StrategyPreference::Dedicated,
+    )]
     public function create(Request $request): Response
     {
         $payload = $request->getContent();
@@ -44,6 +54,7 @@ final readonly class OrdersController
     }
 
     #[Route('/orders/{id}', name: 'gateway_show_order', requirements: ['id' => Requirement::UUID], methods: ['GET'])]
+    #[IgnoreMonitoring(reason: 'Read-through proxy of orders; the showcase declares SLOs on writes')]
     public function show(string $id): Response
     {
         return $this->mirror(fn (): OrdersResponse => $this->orders->show($id));

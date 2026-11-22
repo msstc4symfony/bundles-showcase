@@ -10,6 +10,7 @@ use Msstc4Symfony\LogicBundle\Application\Logging\LoggingMiddleware;
 use Msstc4Symfony\LogicBundle\Application\Pipeline\MiddlewareChainInterface;
 use Msstc4Symfony\MetricsBridgeLogic\Infrastructure\Metrics\MetricsMiddleware;
 use Msstc4Symfony\ProfilingBridgeLogic\Infrastructure\Profiling\ProfilingMiddleware;
+use Msstc4Symfony\SloBridgeLogic\Infrastructure\Slo\SloMiddleware;
 use Msstc4Symfony\TracingBridgeLogic\Infrastructure\Tracing\TracingMiddleware;
 use ReflectionProperty;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -35,7 +36,7 @@ final class CreateOrderActionWiringTest extends KernelTestCase
         self::assertInstanceOf(MiddlewareChainInterface::class, $action);
         $classes = array_map(static fn (object $middleware): string => $middleware::class, $action->middlewares());
 
-        $outermost = [TracingMiddleware::class, ProfilingMiddleware::class, MetricsMiddleware::class, LoggingMiddleware::class];
+        $outermost = [TracingMiddleware::class, ProfilingMiddleware::class, MetricsMiddleware::class, SloMiddleware::class, LoggingMiddleware::class];
         self::assertSame($outermost, array_slice($classes, 0, count($outermost)));
     }
 }
