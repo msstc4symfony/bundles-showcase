@@ -143,7 +143,8 @@ Every other route and handler carries `#[IgnoreMonitoring(reason)]`. The generat
 After changing an SLO or updating slo-bundle, run `make slo-generate` and commit the result. `make check` ends with
 `make slo-check`: `slo:validate`, `slo:coverage` and `slo:generate --check` per app (stale files fail it), then
 `make promtool`, which runs `promtool check config` on `prometheus.yml` with the same mounts as compose, and so checks
-every rule file it lists. Both `slo-check` and `promtool` need Docker.
+every rule file it lists. `promtool` runs in Docker; `slo-generate` and `slo-check` also run the host `php` (a local
+PHP 8.4 with the app extensions: redis, amqp, intl, pdo_pgsql), unlike the Docker-based targets.
 
 The generated `slo.yaml` points its provider at `/var/lib/grafana/dashboards`, a fixed path that is already the
 directory of the showcase provider. Two providers on one directory provision every dashboard twice, so the showcase
@@ -166,6 +167,10 @@ short-window rules and the alerts every minute (group `slo-<name>`).
    Behat, chaos included), called as reusable workflows.
 4. When both pass, the run fast-forwards `main` to the commit and deletes the branch. Otherwise the branch stays
    and the run fails; its summary names the update and the failed gate.
+
+`quality` also gates the SLO definitions: `slo:validate`, `slo:coverage` and `slo:generate --check` per app, and
+`promtool` on every rule file. A slo-bundle release that changes the generated output therefore fails `quality` on the
+`bundle-updates` branch. That is intended: run `make slo-generate`, commit and push to that branch.
 
 No pull request is involved: GitHub Actions may not open pull requests in this organisation. A push made with
 `GITHUB_TOKEN` does not start the `main` push workflows; the gate has already run on that exact commit.
