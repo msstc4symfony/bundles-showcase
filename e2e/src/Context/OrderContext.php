@@ -54,6 +54,12 @@ final readonly class OrderContext implements Context
         $this->scenario->lastResponse = $this->gateway->showOrder($id);
     }
 
+    #[When('I send GET :path to the gateway')]
+    public function iSendGetToTheGateway(string $path): void
+    {
+        $this->scenario->lastResponse = $this->gateway->get($path);
+    }
+
     #[Then('the response status is :status')]
     public function theResponseStatusIs(int $status): void
     {

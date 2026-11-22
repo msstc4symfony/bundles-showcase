@@ -130,7 +130,7 @@ the restart. The index holds the order as it was created; a document whose index
 No pull request is involved: GitHub Actions may not open pull requests in this organisation. A push made with
 `GITHUB_TOKEN` does not start the `main` push workflows; the gate has already run on that exact commit.
 
-Each app requires a bundle at the release it relies on, a minor or a patch (`^2.2.1` for metrics, `^2.2` for
+Each app requires a bundle at the release it relies on, a minor or a patch (`^2.3` for metrics, `^2.2` for
 profiling-bundle `^2.3.1`, `^2.3` for healthcheck, `^2.1` for logger, `^2.4` for tracing, `^1.3` for
 tracing-bridge-profiling, `^1.2.2` for tracing-bridge-otlp), so every later release of the same major is
 picked up by that run. A major release goes through an rc tag first (`vX.0.0-rc.N`) and gets its final tag only after

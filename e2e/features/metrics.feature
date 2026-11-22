@@ -50,6 +50,14 @@ Feature: Metrics from every service reach Prometheus
     Then within 20 seconds "symfony_cache_request{component='gateway',pool='cache.app',result='hit'}" grows by 1
     And "symfony_cache_request{component='gateway',pool='cache.app',result='miss'}" has not grown after the next scrape
 
+  # metrics-bundle 2.3.0 records router 404s and error pages rendered through a sub-request; before it such
+  # responses never reached http_response.
+  Scenario: A request no route matches is recorded under route "unknown"
+    Given I remember the current metric values
+    When I send GET "/no-such-page" to the gateway
+    Then the response status is 404
+    And within 20 seconds "symfony_http_response{component='gateway',route='unknown',status='404'}" grows by 1
+
   Scenario: The queue depth of every configured transport is sampled
     Then within 30 seconds "symfony_messenger_queue_depth_sampled_at{component='orders',transport='process_payment'} > time() - 30" has a series
     And within 30 seconds "symfony_messenger_queue_depth_sampled_at{component='orders',transport='payment_processed'} > time() - 30" has a series

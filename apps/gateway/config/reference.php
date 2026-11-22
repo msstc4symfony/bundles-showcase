@@ -1206,6 +1206,9 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     errors?: array{
  *         short_exception_class_name?: bool|Param, // Label exceptions with the short class name instead of the FQCN. // Default: false
  *     },
+ *     http?: array{
+ *         ignored_routes?: list<scalar|Param|null>,
+ *     },
  *     http_client?: array{
  *         sanitize_path?: bool|Param, // Replace identifiers in outgoing request paths with placeholders to bound the "path" label. // Default: true
  *     },

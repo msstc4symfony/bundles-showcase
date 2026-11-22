@@ -318,3 +318,29 @@
   хранилищу; id store FrameworkBundle скрытый `.lock.default.store.<hash>`, поэтому через фабрику). С `flock`
   (dev/test) проверка всегда проходит. `UnreachableLockStore` в тестах теперь бросает и в `exists()`.
   Проверено: два `make e2e` подряд с `@chaos` без рестарта gateway.
+
+## OTLP client spans and logs (2026-10-27 UTC)
+
+- Alloy's config is a bind mount: `make up` (`compose up --build`) does not restart Alloy when `alloy.alloy` changes.
+  A running stack kept the old pipeline without `logs`, every OTLP log export got 404 — `docker compose restart alloy`.
+  That 404 exposed tracing-bridge-otlp 1.2.0/1.2.1's shared pause (a log failure stopped the spans); fixed in 1.2.2.
+- tracing-bridge-otlp 1.2.0 resolved `service_name` (`%env(COMPONENT_NAME)%`) when Monolog built its handler, so
+  `make check`'s `cache:warmup --env=test` (no COMPONENT_NAME) failed; fixed in 1.2.1 — the showcase was not patched.
+- The log call tree (`tracing.feature`) follows `trace_span_id` of profiling records too: since tracing-bundle 2.4 the
+  orders request's `parent_span_id` is the gateway CLIENT span, which only the profiling record names.
+- OTLP logs land in Loki under `service_name` (resource) with `trace_id` structured metadata; `LokiClient::query()` uses
+  `{service=~".+"}`, so the stderr-line checks never see them.
+- Loki 3 derives `service_name` from the stderr streams' `service` label too (`discover_service_name`): the OTLP check
+  selects `{service_name="…", service=""}` and must not rely on `trace_id` structured metadata being OTLP-only.
+
+## metrics-bundle 2.3 (2026-11-22 UTC)
+
+- 2.3.0 records router 404s and error pages rendered through Symfony's error sub-request (before, the sub-request
+  reset the start time and `http_response` never got them). A router 404 is labelled `route="unknown"`; the
+  `metrics.feature` scenario "A request no route matches…" pins it. No existing assertion changed: only
+  `symfony_http_request{route='gateway_create_order'}` is asserted, and e2e sends no method that would become `OTHER`.
+- 2.3.0 drops `metrics-get` and the healthcheck routes from `http_*` by default (`msstc4symfony_metrics.http.ignored_routes`);
+  probe counts come from healthcheck-bundle's own `symfony_healthcheck_*` series, so e2e is unaffected.
+- `cache:clear --env=test` regenerates `config/reference.php` (new `http.ignored_routes` key) — commit it with the lock.
+- `make check` runs `composer audit --locked`: Symfony advisories published against 8.1.10 and older broke it on `main`
+  too (http-client, serializer, yaml, validator, config, filesystem); fixed by `composer update <flagged> -w` (8.1.11).

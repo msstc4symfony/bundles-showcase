@@ -126,6 +126,7 @@ Loki не опубликован. Локально у владельца 8080 и
   sql-labeller ^1.0 (транзитивно через metrics, нужен vcs-репозиторий). Полигон остаётся на PHP 8.5.
   С 2026-10-26 UTC: tracing ^2.3.0 (флаг random, `ot=th` при ratio < 1 — showcase ratio не задаёт, провод `03`
   без tracestate), tracing-bridge-otlp ^1.1.0 (`pause_pool`; showcase его не задаёт — пауза в файлах, по контейнеру).
+  С 2026-11-22 UTC: metrics ^2.3 (роутерные 404 и error-страницы попадают в `http_response`, см. known-issues).
 
 ## Конфигурация бандлов 2.2 (2026-10-23 UTC)
 
