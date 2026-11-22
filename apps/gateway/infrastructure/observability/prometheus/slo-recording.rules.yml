@@ -1,0 +1,231 @@
+groups:
+  - interval: 1m
+    name: slo-gateway.create_order
+    rules:
+      - expr: 'sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="availability",revision="0ea7a915"}[5m]))'
+        labels:
+          application: showcase
+          objective: availability
+          revision: 0ea7a915
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:events:rate5m'
+      - expr: '(sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="availability",revision="0ea7a915",result="bad"}[5m])) or vector(0)) / (sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="availability",revision="0ea7a915"}[5m])) > 0)'
+        labels:
+          application: showcase
+          objective: availability
+          revision: 0ea7a915
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:error_ratio:rate5m'
+      - expr: 'sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="availability",revision="0ea7a915"}[30m]))'
+        labels:
+          application: showcase
+          objective: availability
+          revision: 0ea7a915
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:events:rate30m'
+      - expr: '(sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="availability",revision="0ea7a915",result="bad"}[30m])) or vector(0)) / (sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="availability",revision="0ea7a915"}[30m])) > 0)'
+        labels:
+          application: showcase
+          objective: availability
+          revision: 0ea7a915
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:error_ratio:rate30m'
+      - expr: 'sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="availability",revision="0ea7a915"}[1h]))'
+        labels:
+          application: showcase
+          objective: availability
+          revision: 0ea7a915
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:events:rate1h'
+      - expr: '(sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="availability",revision="0ea7a915",result="bad"}[1h])) or vector(0)) / (sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="availability",revision="0ea7a915"}[1h])) > 0)'
+        labels:
+          application: showcase
+          objective: availability
+          revision: 0ea7a915
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:error_ratio:rate1h'
+      - expr: 'sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="availability",revision="0ea7a915"}[6h]))'
+        labels:
+          application: showcase
+          objective: availability
+          revision: 0ea7a915
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:events:rate6h'
+      - expr: '(sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="availability",revision="0ea7a915",result="bad"}[6h])) or vector(0)) / (sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="availability",revision="0ea7a915"}[6h])) > 0)'
+        labels:
+          application: showcase
+          objective: availability
+          revision: 0ea7a915
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:error_ratio:rate6h'
+      - expr: vector(0.995)
+        labels:
+          application: showcase
+          objective: availability
+          revision: 0ea7a915
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:objective:target'
+      - expr: 'sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="latency",revision="bd652502"}[5m]))'
+        labels:
+          application: showcase
+          objective: latency
+          revision: bd652502
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:events:rate5m'
+      - expr: '(sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="latency",revision="bd652502",result="bad"}[5m])) or vector(0)) / (sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="latency",revision="bd652502"}[5m])) > 0)'
+        labels:
+          application: showcase
+          objective: latency
+          revision: bd652502
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:error_ratio:rate5m'
+      - expr: 'sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="latency",revision="bd652502"}[30m]))'
+        labels:
+          application: showcase
+          objective: latency
+          revision: bd652502
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:events:rate30m'
+      - expr: '(sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="latency",revision="bd652502",result="bad"}[30m])) or vector(0)) / (sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="latency",revision="bd652502"}[30m])) > 0)'
+        labels:
+          application: showcase
+          objective: latency
+          revision: bd652502
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:error_ratio:rate30m'
+      - expr: 'sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="latency",revision="bd652502"}[1h]))'
+        labels:
+          application: showcase
+          objective: latency
+          revision: bd652502
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:events:rate1h'
+      - expr: '(sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="latency",revision="bd652502",result="bad"}[1h])) or vector(0)) / (sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="latency",revision="bd652502"}[1h])) > 0)'
+        labels:
+          application: showcase
+          objective: latency
+          revision: bd652502
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:error_ratio:rate1h'
+      - expr: 'sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="latency",revision="bd652502"}[6h]))'
+        labels:
+          application: showcase
+          objective: latency
+          revision: bd652502
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:events:rate6h'
+      - expr: '(sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="latency",revision="bd652502",result="bad"}[6h])) or vector(0)) / (sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="latency",revision="bd652502"}[6h])) > 0)'
+        labels:
+          application: showcase
+          objective: latency
+          revision: bd652502
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:error_ratio:rate6h'
+      - expr: vector(0.99)
+        labels:
+          application: showcase
+          objective: latency
+          revision: bd652502
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:objective:target'
+  - interval: 5m
+    name: slo-gateway.create_order-window
+    rules:
+      - expr: 'sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="availability",revision="0ea7a915"}[3d]))'
+        labels:
+          application: showcase
+          objective: availability
+          revision: 0ea7a915
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:events:rate3d'
+      - expr: '(sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="availability",revision="0ea7a915",result="bad"}[3d])) or vector(0)) / (sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="availability",revision="0ea7a915"}[3d])) > 0)'
+        labels:
+          application: showcase
+          objective: availability
+          revision: 0ea7a915
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:error_ratio:rate3d'
+      - expr: '1 - ((sum(increase(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="availability",revision="0ea7a915",result="bad"}[30d])) or vector(0)) / (sum(increase(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="availability",revision="0ea7a915"}[30d])) > 0))'
+        labels:
+          application: showcase
+          objective: availability
+          revision: 0ea7a915
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:sli:ratio'
+      - expr: '1 - (1 - slo:sli:ratio{application="showcase",slo="gateway.create_order",objective="availability"}) / 0.005'
+        labels:
+          application: showcase
+          objective: availability
+          revision: 0ea7a915
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:error_budget:remaining'
+      - expr: 'clamp((time() - min_over_time(timestamp(sum(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="availability",revision="0ea7a915"}))[721h:1h])) / 2592000, 0, 1)'
+        labels:
+          application: showcase
+          objective: availability
+          revision: 0ea7a915
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:window:coverage_ratio'
+      - expr: 'sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="latency",revision="bd652502"}[3d]))'
+        labels:
+          application: showcase
+          objective: latency
+          revision: bd652502
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:events:rate3d'
+      - expr: '(sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="latency",revision="bd652502",result="bad"}[3d])) or vector(0)) / (sum(rate(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="latency",revision="bd652502"}[3d])) > 0)'
+        labels:
+          application: showcase
+          objective: latency
+          revision: bd652502
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:error_ratio:rate3d'
+      - expr: '1 - ((sum(increase(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="latency",revision="bd652502",result="bad"}[30d])) or vector(0)) / (sum(increase(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="latency",revision="bd652502"}[30d])) > 0))'
+        labels:
+          application: showcase
+          objective: latency
+          revision: bd652502
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:sli:ratio'
+      - expr: '1 - (1 - slo:sli:ratio{application="showcase",slo="gateway.create_order",objective="latency"}) / 0.01'
+        labels:
+          application: showcase
+          objective: latency
+          revision: bd652502
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:error_budget:remaining'
+      - expr: 'clamp((time() - min_over_time(timestamp(sum(symfony_slo_events_total{application="showcase",component=~"gateway",slo="gateway.create_order",objective="latency",revision="bd652502"}))[721h:1h])) / 2592000, 0, 1)'
+        labels:
+          application: showcase
+          objective: latency
+          revision: bd652502
+          slo: gateway.create_order
+          window: 30d
+        record: 'slo:window:coverage_ratio'

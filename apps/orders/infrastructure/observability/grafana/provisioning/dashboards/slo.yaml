@@ -1,0 +1,9 @@
+apiVersion: 1
+providers:
+  - allowUiUpdates: false
+    disableDeletion: false
+    folder: SLO
+    name: slo
+    options:
+      path: /var/lib/grafana/dashboards
+    type: file

@@ -16,6 +16,7 @@ check: ## Quality gate (needs Postgres on 127.0.0.1:5432: docker compose up -d p
 	cd e2e && composer validate --strict --no-check-publish -q && composer audit --locked && vendor/bin/phpstan analyse --no-progress
 	vendor/bin/php-cs-fixer check
 	$(MAKE) --no-print-directory rector RECTOR_FLAGS=--dry-run
+	$(MAKE) --no-print-directory slo-check
 
 fix: ## Apply Rector, then cs-fixer (Rector's imports must be re-sorted)
 	$(MAKE) --no-print-directory rector
@@ -28,6 +29,23 @@ e2e: ## Behat scenarios against the running stack (make up first); @chaos runs l
 demo-traffic: ## About 60 orders over a minute, then a trace id to follow in Loki
 	docker compose run --rm --build --entrypoint php e2e bin/demo-traffic
 
+slo-generate: ## Regenerate each app's SLO rules and dashboards (commit the result)
+	@for a in $(APPS); do (cd apps/$$a && php bin/console slo:generate --env=test) || exit 1; done
+
+slo-check: ## SLO catalog gates per app, stale generated files fail; then promtool (needs Docker)
+	@for a in $(APPS); do \
+		(cd apps/$$a && php bin/console slo:validate --env=test && php bin/console slo:coverage --env=test \
+			&& php bin/console slo:generate --check --env=test) || exit 1; \
+	done
+	$(MAKE) --no-print-directory promtool
+
+# The mounts mirror compose.yaml, so "check config" also checks every rule file prometheus.yml lists.
+promtool: ## promtool check of prometheus.yml and every generated rule file (needs Docker)
+	docker run --rm --entrypoint promtool \
+		-v $(CURDIR)/docker/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro \
+		$(foreach a,$(APPS),-v $(CURDIR)/apps/$(a)/infrastructure/observability/prometheus:/etc/prometheus/slo/$(a):ro) \
+		prom/prometheus:v3.15.0 check config /etc/prometheus/prometheus.yml
+
 # Per project with its own autoloader: the apps share class names (App\\...) with different signatures,
 # so one Rector run over all of them resolves a class to the wrong app.
 rector:
@@ -39,4 +57,4 @@ help: ## List targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "%-14s %s\n", $$1, $$2}'
 
 .DEFAULT_GOAL := help
-.PHONY: up down check fix rector e2e demo-traffic help
+.PHONY: up down check fix rector e2e demo-traffic slo-generate slo-check promtool help

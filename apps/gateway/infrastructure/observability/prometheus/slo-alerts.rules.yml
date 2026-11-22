@@ -1,0 +1,40 @@
+groups:
+  - interval: 1m
+    name: slo-gateway.create_order
+    rules:
+      - alert: SloErrorBudgetBurn
+        annotations:
+          summary: 'SLO gateway.create_order availability burns its error budget fast (target 99.5%, window 30d)'
+        expr: '(slo:error_ratio:rate1h{application="showcase",slo="gateway.create_order",objective="availability"} > 0.072 and slo:error_ratio:rate5m{application="showcase",slo="gateway.create_order",objective="availability"} > 0.072) or (slo:error_ratio:rate6h{application="showcase",slo="gateway.create_order",objective="availability"} > 0.03 and slo:error_ratio:rate30m{application="showcase",slo="gateway.create_order",objective="availability"} > 0.03)'
+        labels:
+          application: showcase
+          objective: availability
+          severity: page
+          slo: gateway.create_order
+      - alert: SloErrorBudgetBurn
+        annotations:
+          summary: 'SLO gateway.create_order availability burns its error budget (target 99.5%, window 30d)'
+        expr: '(last_over_time(slo:error_ratio:rate3d{application="showcase",slo="gateway.create_order",objective="availability"}[10m]) > 0.005 and slo:error_ratio:rate6h{application="showcase",slo="gateway.create_order",objective="availability"} > 0.005) and on() (last_over_time(slo:window:coverage_ratio{application="showcase",slo="gateway.create_order",objective="availability"}[10m]) >= 1)'
+        labels:
+          application: showcase
+          objective: availability
+          severity: ticket
+          slo: gateway.create_order
+      - alert: SloErrorBudgetBurn
+        annotations:
+          summary: 'SLO gateway.create_order latency burns its error budget fast (target 99%, window 30d)'
+        expr: '(slo:error_ratio:rate1h{application="showcase",slo="gateway.create_order",objective="latency"} > 0.144 and slo:error_ratio:rate5m{application="showcase",slo="gateway.create_order",objective="latency"} > 0.144) or (slo:error_ratio:rate6h{application="showcase",slo="gateway.create_order",objective="latency"} > 0.06 and slo:error_ratio:rate30m{application="showcase",slo="gateway.create_order",objective="latency"} > 0.06)'
+        labels:
+          application: showcase
+          objective: latency
+          severity: page
+          slo: gateway.create_order
+      - alert: SloErrorBudgetBurn
+        annotations:
+          summary: 'SLO gateway.create_order latency burns its error budget (target 99%, window 30d)'
+        expr: '(last_over_time(slo:error_ratio:rate3d{application="showcase",slo="gateway.create_order",objective="latency"}[10m]) > 0.01 and slo:error_ratio:rate6h{application="showcase",slo="gateway.create_order",objective="latency"} > 0.01) and on() (last_over_time(slo:window:coverage_ratio{application="showcase",slo="gateway.create_order",objective="latency"}[10m]) >= 1)'
+        labels:
+          application: showcase
+          objective: latency
+          severity: ticket
+          slo: gateway.create_order

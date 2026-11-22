@@ -36,7 +36,7 @@ make down          # stop and drop volumes
 | What | URL |
 |---|---|
 | Gateway API | http://localhost:8080/orders |
-| Grafana (anonymous admin) | http://localhost:3000, dashboards "Showcase — services" and "Showcase — profiling spans" |
+| Grafana (anonymous admin) | http://localhost:3000, dashboards "Showcase — services" and "Showcase — profiling spans"; 18 generated SLO dashboards in the folder "SLO" |
 | Prometheus | http://localhost:9090 |
 | Tempo API | http://localhost:3200 (traces at `/api/v2/traces/<trace id>`; browse them in Grafana → Explore → Tempo) |
 | RabbitMQ management | http://localhost:15672 (guest / guest) |
@@ -104,6 +104,9 @@ messages stamped by 1.x cannot be decoded.
 | [tracing-bridge-profiling](https://github.com/msstc4symfony/tracing-bridge-profiling) | Every non-detached profiling span runs in its own trace span; its `profiling` record carries `trace_span_id` and `trace_parent_span_id` in `context` |
 | [tracing-bridge-otlp](https://github.com/msstc4symfony/tracing-bridge-otlp) | Every sampled profiling span exported over OTLP with the trace and span ids of the logs, HTTP calls as CLIENT spans that the callee's request span hangs under, plus the logs over OTLP; one export per request or message; a stopped collector costs one `OTLP span export failed` and one `OTLP log export failed` warning per 30 seconds and the OTLP records of that time — the stderr lines still reach Loki (e2e `@chaos`) |
 | [logic-bundle](https://github.com/msstc4symfony/logic-bundle) | orders creates an order through an `Action` (`src/Application/Order/Create/`): `Start/Finish application action` log records around it and validation of its `Input`. No lock: the gateway idempotency store already serialises duplicate `POST /orders`, and a non-blocking lock would answer 409 instead of the stored response |
+| [slo-bundle](https://github.com/msstc4symfony/slo-bundle) | Four SLOs (see [SLOs](#slos)), the coverage gate of `make check`, `symfony_slo_events_total{slo,objective,revision,result}` on `/_/metrics`, and the generated recording rules, alerts and Grafana dashboards loaded by Prometheus and Grafana |
+| [slo-bridge-logic](https://github.com/msstc4symfony/slo-bridge-logic) | orders: `SloMiddleware` in the Action chain measures `orders.create_order` on the create Action |
+| [slo-bridge-profiling](https://github.com/msstc4symfony/slo-bridge-profiling) | orders: every measured operation (`orders.search_index`) runs in a profiling span `operation orders.search_index` |
 
 ## Elasticsearch in orders
 
@@ -115,6 +118,43 @@ requests and healthcheck-bundle adds `Elastica connection (fos_elastica.client.d
 creates and serves orders without Elasticsearch, so the check is `non_critical`: the `@chaos` scenario stops
 Elasticsearch and expects orders to stay ready with a warning, accept orders, and pass the check again after
 the restart. The index holds the order as it was created; a document whose indexing failed is not re-indexed.
+
+## SLOs
+
+Each app declares its SLOs with [slo-bundle](https://github.com/msstc4symfony/slo-bundle) (window 30 days):
+
+| SLO | Measured at | Objectives | Strategy (availability, latency) |
+|---|---|---|---|
+| `gateway.create_order` | route `gateway_create_order` (`POST /orders`) | availability 99.5, latency 200ms / 99 | dedicated, dedicated |
+| `billing.process_payment` | `ProcessPaymentHandler` (`ProcessPayment`, billing-worker) | availability 99.9, latency 1s / 99 | existing_series, existing_series |
+| `orders.create_order` | the create Action `App\Application\Order\Create\Action` | availability 99.9, latency 300ms / 99 | existing_series, dedicated |
+| `orders.search_index` | operation in `ElasticaOrderIndex::add()` (`msstc4symfony_slo.operations`) | availability 99, latency 100ms / 99 | dedicated, dedicated |
+
+Every other route and handler carries `#[IgnoreMonitoring(reason)]`. The generation selector is
+`{application: showcase, components: [<app>]}`, so each app generates its own set into
+`apps/<app>/infrastructure/observability/`:
+
+| File | Loaded as |
+|---|---|
+| `prometheus/slo-recording.rules.yml`, `prometheus/slo-alerts.rules.yml` | Prometheus `rule_files`, mounted at `/etc/prometheus/slo/<app>/` |
+| `grafana/dashboards/slo-*.json` (6 per app) | Grafana provider `slo` (`docker/observability/grafana/provisioning/dashboards/dashboards.yaml`), mounted at `/var/lib/grafana/slo/<app>/`, folder "SLO" |
+| `grafana/provisioning/dashboards/slo.yaml` | committed, **not mounted** (see below) |
+
+After changing an SLO or updating slo-bundle, run `make slo-generate` and commit the result. `make check` ends with
+`make slo-check`: `slo:validate`, `slo:coverage` and `slo:generate --check` per app (stale files fail it), then
+`make promtool`, which runs `promtool check config` on `prometheus.yml` with the same mounts as compose, and so checks
+every rule file it lists. Both `slo-check` and `promtool` need Docker.
+
+The generated `slo.yaml` points its provider at `/var/lib/grafana/dashboards`, a fixed path that is already the
+directory of the showcase provider. Two providers on one directory provision every dashboard twice, so the showcase
+declares its own `slo` provider on `/var/lib/grafana/slo` instead; Grafana's file provider reads the per-app
+subdirectories. The dashboard uids and titles include the component (`SLO: HTTP Routes (showcase: orders)`), so the three
+apps' 18 dashboards do not collide although they share `application="showcase"`.
+
+Prometheus keeps 31 days (`--storage.tsdb.retention.time=31d` in `compose.yaml`): retention must be at least the longest
+SLO window plus one hour. With less, `slo:window:coverage_ratio` never reaches 1, the SLOs stay in warming up and the
+ticket alerts never fire. The 30-day recording rules are evaluated every 5 minutes (group `slo-<name>-window`), the
+short-window rules and the alerts every minute (group `slo-<name>`).
 
 ## How bundle releases flow
 
@@ -144,7 +184,7 @@ never patched in this repository.
 
 ```bash
 docker compose up -d postgres   # app tests use the *_test databases
-make check                      # PHPStan + PHPUnit per app, PHPStan for e2e, cs-fixer, Rector
+make check                      # PHPStan + PHPUnit per app, PHPStan for e2e, cs-fixer, Rector, SLO gates + promtool (Docker)
 make fix                        # Rector, then cs-fixer
 ```
 

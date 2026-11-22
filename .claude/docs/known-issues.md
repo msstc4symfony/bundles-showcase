@@ -364,3 +364,14 @@
   `composer require` снова записал `git@github.com:` в `source.url` lock-файлов — нормализовано sed-ом. Он же
   выкидывает блоки `support` у части пакетов (метаданные GitHub API vs git) — безвредный шум, на `content-hash` не влияет.
 - В test-окружении хранилище метрик `inmemory://` (`.env.test`) — отдельного стаба для slo-bundle не понадобилось.
+
+## Сгенерированные SLO-правила и дашборды в стеке (2026-11-22 UTC)
+
+- `prometheus.yml` и provisioning Grafana — bind-mount: на запущенном стеке нужен
+  `docker compose up -d --force-recreate prometheus grafana` (как с Alloy); новые файлы в уже смонтированных каталогах
+  Prometheus подхватывает только после reload/рестарта, Grafana — сама (file provider опрашивает каталог).
+- Сразу после рестарта группы `slo-<name>-window` (5m) имеют health `unknown` до первой оценки — это не ошибка.
+- `make promtool` и `slo-check` требуют Docker и не пропускаются без него (глобальное правило: тесты не скипаются молча).
+- Сломанное правило (`expr: (`) роняет `make promtool` с `could not parse expression … unclosed left parenthesis` —
+  проверено вручную.
+- Повторный `make slo-generate` не меняет файлы (байт-в-байт) — генерация детерминирована.

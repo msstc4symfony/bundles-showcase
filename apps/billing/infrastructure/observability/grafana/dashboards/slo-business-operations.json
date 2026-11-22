@@ -1,0 +1,122 @@
+{
+    "annotations": {
+        "list": []
+    },
+    "editable": false,
+    "graphTooltip": 1,
+    "id": null,
+    "links": [],
+    "panels": [
+        {
+            "gridPos": {
+                "h": 4,
+                "w": 24,
+                "x": 0,
+                "y": 0
+            },
+            "id": 1,
+            "options": {
+                "content": "No logic action histogram is defined and no logic action or operation has an SLO.",
+                "mode": "markdown"
+            },
+            "title": "Business operations",
+            "type": "text"
+        }
+    ],
+    "refresh": "1m",
+    "schemaVersion": 41,
+    "tags": [
+        "slo"
+    ],
+    "templating": {
+        "list": [
+            {
+                "current": {
+                    "text": "prometheus",
+                    "value": "prometheus"
+                },
+                "hide": 0,
+                "includeAll": false,
+                "label": "Datasource",
+                "multi": false,
+                "name": "datasource",
+                "options": [],
+                "query": "prometheus",
+                "refresh": 1,
+                "regex": "",
+                "type": "datasource"
+            },
+            {
+                "current": {
+                    "text": "showcase",
+                    "value": "showcase"
+                },
+                "hide": 2,
+                "label": "Application",
+                "name": "application",
+                "options": [
+                    {
+                        "selected": true,
+                        "text": "showcase",
+                        "value": "showcase"
+                    }
+                ],
+                "query": "showcase",
+                "type": "constant"
+            },
+            {
+                "allValue": ".*",
+                "current": {
+                    "selected": true,
+                    "text": [
+                        "billing"
+                    ],
+                    "value": [
+                        "billing"
+                    ]
+                },
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                },
+                "definition": "label_values(symfony_http_request{application=\"$application\"}, component)",
+                "hide": 0,
+                "includeAll": true,
+                "label": "Component",
+                "multi": true,
+                "name": "component",
+                "options": [],
+                "query": "label_values(symfony_http_request{application=\"$application\"}, component)",
+                "refresh": 2,
+                "regex": "",
+                "sort": 1,
+                "type": "query"
+            },
+            {
+                "current": {
+                    "text": "",
+                    "value": ""
+                },
+                "hide": 0,
+                "label": "Environment",
+                "name": "environment",
+                "options": [
+                    {
+                        "selected": true,
+                        "text": "",
+                        "value": ""
+                    }
+                ],
+                "query": "",
+                "type": "custom"
+            }
+        ]
+    },
+    "time": {
+        "from": "now-24h",
+        "to": "now"
+    },
+    "timezone": "utc",
+    "title": "SLO: Business Operations (showcase: billing)",
+    "uid": "slo-8462dff4146e"
+}

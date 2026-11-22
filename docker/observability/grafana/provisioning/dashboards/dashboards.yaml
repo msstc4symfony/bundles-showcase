@@ -4,3 +4,12 @@ providers:
     type: file
     options:
       path: /var/lib/grafana/dashboards
+  # Generated SLO dashboards, one subdirectory per app. The generated slo.yaml is not mounted: its path is the
+  # showcase provider's directory above, and two providers on one directory provision every dashboard twice.
+  - name: slo
+    type: file
+    folder: SLO
+    disableDeletion: false
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/slo

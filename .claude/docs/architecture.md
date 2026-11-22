@@ -77,6 +77,9 @@
 | lock (`LOCK_DSN`) | 0 | — | — | 6 |
 
 HTTP-процесс и воркер одного приложения пишут метрики в одну DB → `/_/metrics` сервиса показывает и метрики воркера.
+SLO-события (`symfony_slo_events_total`, slo-bundle) лежат в той же DB метрик (gateway 1, orders 3, billing 5): один hash
+`PROMETHEUS_:counter:symfony_slo_events_total`. Пример чистки старых ревизий в README slo-bundle использует `-n 4` — здесь
+номер DB свой у каждого приложения; `metrics:clear` чистит всю DB метрик приложения.
 
 ## Идемпотентность gateway
 
@@ -145,6 +148,25 @@ Loki не опубликован. Локально у владельца 8080 и
   `output_dir` по умолчанию — `apps/<app>/infrastructure/observability`.
 - orders: `SloMiddleware` (slo-bridge-logic, приоритет 350) стоит между `MetricsMiddleware` и `LoggingMiddleware`
   (`CreateOrderActionWiringTest`); slo-bridge-profiling открывает спан `operation orders.search_index`.
+
+### Сгенерированные правила и дашборды (2026-11-22 UTC)
+
+- `make slo-generate` пишет в каждом приложении `infrastructure/observability/{prometheus/slo-{recording,alerts}.rules.yml,
+  grafana/dashboards/slo-*.json (6), grafana/provisioning/dashboards/slo.yaml}` — всё коммитится; генератор владеет
+  только `slo-*`. `make slo-check` (в конце `make check`): `slo:validate`, `slo:coverage`, `slo:generate --check` по
+  приложениям + `make promtool` (`promtool check config` c теми же монтированиями, что в compose → проверяет и правила).
+- Монтирования compose: `apps/<app>/infrastructure/observability/prometheus` → `/etc/prometheus/slo/<app>:ro`
+  (`rule_files` в `prometheus.yml` — три явных glob), `…/grafana/dashboards` → `/var/lib/grafana/slo/<app>:ro`
+  (провайдер `slo`, folder `SLO`, в `docker/observability/grafana/provisioning/dashboards/dashboards.yaml`; file provider
+  обходит подкаталоги). Сгенерированный `slo.yaml` **не** монтируется: его путь — константа `/var/lib/grafana/dashboards`,
+  то есть каталог провайдера `showcase`; два провайдера на одном каталоге дают дубли.
+- Группы правил: `slo-<name>` (interval 1m: короткие окна, алерты) и `slo-<name>-window` (interval 5m: правила окна 30d);
+  в Prometheus 8 групп записи (4 SLO × 2) и 4 группы алертов. Окно 30d → Prometheus с `--storage.tsdb.retention.time=31d`
+  (окно + 1h, иначе `slo:window:coverage_ratio` не доходит до 1 и ticket-алерты не срабатывают).
+- Коллизия дашбордов: у всех трёх приложений `application: showcase`; до slo-bundle rc.3 uid/title зависели только от
+  application → 18 файлов давали 6 uid, Grafana провиженила набор одного приложения. С rc.3 uid и title учитывают
+  `components` селектора (`SLO: HTTP Routes (showcase: orders)`) → 18 разных uid (проверено `api/search?tag=slo`).
+- e2e получает `GRAFANA_URL=http://grafana:3000`.
 
 ## Конфигурация бандлов 2.2 (2026-10-23 UTC)
 

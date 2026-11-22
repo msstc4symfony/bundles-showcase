@@ -1,0 +1,137 @@
+{
+    "annotations": {
+        "list": []
+    },
+    "editable": false,
+    "graphTooltip": 1,
+    "id": null,
+    "links": [],
+    "panels": [
+        {
+            "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 0
+            },
+            "id": 1,
+            "options": {
+                "content": "| Kind | SLO coverage | Measured by a metric |\n| --- | --- | --- |\n| http_route | 100% | 42.86% |\n| messenger_handler | 100% | 25% |\n| logic_action | 100% | 100% |\n| operation | 100% | 0% |\n\nGenerated from the compiled SLO catalog; it changes only when slo:generate is run.\n",
+                "mode": "markdown"
+            },
+            "title": "Coverage by kind",
+            "type": "text"
+        },
+        {
+            "gridPos": {
+                "h": 16,
+                "w": 24,
+                "x": 0,
+                "y": 8
+            },
+            "id": 2,
+            "options": {
+                "content": "| Point | Kind | Status | SLOs | Note |\n| --- | --- | --- | --- | --- |\n| healthcheck-liveliness | http_route | ignored | - | system route |\n| healthcheck-ping | http_route | ignored | - | system route |\n| healthcheck-readiness | http_route | ignored | - | system route |\n| metrics-get | http_route | ignored | - | system route |\n| orders_create | http_route | ignored | - | Measured by the orders.create_order Action SLO |\n| orders_redirect_probe | http_route | ignored | - | e2e probe, not a user path |\n| orders_show | http_route | ignored | - | Read path; the showcase declares SLOs on writes |\n| App\\MessageHandler\\PaymentProcessedHandler::__invoke | messenger_handler | ignored | - | Status projection of billing.process_payment |\n| Symfony\\Component\\Console\\Messenger\\RunCommandMessageHandler::__invoke | messenger_handler | unsupported | - | sync handling is not measured |\n| Symfony\\Component\\HttpClient\\Messenger\\PingWebhookMessageHandler::__invoke | messenger_handler | unsupported | - | sync handling is not measured |\n| Symfony\\Component\\Messenger\\Handler\\RedispatchMessageHandler::__invoke | messenger_handler | unsupported | - | sync handling is not measured |\n| App\\Application\\Order\\Create\\Action | logic_action | monitored | orders.create_order | - |\n| orders.search_index | operation | monitored | orders.search_index | - |\n",
+                "mode": "markdown"
+            },
+            "title": "Points",
+            "type": "text"
+        }
+    ],
+    "refresh": "1m",
+    "schemaVersion": 41,
+    "tags": [
+        "slo"
+    ],
+    "templating": {
+        "list": [
+            {
+                "current": {
+                    "text": "prometheus",
+                    "value": "prometheus"
+                },
+                "hide": 0,
+                "includeAll": false,
+                "label": "Datasource",
+                "multi": false,
+                "name": "datasource",
+                "options": [],
+                "query": "prometheus",
+                "refresh": 1,
+                "regex": "",
+                "type": "datasource"
+            },
+            {
+                "current": {
+                    "text": "showcase",
+                    "value": "showcase"
+                },
+                "hide": 2,
+                "label": "Application",
+                "name": "application",
+                "options": [
+                    {
+                        "selected": true,
+                        "text": "showcase",
+                        "value": "showcase"
+                    }
+                ],
+                "query": "showcase",
+                "type": "constant"
+            },
+            {
+                "allValue": ".*",
+                "current": {
+                    "selected": true,
+                    "text": [
+                        "orders"
+                    ],
+                    "value": [
+                        "orders"
+                    ]
+                },
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                },
+                "definition": "label_values(symfony_http_request{application=\"$application\"}, component)",
+                "hide": 0,
+                "includeAll": true,
+                "label": "Component",
+                "multi": true,
+                "name": "component",
+                "options": [],
+                "query": "label_values(symfony_http_request{application=\"$application\"}, component)",
+                "refresh": 2,
+                "regex": "",
+                "sort": 1,
+                "type": "query"
+            },
+            {
+                "current": {
+                    "text": "",
+                    "value": ""
+                },
+                "hide": 0,
+                "label": "Environment",
+                "name": "environment",
+                "options": [
+                    {
+                        "selected": true,
+                        "text": "",
+                        "value": ""
+                    }
+                ],
+                "query": "",
+                "type": "custom"
+            }
+        ]
+    },
+    "time": {
+        "from": "now-24h",
+        "to": "now"
+    },
+    "timezone": "utc",
+    "title": "SLO: Monitoring Coverage (showcase: orders)",
+    "uid": "slo-15808bc44b5c"
+}

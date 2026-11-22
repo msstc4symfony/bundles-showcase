@@ -1,0 +1,203 @@
+groups:
+  - interval: 1m
+    name: slo-billing.process_payment
+    rules:
+      - expr: 'sum(rate(symfony_messenger_message_handled{application="showcase",component=~"billing",message="ProcessPayment",status=~"handled|failed",transport!~"failed"}[5m]))'
+        labels:
+          application: showcase
+          objective: availability
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:events:rate5m'
+      - expr: '(sum(rate(symfony_messenger_message_handled{application="showcase",component=~"billing",message="ProcessPayment",status="failed",transport!~"failed"}[5m])) or vector(0)) / (sum(rate(symfony_messenger_message_handled{application="showcase",component=~"billing",message="ProcessPayment",status=~"handled|failed",transport!~"failed"}[5m])) > 0)'
+        labels:
+          application: showcase
+          objective: availability
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:error_ratio:rate5m'
+      - expr: 'sum(rate(symfony_messenger_message_handled{application="showcase",component=~"billing",message="ProcessPayment",status=~"handled|failed",transport!~"failed"}[30m]))'
+        labels:
+          application: showcase
+          objective: availability
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:events:rate30m'
+      - expr: '(sum(rate(symfony_messenger_message_handled{application="showcase",component=~"billing",message="ProcessPayment",status="failed",transport!~"failed"}[30m])) or vector(0)) / (sum(rate(symfony_messenger_message_handled{application="showcase",component=~"billing",message="ProcessPayment",status=~"handled|failed",transport!~"failed"}[30m])) > 0)'
+        labels:
+          application: showcase
+          objective: availability
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:error_ratio:rate30m'
+      - expr: 'sum(rate(symfony_messenger_message_handled{application="showcase",component=~"billing",message="ProcessPayment",status=~"handled|failed",transport!~"failed"}[1h]))'
+        labels:
+          application: showcase
+          objective: availability
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:events:rate1h'
+      - expr: '(sum(rate(symfony_messenger_message_handled{application="showcase",component=~"billing",message="ProcessPayment",status="failed",transport!~"failed"}[1h])) or vector(0)) / (sum(rate(symfony_messenger_message_handled{application="showcase",component=~"billing",message="ProcessPayment",status=~"handled|failed",transport!~"failed"}[1h])) > 0)'
+        labels:
+          application: showcase
+          objective: availability
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:error_ratio:rate1h'
+      - expr: 'sum(rate(symfony_messenger_message_handled{application="showcase",component=~"billing",message="ProcessPayment",status=~"handled|failed",transport!~"failed"}[6h]))'
+        labels:
+          application: showcase
+          objective: availability
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:events:rate6h'
+      - expr: '(sum(rate(symfony_messenger_message_handled{application="showcase",component=~"billing",message="ProcessPayment",status="failed",transport!~"failed"}[6h])) or vector(0)) / (sum(rate(symfony_messenger_message_handled{application="showcase",component=~"billing",message="ProcessPayment",status=~"handled|failed",transport!~"failed"}[6h])) > 0)'
+        labels:
+          application: showcase
+          objective: availability
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:error_ratio:rate6h'
+      - expr: vector(0.999)
+        labels:
+          application: showcase
+          objective: availability
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:objective:target'
+      - expr: 'sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_count{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed"}[5m]))'
+        labels:
+          application: showcase
+          objective: latency
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:events:rate5m'
+      - expr: '(sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_count{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed"}[5m])) - sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_bucket{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed",le="1.0"}[5m]))) / (sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_count{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed"}[5m])) > 0)'
+        labels:
+          application: showcase
+          objective: latency
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:error_ratio:rate5m'
+      - expr: 'sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_count{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed"}[30m]))'
+        labels:
+          application: showcase
+          objective: latency
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:events:rate30m'
+      - expr: '(sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_count{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed"}[30m])) - sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_bucket{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed",le="1.0"}[30m]))) / (sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_count{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed"}[30m])) > 0)'
+        labels:
+          application: showcase
+          objective: latency
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:error_ratio:rate30m'
+      - expr: 'sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_count{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed"}[1h]))'
+        labels:
+          application: showcase
+          objective: latency
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:events:rate1h'
+      - expr: '(sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_count{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed"}[1h])) - sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_bucket{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed",le="1.0"}[1h]))) / (sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_count{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed"}[1h])) > 0)'
+        labels:
+          application: showcase
+          objective: latency
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:error_ratio:rate1h'
+      - expr: 'sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_count{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed"}[6h]))'
+        labels:
+          application: showcase
+          objective: latency
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:events:rate6h'
+      - expr: '(sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_count{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed"}[6h])) - sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_bucket{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed",le="1.0"}[6h]))) / (sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_count{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed"}[6h])) > 0)'
+        labels:
+          application: showcase
+          objective: latency
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:error_ratio:rate6h'
+      - expr: vector(0.99)
+        labels:
+          application: showcase
+          objective: latency
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:objective:target'
+  - interval: 5m
+    name: slo-billing.process_payment-window
+    rules:
+      - expr: 'sum(rate(symfony_messenger_message_handled{application="showcase",component=~"billing",message="ProcessPayment",status=~"handled|failed",transport!~"failed"}[3d]))'
+        labels:
+          application: showcase
+          objective: availability
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:events:rate3d'
+      - expr: '(sum(rate(symfony_messenger_message_handled{application="showcase",component=~"billing",message="ProcessPayment",status="failed",transport!~"failed"}[3d])) or vector(0)) / (sum(rate(symfony_messenger_message_handled{application="showcase",component=~"billing",message="ProcessPayment",status=~"handled|failed",transport!~"failed"}[3d])) > 0)'
+        labels:
+          application: showcase
+          objective: availability
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:error_ratio:rate3d'
+      - expr: '1 - ((sum(increase(symfony_messenger_message_handled{application="showcase",component=~"billing",message="ProcessPayment",status="failed",transport!~"failed"}[30d])) or vector(0)) / (sum(increase(symfony_messenger_message_handled{application="showcase",component=~"billing",message="ProcessPayment",status=~"handled|failed",transport!~"failed"}[30d])) > 0))'
+        labels:
+          application: showcase
+          objective: availability
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:sli:ratio'
+      - expr: '1 - (1 - slo:sli:ratio{application="showcase",slo="billing.process_payment",objective="availability"}) / 0.001'
+        labels:
+          application: showcase
+          objective: availability
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:error_budget:remaining'
+      - expr: 'clamp((time() - min_over_time(timestamp(sum(symfony_messenger_message_handled{application="showcase",component=~"billing",message="ProcessPayment",status=~"handled|failed",transport!~"failed"}))[721h:1h])) / 2592000, 0, 1)'
+        labels:
+          application: showcase
+          objective: availability
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:window:coverage_ratio'
+      - expr: 'sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_count{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed"}[3d]))'
+        labels:
+          application: showcase
+          objective: latency
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:events:rate3d'
+      - expr: '(sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_count{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed"}[3d])) - sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_bucket{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed",le="1.0"}[3d]))) / (sum(rate(symfony_messenger_message_handling_duration_histogram_seconds_count{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed"}[3d])) > 0)'
+        labels:
+          application: showcase
+          objective: latency
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:error_ratio:rate3d'
+      - expr: '1 - ((sum(increase(symfony_messenger_message_handling_duration_histogram_seconds_count{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed"}[30d])) - sum(increase(symfony_messenger_message_handling_duration_histogram_seconds_bucket{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed",le="1.0"}[30d]))) / (sum(increase(symfony_messenger_message_handling_duration_histogram_seconds_count{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed"}[30d])) > 0))'
+        labels:
+          application: showcase
+          objective: latency
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:sli:ratio'
+      - expr: '1 - (1 - slo:sli:ratio{application="showcase",slo="billing.process_payment",objective="latency"}) / 0.01'
+        labels:
+          application: showcase
+          objective: latency
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:error_budget:remaining'
+      - expr: 'clamp((time() - min_over_time(timestamp(sum(symfony_messenger_message_handling_duration_histogram_seconds_count{application="showcase",component=~"billing",message="ProcessPayment",status="handled",transport!~"failed"}))[721h:1h])) / 2592000, 0, 1)'
+        labels:
+          application: showcase
+          objective: latency
+          slo: billing.process_payment
+          window: 30d
+        record: 'slo:window:coverage_ratio'

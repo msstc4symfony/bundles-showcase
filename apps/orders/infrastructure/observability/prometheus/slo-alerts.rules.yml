@@ -1,0 +1,79 @@
+groups:
+  - interval: 1m
+    name: slo-orders.create_order
+    rules:
+      - alert: SloErrorBudgetBurn
+        annotations:
+          summary: 'SLO orders.create_order availability burns its error budget fast (target 99.9%, window 30d)'
+        expr: '(slo:error_ratio:rate1h{application="showcase",slo="orders.create_order",objective="availability"} > 0.0144 and slo:error_ratio:rate5m{application="showcase",slo="orders.create_order",objective="availability"} > 0.0144) or (slo:error_ratio:rate6h{application="showcase",slo="orders.create_order",objective="availability"} > 0.006 and slo:error_ratio:rate30m{application="showcase",slo="orders.create_order",objective="availability"} > 0.006)'
+        labels:
+          application: showcase
+          objective: availability
+          severity: page
+          slo: orders.create_order
+      - alert: SloErrorBudgetBurn
+        annotations:
+          summary: 'SLO orders.create_order availability burns its error budget (target 99.9%, window 30d)'
+        expr: '(last_over_time(slo:error_ratio:rate3d{application="showcase",slo="orders.create_order",objective="availability"}[10m]) > 0.001 and slo:error_ratio:rate6h{application="showcase",slo="orders.create_order",objective="availability"} > 0.001) and on() (last_over_time(slo:window:coverage_ratio{application="showcase",slo="orders.create_order",objective="availability"}[10m]) >= 1)'
+        labels:
+          application: showcase
+          objective: availability
+          severity: ticket
+          slo: orders.create_order
+      - alert: SloErrorBudgetBurn
+        annotations:
+          summary: 'SLO orders.create_order latency burns its error budget fast (target 99%, window 30d)'
+        expr: '(slo:error_ratio:rate1h{application="showcase",slo="orders.create_order",objective="latency"} > 0.144 and slo:error_ratio:rate5m{application="showcase",slo="orders.create_order",objective="latency"} > 0.144) or (slo:error_ratio:rate6h{application="showcase",slo="orders.create_order",objective="latency"} > 0.06 and slo:error_ratio:rate30m{application="showcase",slo="orders.create_order",objective="latency"} > 0.06)'
+        labels:
+          application: showcase
+          objective: latency
+          severity: page
+          slo: orders.create_order
+      - alert: SloErrorBudgetBurn
+        annotations:
+          summary: 'SLO orders.create_order latency burns its error budget (target 99%, window 30d)'
+        expr: '(last_over_time(slo:error_ratio:rate3d{application="showcase",slo="orders.create_order",objective="latency"}[10m]) > 0.01 and slo:error_ratio:rate6h{application="showcase",slo="orders.create_order",objective="latency"} > 0.01) and on() (last_over_time(slo:window:coverage_ratio{application="showcase",slo="orders.create_order",objective="latency"}[10m]) >= 1)'
+        labels:
+          application: showcase
+          objective: latency
+          severity: ticket
+          slo: orders.create_order
+  - interval: 1m
+    name: slo-orders.search_index
+    rules:
+      - alert: SloErrorBudgetBurn
+        annotations:
+          summary: 'SLO orders.search_index availability burns its error budget fast (target 99%, window 30d)'
+        expr: '(slo:error_ratio:rate1h{application="showcase",slo="orders.search_index",objective="availability"} > 0.144 and slo:error_ratio:rate5m{application="showcase",slo="orders.search_index",objective="availability"} > 0.144) or (slo:error_ratio:rate6h{application="showcase",slo="orders.search_index",objective="availability"} > 0.06 and slo:error_ratio:rate30m{application="showcase",slo="orders.search_index",objective="availability"} > 0.06)'
+        labels:
+          application: showcase
+          objective: availability
+          severity: page
+          slo: orders.search_index
+      - alert: SloErrorBudgetBurn
+        annotations:
+          summary: 'SLO orders.search_index availability burns its error budget (target 99%, window 30d)'
+        expr: '(last_over_time(slo:error_ratio:rate3d{application="showcase",slo="orders.search_index",objective="availability"}[10m]) > 0.01 and slo:error_ratio:rate6h{application="showcase",slo="orders.search_index",objective="availability"} > 0.01) and on() (last_over_time(slo:window:coverage_ratio{application="showcase",slo="orders.search_index",objective="availability"}[10m]) >= 1)'
+        labels:
+          application: showcase
+          objective: availability
+          severity: ticket
+          slo: orders.search_index
+      - alert: SloErrorBudgetBurn
+        annotations:
+          summary: 'SLO orders.search_index latency burns its error budget fast (target 99%, window 30d)'
+        expr: '(slo:error_ratio:rate1h{application="showcase",slo="orders.search_index",objective="latency"} > 0.144 and slo:error_ratio:rate5m{application="showcase",slo="orders.search_index",objective="latency"} > 0.144) or (slo:error_ratio:rate6h{application="showcase",slo="orders.search_index",objective="latency"} > 0.06 and slo:error_ratio:rate30m{application="showcase",slo="orders.search_index",objective="latency"} > 0.06)'
+        labels:
+          application: showcase
+          objective: latency
+          severity: page
+          slo: orders.search_index
+      - alert: SloErrorBudgetBurn
+        annotations:
+          summary: 'SLO orders.search_index latency burns its error budget (target 99%, window 30d)'
+        expr: '(last_over_time(slo:error_ratio:rate3d{application="showcase",slo="orders.search_index",objective="latency"}[10m]) > 0.01 and slo:error_ratio:rate6h{application="showcase",slo="orders.search_index",objective="latency"} > 0.01) and on() (last_over_time(slo:window:coverage_ratio{application="showcase",slo="orders.search_index",objective="latency"}[10m]) >= 1)'
+        labels:
+          application: showcase
+          objective: latency
+          severity: ticket
+          slo: orders.search_index
