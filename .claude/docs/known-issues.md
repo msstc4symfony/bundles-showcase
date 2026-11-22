@@ -414,3 +414,7 @@
 - `make promtool`: `check config` молча проходит, если glob `rule_files` ничего не нашёл → цель сначала проверяет наличие
   `slo-{recording,alerts}.rules.yml` каждого приложения, затем `promtool check rules` по явному списку (проверено:
   убранный `apps/orders/.../slo-alerts.rules.yml` → exit 2 «… is missing (run make slo-generate)»).
+
+## slo-bundle / SLO bridges 1.0 final (2026-11-22 UTC)
+
+- `msstc4symfony/slo-bundle`, `slo-bridge-logic` and `slo-bridge-profiling` are required as `^1.0` (v1.0.0); the rc constraints are gone. Orders keeps the explicit slo-bundle require because it uses the bundle directly. The final has no generator change after rc.4: `slo:generate --check` reported no diff.

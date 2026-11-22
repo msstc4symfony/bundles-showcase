@@ -17,7 +17,7 @@ final class Scenario
     /** @var non-empty-string|null */
     public ?string $lastOrderId = null;
 
-    /** @var list<GatewayResponse> every response of the last "I create N orders" step, its last one is */
+    /** @var list<GatewayResponse> every response of the last "I create N orders" step, its last one is the response the "last response" steps read */
     public array $batch = [];
 
     public function lastResponse(): GatewayResponse

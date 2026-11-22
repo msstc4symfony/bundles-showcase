@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "af5b7a8140ac92c178d3704e85d0c217",
+    "content-hash": "e9a93c1f10f6d22e2d5cad2f939d8240",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -2802,23 +2802,23 @@
         },
         {
             "name": "msstc4symfony/slo-bridge-logic",
-            "version": "v1.0.0-rc.1",
+            "version": "v1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/slo-bridge-logic.git",
-                "reference": "418e5243733fad565bfd2115eb9a424015ea0219"
+                "reference": "53a46cdadcb0739c39a339eed02d908f4699c38f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/slo-bridge-logic/zipball/418e5243733fad565bfd2115eb9a424015ea0219",
-                "reference": "418e5243733fad565bfd2115eb9a424015ea0219",
+                "url": "https://api.github.com/repos/msstc4symfony/slo-bridge-logic/zipball/53a46cdadcb0739c39a339eed02d908f4699c38f",
+                "reference": "53a46cdadcb0739c39a339eed02d908f4699c38f",
                 "shasum": ""
             },
             "require": {
                 "composer-runtime-api": ">=2.2",
                 "msstc4symfony/logic-bundle": "^2.1",
                 "msstc4symfony/metrics-bundle": "^2.3",
-                "msstc4symfony/slo-bundle": "^1.0.0-rc.2",
+                "msstc4symfony/slo-bundle": "^1.0",
                 "php": ">=8.2",
                 "psr/log": "^2.0|^3.0",
                 "symfony/config": "^7.4|^8.0",
@@ -2881,27 +2881,27 @@
                 "slo",
                 "symfony"
             ],
-            "time": "2026-11-22T09:32:18+00:00"
+            "time": "2026-11-22T12:53:29+00:00"
         },
         {
             "name": "msstc4symfony/slo-bridge-profiling",
-            "version": "v1.0.0-rc.1",
+            "version": "v1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/slo-bridge-profiling.git",
-                "reference": "0cd348669f21052ef658fce64d78600465504557"
+                "reference": "801d4e189f0c4c961db0e8e532859028527ccb01"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/slo-bridge-profiling/zipball/0cd348669f21052ef658fce64d78600465504557",
-                "reference": "0cd348669f21052ef658fce64d78600465504557",
+                "url": "https://api.github.com/repos/msstc4symfony/slo-bridge-profiling/zipball/801d4e189f0c4c961db0e8e532859028527ccb01",
+                "reference": "801d4e189f0c4c961db0e8e532859028527ccb01",
                 "shasum": ""
             },
             "require": {
                 "composer-runtime-api": ">=2.2",
                 "msstc4symfony/metrics-bundle": "^2.3",
                 "msstc4symfony/profiling-bundle": "^2.3.1",
-                "msstc4symfony/slo-bundle": "^1.0.0-rc.2",
+                "msstc4symfony/slo-bundle": "^1.0",
                 "php": ">=8.2",
                 "psr/log": "^2.0|^3.0",
                 "symfony/config": "^7.4|^8.0",
@@ -2958,20 +2958,20 @@
                 "slo",
                 "symfony"
             ],
-            "time": "2026-11-22T09:31:06+00:00"
+            "time": "2026-11-22T12:54:42+00:00"
         },
         {
             "name": "msstc4symfony/slo-bundle",
-            "version": "v1.0.0-rc.4",
+            "version": "v1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/slo-bundle.git",
-                "reference": "840f234a08d213e6e208d5acfb3f6ad865dc6678"
+                "reference": "7b7b9b6c17f724b2cf475ed27969c2added207d6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/slo-bundle/zipball/840f234a08d213e6e208d5acfb3f6ad865dc6678",
-                "reference": "840f234a08d213e6e208d5acfb3f6ad865dc6678",
+                "url": "https://api.github.com/repos/msstc4symfony/slo-bundle/zipball/7b7b9b6c17f724b2cf475ed27969c2added207d6",
+                "reference": "7b7b9b6c17f724b2cf475ed27969c2added207d6",
                 "shasum": ""
             },
             "require": {
@@ -3039,7 +3039,7 @@
                 "php",
                 "symfony"
             ],
-            "time": "2026-11-22T10:48:20+00:00"
+            "time": "2026-11-22T12:32:34+00:00"
         },
         {
             "name": "msstc4symfony/sql-labeller",
@@ -12388,11 +12388,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "msstc4symfony/slo-bridge-logic": 5,
-        "msstc4symfony/slo-bridge-profiling": 5,
-        "msstc4symfony/slo-bundle": 5
-    },
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

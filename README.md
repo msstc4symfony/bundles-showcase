@@ -179,7 +179,7 @@ No pull request is involved: GitHub Actions may not open pull requests in this o
 
 Each app requires a bundle at the release it relies on, a minor or a patch (`^2.3` for metrics, `^2.2` for
 profiling-bundle `^2.3.1`, `^2.3` for healthcheck, `^2.1` for logger, `^2.4` for tracing, `^1.3` for
-tracing-bridge-profiling, `^1.2.2` for tracing-bridge-otlp), so every later release of the same major is
+tracing-bridge-profiling, `^1.2.2` for tracing-bridge-otlp, `^1.0` for slo-bundle and both SLO bridges), so every later release of the same major is
 picked up by that run. A major release goes through an rc tag first (`vX.0.0-rc.N`) and gets its final tag only after
 e2e is green here: until then the app requires it as `^X.0@rc` (logic-bundle 2.0.0 went this way), and the final
 tag replaces that with `^X.0`.
