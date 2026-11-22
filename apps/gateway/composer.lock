@@ -718,7 +718,7 @@
             "version": "v2.3.0",
             "source": {
                 "type": "git",
-                "url": "git@github.com:msstc4symfony/metrics-bundle.git",
+                "url": "https://github.com/msstc4symfony/metrics-bundle.git",
                 "reference": "11ac8e9bc72c5578f62270d5a45b5b15127e4a62"
             },
             "dist": {
@@ -903,7 +903,7 @@
             "version": "v1.0.0",
             "source": {
                 "type": "git",
-                "url": "git@github.com:msstc4symfony/sql-labeller.git",
+                "url": "https://github.com/msstc4symfony/sql-labeller.git",
                 "reference": "1bd8a3214d983f888673ef6c82752db35d645a46"
             },
             "dist": {
