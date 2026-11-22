@@ -34,7 +34,7 @@ final class SloCatalogTest extends KernelTestCase
     }
 
     /**
-     * @return array<string, array{point_type: string, strategies: array<string, string>}>
+     * @return array<non-empty-string, array{point_type: non-empty-string, strategies: array<non-empty-string, non-empty-string>}>
      */
     private function declaredSlos(): array
     {
@@ -47,25 +47,38 @@ final class SloCatalogTest extends KernelTestCase
         $slos = [];
         foreach ($entries as $entry) {
             self::assertIsArray($entry);
-            self::assertIsString($entry['name'] ?? null);
-            self::assertIsString($entry['point_type'] ?? null);
             self::assertIsArray($entry['objectives'] ?? null);
 
             $strategies = [];
             foreach ($entry['objectives'] as $objective) {
                 self::assertIsArray($objective);
-                self::assertIsString($objective['kind'] ?? null);
-                self::assertIsString($objective['strategy'] ?? null);
-                $strategies[$objective['kind']] = $objective['strategy'];
+                $strategies[$this->nonEmptyString($objective['kind'] ?? null)] = $this->nonEmptyString($objective['strategy'] ?? null);
             }
 
-            $slos[$entry['name']] = ['point_type' => $entry['point_type'], 'strategies' => $strategies];
+            $slos[$this->nonEmptyString($entry['name'] ?? null)] = [
+                'point_type' => $this->nonEmptyString($entry['point_type'] ?? null),
+                'strategies' => $strategies,
+            ];
         }
 
         return $slos;
     }
 
     /**
+     * @return non-empty-string
+     */
+    private function nonEmptyString(mixed $value): string
+    {
+        self::assertIsString($value);
+        if ($value === '') {
+            self::fail('Expected a non-empty string in the slo:list JSON');
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param non-empty-string $name
      * @param array<string, string> $input
      */
     private function console(string $name, array $input = []): CommandTester

@@ -25,6 +25,13 @@ final class RecordingOperationMonitor implements OperationMonitorInterface
         return new RecordingOperationHandle($this);
     }
 
+    /**
+     * @template T of mixed
+     *
+     * @param Closure(): T $operation
+     *
+     * @return T
+     */
     #[Override]
     public function measure(string $name, Closure $operation): mixed
     {

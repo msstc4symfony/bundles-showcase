@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "087abc8644883dacdd0d9d544e64c885",
+    "content-hash": "af5b7a8140ac92c178d3704e85d0c217",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -2962,16 +2962,16 @@
         },
         {
             "name": "msstc4symfony/slo-bundle",
-            "version": "v1.0.0-rc.3",
+            "version": "v1.0.0-rc.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/slo-bundle.git",
-                "reference": "07299a43d2f8122f3dad002a0e32c06d7aa02ba6"
+                "reference": "840f234a08d213e6e208d5acfb3f6ad865dc6678"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/slo-bundle/zipball/07299a43d2f8122f3dad002a0e32c06d7aa02ba6",
-                "reference": "07299a43d2f8122f3dad002a0e32c06d7aa02ba6",
+                "url": "https://api.github.com/repos/msstc4symfony/slo-bundle/zipball/840f234a08d213e6e208d5acfb3f6ad865dc6678",
+                "reference": "840f234a08d213e6e208d5acfb3f6ad865dc6678",
                 "shasum": ""
             },
             "require": {
@@ -3039,7 +3039,7 @@
                 "php",
                 "symfony"
             ],
-            "time": "2026-11-22T09:55:55+00:00"
+            "time": "2026-11-22T10:48:20+00:00"
         },
         {
             "name": "msstc4symfony/sql-labeller",

@@ -127,7 +127,7 @@ Loki не опубликован. Локально у владельца 8080 и
   С 2026-10-26 UTC: tracing ^2.3.0 (флаг random, `ot=th` при ratio < 1 — showcase ratio не задаёт, провод `03`
   без tracestate), tracing-bridge-otlp ^1.1.0 (`pause_pool`; showcase его не задаёт — пауза в файлах, по контейнеру).
   С 2026-11-22 UTC: metrics ^2.3 (роутерные 404 и error-страницы попадают в `http_response`, см. known-issues).
-  С 2026-11-22 UTC: slo-bundle ^1.0.0-rc.3 (все приложения), slo-bridge-logic и slo-bridge-profiling ^1.0.0-rc.1 (orders);
+  С 2026-11-22 UTC: slo-bundle ^1.0.0-rc.4 (все приложения; rc.4 — consume-only хендлеры), slo-bridge-logic и slo-bridge-profiling ^1.0.0-rc.1 (orders);
   RC разрешены только явным RC-ограничением в корневом `require` (`minimum-stability: stable`).
 
 ## SLO (slo-bundle, 2026-11-22 UTC)
