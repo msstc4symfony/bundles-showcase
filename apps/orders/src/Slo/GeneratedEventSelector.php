@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Slo;
 
 use RuntimeException;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -15,14 +16,22 @@ final readonly class GeneratedEventSelector
 {
     private const string RECORD = 'slo:events:rate5m';
 
+    /** A PromQL double-quoted string with its escapes, so a quoted "," or "}" does not end a matcher early. */
+    private const string QUOTED = '"(?:[^"\\\\]|\\\\.)*"';
+
     /**
      * @param non-empty-string $rulesFile
      */
-    public function __construct(private string $rulesFile)
-    {
+    public function __construct(
+        #[Autowire('%kernel.project_dir%/infrastructure/observability/prometheus/slo-recording.rules.yml')]
+        private string $rulesFile,
+    ) {
     }
 
     /**
+     * @param non-empty-string $slo
+     * @param non-empty-string $objective
+     *
      * @return non-empty-array<non-empty-string, string> label => value, in the selector's order
      */
     public function labels(string $slo, string $objective): array
@@ -38,7 +47,14 @@ final readonly class GeneratedEventSelector
             }
         }
         if (\count($expressions) !== 1) {
-            throw new RuntimeException(sprintf('Expected one %s rule of %s %s in %s, found %d.', self::RECORD, $slo, $objective, $this->rulesFile, \count($expressions)));
+            throw new RuntimeException(sprintf(
+                'Expected one %s rule of %s %s in %s, found %d.',
+                self::RECORD,
+                $slo,
+                $objective,
+                $this->rulesFile,
+                \count($expressions),
+            ));
         }
 
         return $this->parseSelector($expressions[0]);
@@ -49,20 +65,37 @@ final readonly class GeneratedEventSelector
      */
     private function parseSelector(string $expression): array
     {
-        if (preg_match('/' . BackfillHistory::FAMILY . '_total\{([^}]*)}/', $expression, $selector) !== 1) {
+        $selectorPattern = '/' . BackfillHistory::FAMILY . '_total\{((?:[^}"]|' . self::QUOTED . ')*)}/';
+        if (preg_match($selectorPattern, $expression, $selector) !== 1) {
             throw new RuntimeException(sprintf('No %s_total selector in "%s".', BackfillHistory::FAMILY, $expression));
         }
+        preg_match_all('/(?:[^,"]|' . self::QUOTED . ')+/', $selector[1], $matchers);
         $labels = [];
-        foreach (explode(',', $selector[1]) as $matcher) {
+        foreach ($matchers[0] as $matcher) {
             if (trim($matcher) === '') {
                 continue;
             }
-            if (preg_match('/^\s*([a-zA-Z_]\w*)\s*(=~|!=|!~|=)\s*"([^"]*)"\s*$/', $matcher, $parts) !== 1) {
-                throw new RuntimeException(sprintf('Cannot parse the matcher "%s" in "%s".', trim($matcher), $expression));
+            $matcherPattern = '/^\s*([a-zA-Z_]\w*)\s*(=~|!=|!~|=)\s*(' . self::QUOTED . ')\s*$/';
+            if (preg_match($matcherPattern, $matcher, $parts) !== 1) {
+                throw new RuntimeException(
+                    sprintf('Cannot parse the matcher "%s" in "%s".', trim($matcher), $expression),
+                );
             }
-            [, $name, $operator, $value] = $parts;
+            [, $name, $operator, $quoted] = $parts;
+            $value = substr($quoted, 1, -1);
+            // Copied verbatim into OpenMetrics: an escaped value would not equal the live label value.
+            if (strpbrk($value, '\\",}') !== false) {
+                throw new RuntimeException(sprintf(
+                    'The matcher %s%s%s has a backslash, quote, comma or "}", which the backfill does not support.',
+                    $name,
+                    $operator,
+                    $quoted,
+                ));
+            }
             if ($operator === '!=' || $operator === '!~') {
-                throw new RuntimeException(sprintf('The negative matcher %s%s"%s" names no historical value.', $name, $operator, $value));
+                throw new RuntimeException(
+                    sprintf('The negative matcher %s%s"%s" names no historical value.', $name, $operator, $value),
+                );
             }
             // A one-value regex (component=~"orders") is a literal; anything wider has no single historical value.
             if ($operator === '=~' && preg_match('/^[\w.-]+$/', $value) !== 1) {
@@ -78,7 +111,7 @@ final readonly class GeneratedEventSelector
     }
 
     /**
-     * @return list<array<mixed>>
+     * @return list<array<array-key, mixed>>
      */
     private function rules(): array
     {

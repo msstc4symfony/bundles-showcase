@@ -16,6 +16,8 @@ return (new PhpCsFixer\Config())
             'on_multiline' => 'ensure_fully_multiline',
         ],
         'phpdoc_to_comment' => false,
+        // A long exception message must be wrappable to 120 columns.
+        'single_line_throw' => false,
         'linebreak_after_opening_tag' => false,
         'blank_line_after_opening_tag' => false,
         'concat_space' => [

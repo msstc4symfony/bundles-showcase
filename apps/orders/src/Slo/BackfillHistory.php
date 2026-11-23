@@ -19,6 +19,9 @@ final readonly class BackfillHistory
 
     private const int MINUTES_PER_DAY = 1440;
 
+    /** Keeps float error from rounding an exact bad-event count down by one in floor(). */
+    private const float FLOAT_SLACK = 1e-9;
+
     /**
      * @param positive-int $days
      * @param positive-int $eventsPerMinute
@@ -32,7 +35,11 @@ final readonly class BackfillHistory
         private float $burningBadRatio,
     ) {
         if ($burningDays >= $days) {
-            throw new InvalidArgumentException(sprintf('The burning tail (%d days) must be shorter than the history (%d days).', $burningDays, $days));
+            throw new InvalidArgumentException(sprintf(
+                'The burning tail (%d days) must be shorter than the history (%d days).',
+                $burningDays,
+                $days,
+            ));
         }
         foreach ([$badRatio, $burningBadRatio] as $ratio) {
             if ($ratio < 0.0 || $ratio >= 1.0) {
@@ -45,6 +52,7 @@ final readonly class BackfillHistory
      * Series stay contiguous (all "good" samples, then all "bad"), each in time order, as OpenMetrics requires.
      *
      * @param non-empty-array<non-empty-string, string> $labels every label but "result"
+     * @param positive-int $now Unix timestamp of the last sample
      *
      * @return Generator<int, string, mixed, void> lines without the trailing newline
      */
@@ -61,7 +69,9 @@ final readonly class BackfillHistory
     }
 
     /**
-     * @return Generator<int, array{non-negative-int, non-negative-int}, mixed, void> timestamp => [total, bad]
+     * @param positive-int $now
+     *
+     * @return Generator<int, array{non-negative-int, int}, mixed, void> timestamp => [total, bad]
      */
     private function samples(int $now): Generator
     {
@@ -71,9 +81,13 @@ final readonly class BackfillHistory
             $baseSteps = min($step, $burningFrom);
             $burningSteps = $step - $baseSteps;
             // Rounded down from the exact expectation, so the ratio over any long range is the configured one.
-            $bad = (int) floor($this->eventsPerMinute * ($baseSteps * $this->badRatio + $burningSteps * $this->burningBadRatio) + 1e-9);
+            $expectedBad = $this->eventsPerMinute
+                * ($baseSteps * $this->badRatio + $burningSteps * $this->burningBadRatio);
 
-            yield $now - ($steps - $step) * self::STEP_SECONDS => [$step * $this->eventsPerMinute, max(0, $bad)];
+            yield $now - ($steps - $step) * self::STEP_SECONDS => [
+                $step * $this->eventsPerMinute,
+                (int) floor($expectedBad + self::FLOAT_SLACK),
+            ];
         }
     }
 

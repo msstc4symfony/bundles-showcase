@@ -12,7 +12,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Webmozart\Assert\Assert;
 
 /**
  * Raw SLO counter history for an empty Prometheus TSDB (compose service prometheus-backfill), so the 30d window is
@@ -27,13 +27,9 @@ final class BackfillCommand extends Command
      */
     private const array SCRAPE_LABELS = ['job' => 'showcase', 'service' => 'orders', 'instance' => 'backfill'];
 
-    /**
-     * @param non-empty-string $rulesFile
-     */
     public function __construct(
         private readonly ClockInterface $clock,
-        #[Autowire('%kernel.project_dir%/infrastructure/observability/prometheus/slo-recording.rules.yml')]
-        private readonly string $rulesFile,
+        private readonly GeneratedEventSelector $selector,
     ) {
         parent::__construct();
     }
@@ -47,7 +43,13 @@ final class BackfillCommand extends Command
             ->addOption('days', null, InputOption::VALUE_REQUIRED, 'History length, ending now', '60')
             ->addOption('events-per-minute', null, InputOption::VALUE_REQUIRED, 'Total events per minute', '2')
             ->addOption('bad-ratio', null, InputOption::VALUE_REQUIRED, 'Bad share before the burning tail', '0.002')
-            ->addOption('burning-days', null, InputOption::VALUE_REQUIRED, 'Length of the burning tail, ending now (0: none)', '4')
+            ->addOption(
+                'burning-days',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Length of the burning tail, ending now (0: none)',
+                '4',
+            )
             ->addOption('burning-bad-ratio', null, InputOption::VALUE_REQUIRED, 'Bad share in the burning tail', '0.03')
         ;
     }
@@ -63,22 +65,29 @@ final class BackfillCommand extends Command
             $this->ratio($input, 'burning-bad-ratio'),
         );
         $labels = [
-            ...new GeneratedEventSelector($this->rulesFile)->labels($this->string($input, 'slo'), $this->string($input, 'objective')),
+            ...$this->selector->labels($this->string($input, 'slo'), $this->string($input, 'objective')),
             ...self::SCRAPE_LABELS,
         ];
+        $now = $this->clock->now()->getTimestamp();
+        Assert::positiveInteger($now, 'The clock is before the Unix epoch.');
 
-        foreach ($history->lines($labels, $this->clock->now()->getTimestamp()) as $line) {
+        foreach ($history->lines($labels, $now) as $line) {
             $output->writeln($line, OutputInterface::OUTPUT_RAW);
         }
 
         return Command::SUCCESS;
     }
 
+    /**
+     * @return non-empty-string
+     */
     private function string(InputInterface $input, string $name): string
     {
         $value = $input->getOption($name);
 
-        return \is_string($value) ? $value : throw new InvalidArgumentException(sprintf('--%s is required.', $name));
+        return \is_string($value) && $value !== ''
+            ? $value
+            : throw new InvalidArgumentException(sprintf('--%s is required.', $name));
     }
 
     /**
@@ -88,7 +97,9 @@ final class BackfillCommand extends Command
     {
         $value = filter_var($this->string($input, $name), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
-        return \is_int($value) && $value > 0 ? $value : throw new InvalidArgumentException(sprintf('--%s must be a positive integer.', $name));
+        return \is_int($value) && $value > 0
+            ? $value
+            : throw new InvalidArgumentException(sprintf('--%s must be a positive integer.', $name));
     }
 
     /**
@@ -98,13 +109,17 @@ final class BackfillCommand extends Command
     {
         $value = filter_var($this->string($input, $name), FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
 
-        return \is_int($value) && $value >= 0 ? $value : throw new InvalidArgumentException(sprintf('--%s must be a non-negative integer.', $name));
+        return \is_int($value) && $value >= 0
+            ? $value
+            : throw new InvalidArgumentException(sprintf('--%s must be a non-negative integer.', $name));
     }
 
     private function ratio(InputInterface $input, string $name): float
     {
         $value = filter_var($this->string($input, $name), FILTER_VALIDATE_FLOAT);
 
-        return \is_float($value) ? $value : throw new InvalidArgumentException(sprintf('--%s must be a number.', $name));
+        return \is_float($value)
+            ? $value
+            : throw new InvalidArgumentException(sprintf('--%s must be a number.', $name));
     }
 }

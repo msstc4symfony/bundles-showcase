@@ -68,6 +68,18 @@ final class GeneratedEventSelectorTest extends TestCase
         $this->selector([$this->rule($selector)])->labels('orders.search_index', 'availability');
     }
 
+    #[TestWith(['application="showcase",action="App\\\\Order"'])]
+    #[TestWith(['application="showcase",action="say \\"hi\\""'])]
+    #[TestWith(['application="showcase",action="a,b"'])]
+    #[TestWith(['application="showcase",action="a}b"'])]
+    public function testAValueTheBackfillWouldCopyWronglyFails(string $selector): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('has a backslash, quote, comma or "}"');
+
+        $this->selector([$this->rule($selector)])->labels('orders.search_index', 'availability');
+    }
+
     /**
      * @param list<string> $rules
      */

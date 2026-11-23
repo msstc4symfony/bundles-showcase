@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Slo;
 
 use App\Slo\BackfillCommand;
+use App\Slo\GeneratedEventSelector;
 use DateTimeImmutable;
 use InvalidArgumentException;
 use Override;
@@ -55,6 +56,9 @@ final class BackfillCommandTest extends TestCase
     #[TestWith(['--burning-days', '-1'])]
     #[TestWith(['--burning-days', 'x'])]
     #[TestWith(['--bad-ratio', 'x'])]
+    #[TestWith(['--bad-ratio', '1.5'])]
+    #[TestWith(['--burning-bad-ratio', '-0.1'])]
+    #[TestWith(['--slo', ''])]
     public function testAnInvalidOptionIsRejected(string $option, string $value): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -77,6 +81,6 @@ final class BackfillCommandTest extends TestCase
         $this->rulesFile = $file;
         file_put_contents($file, $rules);
 
-        return new CommandTester(new BackfillCommand(new MockClock(self::NOW), $file));
+        return new CommandTester(new BackfillCommand(new MockClock(self::NOW), new GeneratedEventSelector($file)));
     }
 }

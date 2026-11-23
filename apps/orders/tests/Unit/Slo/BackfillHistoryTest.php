@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Slo;
 
 use App\Slo\BackfillHistory;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 
 final class BackfillHistoryTest extends TestCase
@@ -70,6 +71,31 @@ final class BackfillHistoryTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         new BackfillHistory(4, 2, 0.002, 4, 0.03);
+    }
+
+    #[TestWith([1.0, 0.03])]
+    #[TestWith([-0.1, 0.03])]
+    #[TestWith([0.002, 1.0])]
+    #[TestWith([0.002, -0.1])]
+    public function testABadRatioOutsideZeroToOneIsRejected(float $badRatio, float $burningBadRatio): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('A bad ratio must be in [0, 1)');
+
+        new BackfillHistory(60, 2, $badRatio, 4, $burningBadRatio);
+    }
+
+    public function testALabelValueIsEscapedForOpenMetrics(): void
+    {
+        $lines = iterator_to_array(
+            new BackfillHistory(1, 1, 0.0, 0, 0.0)->lines(['action' => "App\\Order \"x\"\nnext"], self::NOW),
+            false,
+        );
+
+        self::assertSame(
+            'symfony_slo_events_total{action="App\\\\Order \\"x\\"\\nnext",result="good"} 0 ' . (self::NOW - 86_400),
+            $lines[1],
+        );
     }
 
     /**
