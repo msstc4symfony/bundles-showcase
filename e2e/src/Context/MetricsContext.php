@@ -60,6 +60,13 @@ final class MetricsContext implements Context
         $this->waitFor($seconds, $query, 0.0, static fn (float $current): bool => abs($current - $value) < 1e-9, sprintf('become %d', $value));
     }
 
+    #[Then(':query is at most :value')]
+    public function isAtMost(string $query, int $value): void
+    {
+        $current = $this->prometheus->value($query);
+        Assert::lessThanEq($current, $value, sprintf('%s is %s, expected at most %d.', $query, $current, $value));
+    }
+
     /**
      * Zero growth is true against any stale scrape, so the check waits for a scrape taken after this step began.
      */

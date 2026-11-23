@@ -61,6 +61,19 @@ final class AlertingContext implements Context
         $this->awaitNotification($seconds, $receiver, $severity, $slo, $objective, $since);
     }
 
+    /**
+     * Any state: a page left by an earlier run may inhibit the alert.
+     */
+    #[Then('within :seconds seconds Alertmanager has a :severity alert of :slo :objective')]
+    public function alertmanagerHasAnAlert(int $seconds, string $severity, string $slo, string $objective): void
+    {
+        Wait::until(
+            fn (): bool => $this->managedAlert($severity, $slo, $objective) instanceof ManagedAlert,
+            $seconds,
+            fn (): string => sprintf('Alertmanager has no %s alert of %s %s.', $severity, $slo, $objective),
+        );
+    }
+
     #[Given('within :seconds seconds Alertmanager has an uninhibited :severity alert of :slo :objective')]
     public function alertmanagerHasAnUninhibitedAlert(int $seconds, string $severity, string $slo, string $objective): void
     {
@@ -76,11 +89,19 @@ final class AlertingContext implements Context
         );
     }
 
-    #[Given('Alertmanager has no :severity alert of :slo :objective')]
-    public function alertmanagerHasNoAlert(string $severity, string $slo, string $objective): void
+    #[Given('within :seconds seconds Alertmanager has no :severity alert of :slo :objective')]
+    public function alertmanagerHasNoAlert(int $seconds, string $severity, string $slo, string $objective): void
     {
-        $alert = $this->managedAlert($severity, $slo, $objective);
-        Assert::null($alert, sprintf('A %s alert of %s %s is still in Alertmanager (%s); wait for it to resolve or run on a fresh stack.', $severity, $slo, $objective, $this->describe($alert)));
+        Wait::until(
+            function () use ($severity, $slo, $objective): bool {
+                $alert = $this->managedAlert($severity, $slo, $objective);
+                $this->lastPoll = $this->describe($alert);
+
+                return !$alert instanceof ManagedAlert;
+            },
+            $seconds,
+            fn (): string => sprintf('A %s alert of %s %s is still in Alertmanager (%s); wait for it to resolve or run on a fresh stack.', $severity, $slo, $objective, $this->lastPoll),
+        );
     }
 
     #[Then('within :seconds seconds Alertmanager shows the :target alert of :slo :objective inhibited by its :source alert')]
@@ -126,7 +147,8 @@ final class AlertingContext implements Context
                 return false;
             },
             $seconds,
-            fn (): string => sprintf('The %s receiver got no firing alert %s (%s).', $receiver, json_encode($wanted, JSON_THROW_ON_ERROR), $this->lastPoll),
+            fn (): string => sprintf('The %s receiver got no firing alert %s (%s).', $receiver, json_encode($wanted, JSON_THROW_ON_ERROR), $this->lastPoll)
+                . ($severity === 'ticket' ? ' The ticket needs the backfilled history: on a stack older than ~6 h run make down && make up.' : ''),
         );
     }
 
@@ -148,6 +170,14 @@ final class AlertingContext implements Context
 
     private function describe(?ManagedAlert $alert): string
     {
-        return $alert instanceof ManagedAlert ? $alert->state . ($alert->inhibitedBy === [] ? '' : ', inhibited by ' . implode(', ', $alert->inhibitedBy)) : 'none';
+        if (!$alert instanceof ManagedAlert) {
+            return 'none';
+        }
+
+        if ($alert->inhibitedBy === []) {
+            return $alert->state;
+        }
+
+        return sprintf('%s, inhibited by %s', $alert->state, implode(', ', $alert->inhibitedBy));
     }
 }

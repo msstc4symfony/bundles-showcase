@@ -8,15 +8,20 @@ Feature: SLO burn alerts reach their receivers through Alertmanager, and a page 
   Scenario: A slow burn in the history is delivered as a ticket
     Then the "slo:window:coverage_ratio" rule of "orders.search_index" "availability" evaluates to exactly 1
     And within 420 seconds the "slo-ticket" receiver got a firing "ticket" alert of "orders.search_index" "availability"
+    And within 60 seconds Alertmanager has a "ticket" alert of "orders.search_index" "availability"
 
   # Elasticsearch down: orders are still created (indexing is best effort), every search index event is bad.
   # A live bad series that appears above 0 has no increase(), so one bad event is scraped before the burst.
-  # 50 bad events: the 1h ratio is at least (3.6 + 50) / (120 of history + 100 live good + 50) ≈ 20 % > 14.4 %
-  # (16 suffice on a fresh stack), and the 5m window holds the burst only.
+  # 50 bad events: the 1h ratio is at least (3.6 + 51) / (120 of history + 100 live good + 51) ≈ 20 % > 14.4 %
+  # (16 suffice on a fresh stack), and the 5m window holds the burst only. The 100 live good are checked, not
+  # assumed: a bigger burst would not need the check, but with Elasticsearch down an order stalls ~4 s every ~5 s,
+  # close to the gateway's 5 s timeout, so every extra order risks a 502.
+  # A page left by an earlier run inhibits the ticket until it resolves, hence the 1800 s wait comes first.
   @alerting @chaos
   Scenario: A live breakage is delivered as a page that inhibits the ticket
-    Given within 420 seconds Alertmanager has an uninhibited "ticket" alert of "orders.search_index" "availability"
-    And Alertmanager has no "page" alert of "orders.search_index" "availability"
+    Given within 1800 seconds Alertmanager has no "page" alert of "orders.search_index" "availability"
+    And within 420 seconds Alertmanager has an uninhibited "ticket" alert of "orders.search_index" "availability"
+    And "increase(symfony_slo_events_total{instance!='backfill',slo='orders.search_index',objective='availability',result='good'}[1h])" is at most 100
     And I remember the notifications the alert recorder got so far
     When I stop "elasticsearch"
     And I create an order for 5000

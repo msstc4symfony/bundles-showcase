@@ -426,10 +426,16 @@
   и `routeLabels: {}` Alertmanager превращаются при повторном кодировании в `[]`.
 - Ручная проверка доставки: POST `[{"labels":{"alertname":"SloErrorBudgetBurn","severity":"page","application":"showcase",...}}]`
   на `alertmanager:9093/api/v2/alerts` → в recorder через ~5 с (`group_wait`) уведомление `receiver: slo-page`.
-- `docker -v` с несуществующим исходным файлом создаёт каталог → `make promtool` сначала проверяет, что оба
-  Alertmanager-файла существуют (иначе «… is missing (run make slo-generate)»).
+- `docker -v` с несуществующим исходным файлом создаёт каталог → `make promtool` сначала проверяет, что собранный
+  `alertmanager.yml` и полные файлы трёх приложений существуют (иначе «… is missing (run make slo-generate)»).
 - Обновление slo-bundle, меняющее фрагмент, требует `make slo-generate` (пересобирает и `alertmanager.yml`), иначе
   `quality` (job `slo-rules`) падает на `--check` сборщика.
+- Пин `prom/prometheus` живёт в `docker/php/Dockerfile` (promtool образа backfill), `compose.yaml` и `Makefile`
+  (`make promtool`), `prom/alertmanager` — в `compose.yaml` и `Makefile` (amtool). Dependabot двигает Dockerfile и
+  compose отдельными PR и не трогает Makefile — обновлять все места вместе.
+- `alertmanager.yml` смонтирован одним файлом и читается Alertmanager только при старте; `make up` после
+  `make slo-generate` контейнер не пересоздаёт (конфиг compose не менялся) → `docker compose restart alertmanager`
+  (или `curl -XPOST localhost:9093/-/reload`).
 - Сборщик `assemble-alertmanager.php` намеренно строг к раскладке фрагмента (ключи верхнего уровня ровно `inhibit_rules`
   и `routes`, отступ 2 пробела): он текстовый, и любое отклонение генератора должно падать, а не склеиваться молча.
 
@@ -446,7 +452,7 @@
   **3 % bad в последние 4 дня** (≈ 3.6 bad/ч); 172 802 сэмпла, 2 серии (`result` good/bad), последний сэмпл = «сейчас»
   команды. Итог на старте: `coverage_ratio` = 1, `slo:error_ratio:rate6h` ≈ 0.031, `rate1h` ≈ 0.025–0.042 (bad
   дискретны), `rate3d` ≈ 0.03, `slo:sli:ratio` ≈ 0.9943 → ticket (1× бюджета 1 %) горит, page (14.4 % / 6 %) — нет.
-- Для page поверх backfill (Task 6): история видна в `rate[1h]` ещё час после старта стека, в `rate[6h]` — шесть.
+- Для page поверх backfill (alerting.feature, page): история видна в `rate[1h]` ещё час после старта стека, в `rate[6h]` — шесть.
   Худший случай (сразу после старта): 1h-доля = (3.6 + N_bad) / (120 + N_bad + N_good) > 0.144 → нужно N_bad > 16 при
   N_good = 0 (и > 0.144 в 5m-окне, где истории уже нет). Ticket гаснет сам через ~6 ч работы стека (`rate6h` без
   новой истории падает ниже 1 %).
@@ -479,11 +485,17 @@
   окна (`rate3d`, `coverage_ratio`) впервые считается в слоте по настенным часам (`hash(group) mod 5m`), т. е. до 5 мин
   после старта Prometheus, затем 1m-группа алертов и `group_wait` 5 с — замер «≈3 мин» из backfill был удачей слота.
 - Page + inhibition — один сценарий (`@alerting @chaos`, первый в chaos-прогоне): отдельный сценарий inhibition
-  зависел бы от порядка. Предусловия: ticket активен и не подавлен, page этой SLO в Alertmanager нет (иначе — горит от
-  прошлого прогона: page гаснет через ~5–30 мин, ждать или `make down`). Поломка — `I stop "elasticsearch"`: заказы
+  зависел бы от порядка. Предусловия по порядку: page этой SLO в Alertmanager нет (page прошлого
+  прогона подавляет ticket; шаг ждёт до 1800 с — на 2026-11-23 UTC page горел ещё ~30 мин после возврата ES, —
+  затем падает → `make down`), затем ticket активен и не подавлен. Поломка — `I stop "elasticsearch"`: заказы
   создаются (201), каждое событие `orders.search_index` availability — bad. Сначала 1 заказ и ожидание live-серии
-  `result="bad"` (серия, появившаяся сразу > 0, не даёт `increase()`), затем 50 заказов: 1h-доля ≥ (3.6 + 50) /
-  (120 истории + ≤ 100 живых good + 50) ≈ 20 % > 14.4 %; на свежем стеке хватило бы 16.
+  `result="bad"` (серия, появившаяся сразу > 0, не даёт `increase()`), затем 50 заказов: 1h-доля ≥ (3.6 + 51) /
+  (120 истории + ≤ 100 живых good + 51) ≈ 20 % > 14.4 %; на свежем стеке хватило бы 16. Граница «≤ 100 живых good
+  за час» проверяется шагом-предусловием (`… is at most 100`), а не предполагается. Бóльший burst не выход: при
+  остановленном ES заказ orders каждые ~5 с зависает на ~4 с (Elastica перепробует мёртвый узел), рядом с 5-секундным
+  таймаутом gateway→orders; прогон с 80 заказами 2026-11-23 UTC получил один 502 (orders ответил 201 за 5012 мс).
+- Ticket-сценарий заканчивается шагом «Alertmanager has a "ticket" alert» (любое состояние: page прошлого прогона
+  может его подавлять): на старом стеке recorder хранит давно погасший firing-ticket, и шаг по recorder прошёл бы сразу. Таймаут ticket-шага называет причину (стек старше ~6 ч).
 - Recorder общий и **не сбрасывается**: ticket доставляется один раз при старте (`repeat_interval` 1h), `DELETE /`
   после него сломал бы повторный ticket-сценарий. «Новые» уведомления — после запомненного числа (`I remember the
   notifications the alert recorder got so far`). «Горит ли сейчас» и подавление читаются из

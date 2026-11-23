@@ -34,12 +34,8 @@ final readonly class AlertmanagerClient
             $filters[] = 'filter=' . rawurlencode(sprintf('%s="%s"', $name, addcslashes($value, '"\\')));
         }
 
-        $found = $this->http->request('GET', '/api/v2/alerts?' . implode('&', $filters))->toArray();
-        Assert::isList($found);
-
         $alerts = [];
-        foreach ($found as $alert) {
-            Assert::isArray($alert);
+        foreach (WireList::ofArrays($this->http->request('GET', '/api/v2/alerts?' . implode('&', $filters))->toArray()) as $alert) {
             $fingerprint = $alert['fingerprint'] ?? null;
             Assert::stringNotEmpty($fingerprint);
             $status = $alert['status'] ?? null;

@@ -27,22 +27,15 @@ final readonly class AlertRecorderClient
      */
     public function notifications(): array
     {
-        $found = $this->http->request('GET', '/')->toArray();
-        Assert::isList($found);
-
         $notifications = [];
-        foreach ($found as $record) {
-            Assert::isArray($record);
+        foreach (WireList::ofArrays($this->http->request('GET', '/')->toArray()) as $record) {
             $receiver = $record['receiver'] ?? null;
             Assert::string($receiver);
             $payload = $record['payload'] ?? null;
             Assert::isArray($payload);
-            $alerts = $payload['alerts'] ?? null;
-            Assert::isList($alerts);
 
             $notified = [];
-            foreach ($alerts as $alert) {
-                Assert::isArray($alert);
+            foreach (WireList::ofArrays($payload['alerts'] ?? null) as $alert) {
                 $status = $alert['status'] ?? null;
                 Assert::oneOf($status, ['firing', 'resolved']);
                 $notified[] = new NotifiedAlert($status, AlertLabels::parse($alert['labels'] ?? null));
