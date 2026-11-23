@@ -24,13 +24,13 @@ final class GeneratedEventSelectorTest extends TestCase
 
     public function testTheLabelsAreThoseTheGeneratedRulesSelect(): void
     {
-        $labels = new GeneratedEventSelector(new GeneratedRecordingRules(\dirname(__DIR__, 3) . '/infrastructure/observability/prometheus/slo-recording.rules.yml'))
+        $labels = new GeneratedEventSelector(new GeneratedRecordingRules(__DIR__ . '/Fixtures/slo-recording.rules.yml'))
             ->labels('orders.search_index', 'availability')
         ;
 
         self::assertSame(['application', 'component', 'slo', 'objective', 'revision'], array_keys($labels));
         self::assertSame(['showcase', 'orders', 'orders.search_index', 'availability'], \array_slice(array_values($labels), 0, 4));
-        self::assertMatchesRegularExpression('/^[0-9a-f]{8}$/', $labels['revision']);
+        self::assertSame('1c380329', $labels['revision']);
     }
 
     public function testNoMatchingRuleFails(): void
@@ -89,7 +89,7 @@ final class GeneratedEventSelectorTest extends TestCase
         $file = tempnam(sys_get_temp_dir(), 'rules');
         self::assertIsString($file);
         $this->files[] = $file;
-        file_put_contents($file, "groups:\n  - name: test\n    rules:\n" . implode('', $rules));
+        file_put_contents($file, "groups:\n  - name: test\n    interval: 1m\n    rules:\n" . implode('', $rules));
 
         return new GeneratedEventSelector(new GeneratedRecordingRules($file));
     }

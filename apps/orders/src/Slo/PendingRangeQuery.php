@@ -84,11 +84,11 @@ final readonly class PendingRangeQuery
         foreach (\is_array($item) && \is_array($item['values'] ?? null) ? $item['values'] : [] as $point) {
             $timestamp = \is_array($point) ? $point[0] ?? null : null;
             $value = \is_array($point) ? $point[1] ?? null : null;
-            if (!\is_int($timestamp) || !\is_string($value) || !is_numeric($value) && !\in_array($value, self::NON_FINITE, true)) {
+            if (!\is_int($timestamp) || !\is_string($value) || (!is_numeric($value) && !\in_array($value, self::NON_FINITE, true))) {
                 throw new RuntimeException(sprintf(
                     'Prometheus answered "%s" with the point %s, expected [whole Unix second, "value"].',
                     $this->expr,
-                    json_encode($point),
+                    json_encode($point, JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR),
                 ));
             }
             $values[$timestamp] = $value;

@@ -38,7 +38,6 @@ final class BackfillRecordedCommand extends Command
             ->addOption('prometheus-url', null, InputOption::VALUE_REQUIRED, 'Prometheus holding the raw history and the earlier passes')
             ->addOption('start', null, InputOption::VALUE_REQUIRED, 'First evaluation, Unix seconds')
             ->addOption('end', null, InputOption::VALUE_REQUIRED, 'Last evaluation at or before, Unix seconds')
-            ->addOption('step', null, InputOption::VALUE_REQUIRED, 'Seconds between evaluations', '300')
         ;
     }
 
@@ -62,8 +61,7 @@ final class BackfillRecordedCommand extends Command
         $rules = $passes[$pass - 1] ?? throw new InvalidArgumentException(
             sprintf('--pass must be at most %d, the number of passes of %s %s.', \count($passes), $slo, $objective),
         );
-        $window = new RangeWindow($options->positiveInt('start'), $options->positiveInt('end'), $options->positiveInt('step'));
-        foreach ($this->history->lines($options->string('prometheus-url'), $rules, $window) as $line) {
+        foreach ($this->history->lines($options->string('prometheus-url'), $rules, $options->positiveInt('start'), $options->positiveInt('end')) as $line) {
             $output->writeln($line, OutputInterface::OUTPUT_RAW);
         }
 

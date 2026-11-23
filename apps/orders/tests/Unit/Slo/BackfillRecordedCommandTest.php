@@ -38,7 +38,7 @@ final class BackfillRecordedCommandTest extends TestCase
         self::assertStringStartsWith('1 - (1 - slo:sli:ratio{', $this->queries[0]);
         self::assertMatchesRegularExpression(
             '/^# TYPE slo:error_budget:remaining gauge\n'
-            . 'slo:error_budget:remaining\{application="showcase",objective="availability",revision="[0-9a-f]{8}",slo="orders.search_index",window="30d"\} 0\.5 300\n'
+            . 'slo:error_budget:remaining\{application="showcase",objective="availability",revision="1c380329",slo="orders.search_index",window="30d"\} 0\.5 300\n'
             . '# EOF\n$/',
             $tester->getDisplay(),
         );
@@ -50,7 +50,7 @@ final class BackfillRecordedCommandTest extends TestCase
     #[TestWith([['--pass' => '3']])]
     #[TestWith([['--pass' => '0']])]
     #[TestWith([['--pass' => '1', '--start' => '600', '--end' => '300']])]
-    #[TestWith([['--pass' => '1', '--step' => '0']])]
+    #[TestWith([['--pass' => '1', '--start' => '0']])]
     #[TestWith([['--pass' => '1', '--prometheus-url' => '']])]
     #[TestWith([['--passes' => true, '--objective' => 'throughput']])]
     public function testAnInvalidOptionIsRejected(array $options): void
@@ -75,7 +75,7 @@ final class BackfillRecordedCommandTest extends TestCase
         });
 
         return new CommandTester(new BackfillRecordedCommand(
-            new GeneratedRecordingRules(\dirname(__DIR__, 3) . '/infrastructure/observability/prometheus/slo-recording.rules.yml'),
+            new GeneratedRecordingRules(__DIR__ . '/Fixtures/slo-recording.rules.yml'),
             new RecordedHistory(new PrometheusRangeQuery($client)),
         ));
     }

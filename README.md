@@ -167,7 +167,7 @@ writes 60 days of raw `orders.search_index` availability counters into the empty
 labels read from the generated recording rules, plus `instance="backfill"`), and `promtool tsdb create-blocks-from
 openmetrics` turns them into blocks. The SLO is then covered from the start and its `ticket` alert fires. The same
 service then backfills what that objective's recording rules record over the history, so its dashboards show the 60
-days too: a throwaway Prometheus on the staged blocks evaluates each rule as a range query at a 5-minute step
+days too: a throwaway Prometheus on the staged blocks evaluates each rule as a range query on its group's interval
 (`app:slo:backfill-recorded`), and the results become blocks the same way. A rule that reads another rule's record
 (`slo:error_budget:remaining` reads `slo:sli:ratio`) runs in a second pass, after a restart of the throwaway
 Prometheus has loaded the first pass's blocks. Only that objective's rules are backfilled; the other SLOs' recorded

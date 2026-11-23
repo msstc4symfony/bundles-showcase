@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Slo;
 
-/**
- * One series of a range query result.
- */
 final readonly class RangeSeries
 {
     /**

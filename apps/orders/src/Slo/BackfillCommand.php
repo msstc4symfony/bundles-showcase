@@ -51,6 +51,7 @@ final class BackfillCommand extends Command
                 '4',
             )
             ->addOption('burning-bad-ratio', null, InputOption::VALUE_REQUIRED, 'Bad share in the burning tail', '0.03')
+            ->addOption('now', null, InputOption::VALUE_REQUIRED, 'Unix seconds of the last sample (default: the clock)')
         ;
     }
 
@@ -69,8 +70,12 @@ final class BackfillCommand extends Command
             ...$this->selector->labels($options->string('slo'), $options->string('objective')),
             ...self::SCRAPE_LABELS,
         ];
-        $now = $this->clock->now()->getTimestamp();
-        Assert::positiveInteger($now, 'The clock must be after the Unix epoch.');
+        if ($input->getOption('now') === null) {
+            $now = $this->clock->now()->getTimestamp();
+            Assert::positiveInteger($now, 'The clock must be after the Unix epoch.');
+        } else {
+            $now = $options->positiveInt('now');
+        }
 
         foreach ($history->lines($labels, $now) as $line) {
             $output->writeln($line, OutputInterface::OUTPUT_RAW);

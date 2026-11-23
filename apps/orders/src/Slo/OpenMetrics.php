@@ -9,8 +9,12 @@ namespace App\Slo;
  */
 final class OpenMetrics
 {
+    private function __construct()
+    {
+    }
+
     /**
-     * @param array<string, string> $labels
+     * @param array<non-empty-string, string> $labels
      */
     public static function labelSet(array $labels): string
     {

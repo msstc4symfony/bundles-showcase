@@ -23,15 +23,20 @@ final readonly class RecordedHistory
      * Rules sharing a record form one metric family, as OpenMetrics requires. A rule without any result fails: the
      * history covers every rule of the objective, so nothing means it is not loaded or carries other labels.
      *
+     * Each rule is evaluated on its group's interval from $start, as Prometheus would have recorded it.
+     *
      * @param non-empty-string $url Prometheus that holds the series the rules read
+     * @param positive-int $start first evaluation, Unix seconds
+     * @param positive-int $end last evaluation at or before, Unix seconds
      *
      * @return Generator<int, string, mixed, void> lines without the trailing newline
      */
-    public function lines(string $url, RecordingRules $rules, RangeWindow $window): Generator
+    public function lines(string $url, RecordingRules $rules, int $start, int $end): Generator
     {
-        /** @var array<non-empty-string, array<string, RangeSeries>> $families */
         $families = [];
         foreach ($rules as $rule) {
+            $window = new RangeWindow($start, $end, $rule->interval);
+            // One rule at a time: all rules at once took 10-18 s against 7 s, the queries compete for Prometheus' CPU.
             $results = $this->query->start($url, $rule->expr, $window)->series();
             if ($results === []) {
                 throw new RuntimeException(sprintf(

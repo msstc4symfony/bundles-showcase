@@ -7,9 +7,6 @@ namespace App\Slo;
 use InvalidArgumentException;
 use Symfony\Component\Console\Input\InputInterface;
 
-/**
- * Typed values of the backfill commands' options.
- */
 final readonly class ConsoleOptions
 {
     public function __construct(

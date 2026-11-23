@@ -14,6 +14,9 @@ final readonly class PrometheusRangeQuery
     /** The API rejects a range query of more points per series. */
     private const int MAX_POINTS = 11_000;
 
+    /** Prometheus sends nothing until a query is done: increase[30d] chunks took 8 s under load; its own limit is 2m. */
+    private const int TIMEOUT_SECONDS = 120;
+
     public function __construct(
         private HttpClientInterface $client,
     ) {
@@ -29,6 +32,7 @@ final readonly class PrometheusRangeQuery
         foreach ($window->chunks(self::MAX_POINTS) as $chunk) {
             $responses[] = $this->client->request('POST', rtrim($url, '/') . '/api/v1/query_range', [
                 'body' => ['query' => $expr, 'start' => $chunk->start, 'end' => $chunk->end, 'step' => $chunk->step],
+                'timeout' => self::TIMEOUT_SECONDS,
             ]);
         }
 

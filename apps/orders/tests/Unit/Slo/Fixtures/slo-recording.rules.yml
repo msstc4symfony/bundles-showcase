@@ -1,0 +1,23 @@
+# The shape slo:generate writes, cut down to what the unit tests need.
+groups:
+  - interval: 1m
+    name: slo-orders.search_index
+    rules:
+      - expr: 'sum(rate(symfony_slo_events_total{application="showcase",component=~"orders",slo="orders.search_index",objective="availability",revision="1c380329"}[5m]))'
+        labels: { application: showcase, objective: availability, revision: 1c380329, slo: orders.search_index, window: 30d }
+        record: 'slo:events:rate5m'
+      - expr: vector(0.99)
+        labels: { application: showcase, objective: availability, revision: 1c380329, slo: orders.search_index, window: 30d }
+        record: 'slo:objective:target'
+      - expr: 'sum(rate(symfony_slo_events_total{application="showcase",component=~"orders",slo="orders.search_index",objective="latency",revision="5ce50a4d"}[5m]))'
+        labels: { application: showcase, objective: latency, revision: 5ce50a4d, slo: orders.search_index, window: 30d }
+        record: 'slo:events:rate5m'
+  - interval: 5m
+    name: slo-orders.search_index-window
+    rules:
+      - expr: '1 - ((sum(increase(symfony_slo_events_total{application="showcase",component=~"orders",slo="orders.search_index",objective="availability",revision="1c380329",result="bad"}[30d])) or vector(0)) / (sum(increase(symfony_slo_events_total{application="showcase",component=~"orders",slo="orders.search_index",objective="availability",revision="1c380329"}[30d])) > 0))'
+        labels: { application: showcase, objective: availability, revision: 1c380329, slo: orders.search_index, window: 30d }
+        record: 'slo:sli:ratio'
+      - expr: '1 - (1 - slo:sli:ratio{application="showcase",slo="orders.search_index",objective="availability"}) / 0.01'
+        labels: { application: showcase, objective: availability, revision: 1c380329, slo: orders.search_index, window: 30d }
+        record: 'slo:error_budget:remaining'

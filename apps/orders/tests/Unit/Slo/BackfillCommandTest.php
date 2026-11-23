@@ -52,6 +52,16 @@ final class BackfillCommandTest extends TestCase
         self::assertStringContainsString('result="bad"} 144 ' . new DateTimeImmutable(self::NOW)->getTimestamp(), $tester->getDisplay());
     }
 
+    public function testNowSetsTheLastSample(): void
+    {
+        $tester = $this->tester();
+
+        $tester->execute(['--days' => '1', '--burning-days' => '0', '--now' => '1795000000']);
+
+        self::assertStringEndsWith(' 1795000000' . "\n# EOF\n", $tester->getDisplay());
+    }
+
+    #[TestWith(['--now', '0'])]
     #[TestWith(['--days', '0'])]
     #[TestWith(['--events-per-minute', '-1'])]
     #[TestWith(['--burning-days', '-1'])]
@@ -72,6 +82,7 @@ final class BackfillCommandTest extends TestCase
         $rules = <<<'YAML'
             groups:
               - name: slo-orders.search_index
+                interval: 1m
                 rules:
                   - record: 'slo:events:rate5m'
                     expr: 'sum(rate(symfony_slo_events_total{application="showcase",component=~"orders",slo="orders.search_index",objective="availability",revision="1c380329"}[5m]))'

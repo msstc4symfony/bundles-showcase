@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Slo;
 
 use App\Slo\PrometheusRangeQuery;
-use App\Slo\RangeWindow;
 use App\Slo\RecordedHistory;
 use App\Slo\RecordingRule;
 use App\Slo\RecordingRules;
@@ -14,6 +13,7 @@ use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
+use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 
 final class RecordedHistoryTest extends TestCase
 {
@@ -29,13 +29,11 @@ final class RecordedHistoryTest extends TestCase
             default => [['metric' => [], 'values' => [[$start, '0.99']]]],
         });
         $rules = new RecordingRules([
-            new RecordingRule('slo:events:rate5m', 'sum(raw)', ['slo' => 'orders.search_index']),
-            new RecordingRule('slo:objective:target', 'vector(0.99)', ['slo' => 'orders.search_index']),
+            new RecordingRule('slo:events:rate5m', 'sum(raw)', ['slo' => 'orders.search_index'], 300),
+            new RecordingRule('slo:objective:target', 'vector(0.99)', ['slo' => 'orders.search_index'], 300),
         ]);
         // 11 001 instants: one chunk of the API's 11 000 points and one of a single point.
-        $window = new RangeWindow(300, 300 * 11_001, 300);
-
-        $lines = iterator_to_array($history->lines(self::URL, $rules, $window), false);
+        $lines = iterator_to_array($history->lines(self::URL, $rules, 300, 300 * 11_001), false);
 
         self::assertSame([
             '# TYPE slo:events:rate5m gauge',
@@ -61,8 +59,9 @@ final class RecordedHistoryTest extends TestCase
 
         iterator_to_array($this->history(static fn (): array => [])->lines(
             self::URL,
-            new RecordingRules([new RecordingRule('slo:sli:ratio', 'sum(raw)', [])]),
-            new RangeWindow(1_795_392_000, 1_795_395_600, 300),
+            new RecordingRules([new RecordingRule('slo:sli:ratio', 'sum(raw)', [], 300)]),
+            1_795_392_000,
+            1_795_395_600,
         ));
     }
 
@@ -73,8 +72,9 @@ final class RecordedHistoryTest extends TestCase
 
         iterator_to_array($this->history(static fn (string $query, int $start): array => [['metric' => [], 'values' => [[$start, '1']]]])->lines(
             self::URL,
-            new RecordingRules([new RecordingRule('a', 'vector(1)', ['slo' => 'x']), new RecordingRule('a', 'vector(2)', ['slo' => 'x'])]),
-            new RangeWindow(300, 600, 300),
+            new RecordingRules([new RecordingRule('a', 'vector(1)', ['slo' => 'x'], 60), new RecordingRule('a', 'vector(2)', ['slo' => 'x'], 60)]),
+            300,
+            600,
         ));
     }
 
@@ -88,7 +88,7 @@ final class RecordedHistoryTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Prometheus did not evaluate "sum(raw)" (HTTP 400): parse error');
 
-        iterator_to_array($history->lines(self::URL, new RecordingRules([new RecordingRule('a', 'sum(raw)', [])]), new RangeWindow(300, 600, 300)));
+        iterator_to_array($history->lines(self::URL, new RecordingRules([new RecordingRule('a', 'sum(raw)', [], 60)]), 300, 600));
     }
 
     public function testAFractionalTimestampFails(): void
@@ -98,9 +98,66 @@ final class RecordedHistoryTest extends TestCase
 
         iterator_to_array($this->history(static fn (): array => [['metric' => [], 'values' => [[300.5, '1']]]])->lines(
             self::URL,
-            new RecordingRules([new RecordingRule('a', 'sum(raw)', [])]),
-            new RangeWindow(300, 600, 300),
+            new RecordingRules([new RecordingRule('a', 'sum(raw)', [], 60)]),
+            300,
+            600,
         ));
+    }
+
+    public function testEachRuleIsEvaluatedOnItsGroupsInterval(): void
+    {
+        $history = $this->history(static fn (string $query, int $start): array => [['metric' => [], 'values' => [[$start, '1']]]]);
+        $rules = new RecordingRules([new RecordingRule('a', 'vector(1)', [], 60), new RecordingRule('b', 'vector(2)', [], 300)]);
+
+        iterator_to_array($history->lines(self::URL, $rules, 600, 1200));
+
+        self::assertSame([['vector(1)', '60'], ['vector(2)', '300']], array_map(static fn (array $request): array => [$request['query'], $request['step']], $this->requests));
+    }
+
+    public function testNonFiniteValuesAreKept(): void
+    {
+        $history = $this->history(static fn (string $query, int $start): array => [['metric' => [], 'values' => [[$start, '+Inf'], [$start + 60, '-Inf'], [$start + 120, 'NaN']]]]);
+
+        $lines = iterator_to_array($history->lines(self::URL, new RecordingRules([new RecordingRule('a', 'sum(raw)', [], 60)]), 60, 180), false);
+
+        self::assertSame(['# TYPE a gauge', 'a +Inf 60', 'a -Inf 120', 'a NaN 180', '# EOF'], $lines);
+    }
+
+    public function testANonNumericValueFails(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('with the point [300,"many"], expected [whole Unix second, "value"]');
+
+        iterator_to_array($this->history(static fn (): array => [['metric' => [], 'values' => [[300, 'many']]]])->lines(
+            self::URL,
+            new RecordingRules([new RecordingRule('a', 'sum(raw)', [], 60)]),
+            300,
+            600,
+        ));
+    }
+
+    public function testAnAnswerWithoutAMatrixFails(): void
+    {
+        $history = new RecordedHistory(new PrometheusRangeQuery(new MockHttpClient(new MockResponse(
+            json_encode(['status' => 'success', 'data' => ['resultType' => 'vector', 'result' => []]], JSON_THROW_ON_ERROR),
+        ))));
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Prometheus answered "sum(raw)" with no matrix.');
+
+        iterator_to_array($history->lines(self::URL, new RecordingRules([new RecordingRule('a', 'sum(raw)', [], 60)]), 300, 600));
+    }
+
+    public function testABodyThatIsNotJsonFails(): void
+    {
+        $history = new RecordedHistory(new PrometheusRangeQuery(new MockHttpClient(new MockResponse(
+            '<html>502 Bad Gateway</html>',
+            ['http_code' => 502, 'response_headers' => ['content-type' => 'text/html']],
+        ))));
+
+        $this->expectException(DecodingExceptionInterface::class);
+
+        iterator_to_array($history->lines(self::URL, new RecordingRules([new RecordingRule('a', 'sum(raw)', [], 60)]), 300, 600));
     }
 
     /**

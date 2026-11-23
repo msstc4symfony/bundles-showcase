@@ -15,26 +15,32 @@ final class RecordingRulesTest extends TestCase
 {
     public function testARuleReadsARecordAsAWholeMetricName(): void
     {
-        $sli = new RecordingRule('slo:sli:ratio', 'vector(1)', []);
+        $sli = $this->rule('slo:sli:ratio', 'vector(1)');
 
-        self::assertTrue(new RecordingRule('slo:budget', '1 - slo:sli:ratio{slo="a"}', [])->reads($sli));
-        self::assertTrue(new RecordingRule('slo:budget', 'max_over_time(slo:sli:ratio[1h])', [])->reads($sli));
-        self::assertFalse(new RecordingRule('slo:budget', 'slo:sli:ratio_total + xslo:sli:ratio', [])->reads($sli));
+        self::assertTrue($this->rule('slo:budget', '1 - slo:sli:ratio{slo="a"}')->reads($sli));
+        self::assertTrue($this->rule('slo:budget', 'max_over_time(slo:sli:ratio[1h])')->reads($sli));
+        self::assertFalse($this->rule('slo:budget', 'slo:sli:ratio_total + xslo:sli:ratio')->reads($sli));
+    }
+
+    public function testARecordNamedInALabelValueCountsAsReadingIt(): void
+    {
+        // The documented over-approximation: it costs a pass, never misses a dependency.
+        self::assertTrue($this->rule('b', 'sum(raw{source="a"})')->reads($this->rule('a', 'vector(1)')));
     }
 
     public function testARecordMustBeAMetricName(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        new RecordingRule('slo sli', 'vector(1)', []);
+        $this->rule('slo sli', 'vector(1)');
     }
 
     public function testARuleRunsInThePassAfterTheRecordsItReads(): void
     {
-        $raw = new RecordingRule('a', 'sum(raw)', []);
-        $readsA = new RecordingRule('b', 'a * 2', []);
-        $readsB = new RecordingRule('c', 'b + a', []);
-        $alsoRaw = new RecordingRule('d', 'sum(raw)', []);
+        $raw = $this->rule('a', 'sum(raw)');
+        $readsA = $this->rule('b', 'a * 2');
+        $readsB = $this->rule('c', 'b + a');
+        $alsoRaw = $this->rule('d', 'sum(raw)');
 
         $passes = new RecordingRules([$readsB, $readsA, $raw, $alsoRaw])->passes();
 
@@ -43,8 +49,8 @@ final class RecordingRulesTest extends TestCase
 
     public function testRulesOfTheSameRecordDoNotWaitForEachOther(): void
     {
-        $first = new RecordingRule('a', 'sum(raw{x="1"}) or a', ['x' => '1']);
-        $second = new RecordingRule('a', 'sum(raw{x="2"})', ['x' => '2']);
+        $first = new RecordingRule('a', 'sum(raw{x="1"}) or a', ['x' => '1'], 60);
+        $second = new RecordingRule('a', 'sum(raw{x="2"})', ['x' => '2'], 60);
 
         self::assertCount(1, new RecordingRules([$first, $second])->passes());
     }
@@ -54,23 +60,28 @@ final class RecordingRulesTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('The recording rules a, b read each other in a cycle.');
 
-        new RecordingRules([new RecordingRule('a', 'b', []), new RecordingRule('b', 'a', []), new RecordingRule('c', 'raw', [])])->passes();
+        new RecordingRules([$this->rule('a', 'b'), $this->rule('b', 'a'), $this->rule('c', 'raw')])->passes();
     }
 
-    public function testTheGeneratedErrorBudgetWaitsForTheSli(): void
+    public function testTheErrorBudgetWaitsForTheSli(): void
     {
-        $passes = new GeneratedRecordingRules(\dirname(__DIR__, 3) . '/infrastructure/observability/prometheus/slo-recording.rules.yml')
+        $passes = new GeneratedRecordingRules(__DIR__ . '/Fixtures/slo-recording.rules.yml')
             ->ofObjective('orders.search_index', 'availability')
             ->passes()
         ;
 
-        self::assertCount(2, $passes);
-        self::assertContains('slo:sli:ratio', array_map(static fn (RecordingRule $rule): string => $rule->record, $passes[0]->rules));
-        self::assertSame(['slo:error_budget:remaining'], array_map(static fn (RecordingRule $rule): string => $rule->record, $passes[1]->rules));
-        foreach ($passes as $pass) {
-            foreach ($pass as $rule) {
-                self::assertSame(['orders.search_index', 'availability'], [$rule->labels['slo'] ?? null, $rule->labels['objective'] ?? null]);
-            }
-        }
+        self::assertSame(
+            [['slo:events:rate5m', 'slo:objective:target', 'slo:sli:ratio'], ['slo:error_budget:remaining']],
+            array_map(static fn (RecordingRules $pass): array => array_map(static fn (RecordingRule $rule): string => $rule->record, $pass->rules), $passes),
+        );
+    }
+
+    /**
+     * @param non-empty-string $record
+     * @param non-empty-string $expr
+     */
+    private function rule(string $record, string $expr): RecordingRule
+    {
+        return new RecordingRule($record, $expr, [], 60);
     }
 }

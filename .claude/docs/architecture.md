@@ -154,7 +154,14 @@ Loki не опубликован. Локально у владельца 8080 и
 - Backfill в orders (`App\Slo`, 2026-11-23 UTC): `app:slo:backfill` (`BackfillHistory` → OpenMetrics сырых счётчиков,
   метки из `GeneratedEventSelector`) и `app:slo:backfill-recorded` (`GeneratedRecordingRules::ofObjective()` →
   `RecordingRules::passes()` → `RecordedHistory` поверх `PrometheusRangeQuery`, POST `/api/v1/query_range` кусками
-  ≤ 11 000 точек). Обе читают сгенерированный `slo-recording.rules.yml` образа; опции — через `ConsoleOptions`.
+  ≤ 11 000 точек, шаг = `interval` группы правила). Обе читают сгенерированный `slo-recording.rules.yml` образа;
+  опции — через `ConsoleOptions`. `backfill.sh` задаёт окно один раз (`--days`/`--now` сырой команде, `--start`/`--end`
+  второй).
+- `apps/orders/src/Slo` — **плоское пространство демо-инструментов вне слоёв приложения** (`Application`/
+  `Infrastructure`): консольные команды, HTTP/YAML-адаптеры и модель правил вместе. Причина: это не часть runtime
+  orders (запускается только one-shot `prometheus-backfill`), и раскладка по слоям не дала бы ничего, кроме
+  каталогов; deptrac в showcase нет. Правило зависимостей внутри соблюдено: `RecordingRule(s)`, `RangeWindow`,
+  `RangeSeries` не зависят от HTTP/YAML.
 
 ### Сгенерированные правила и дашборды (2026-11-22 UTC)
 

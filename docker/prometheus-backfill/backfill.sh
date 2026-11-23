@@ -15,21 +15,47 @@ if [ -n "$(ls -A "$tsdb")" ]; then
     exit 0
 fi
 
+# One window for both commands: the recorded history ends where the raw one does, before Prometheus records live.
+days=60
+now=$(date +%s)
+start=$((now - days * 86400))
+end=$now
+if [ "$start" -ge "$end" ]; then
+    echo "prometheus-backfill: empty window $start..$end" >&2
+    exit 1
+fi
+
+pid=
+pass=
+moving=
+# A failure before any block reaches $tsdb leaves an empty volume to retry; once blocks move, the staging directory
+# stays, so the next run fails loudly instead of skipping a half-filled TSDB.
+cleanup() {
+    status=$?
+    if [ -n "$pid" ]; then
+        kill "$pid" 2> /dev/null || true
+        wait "$pid" 2> /dev/null || true
+    fi
+    if [ "$status" -ne 0 ]; then
+        echo "prometheus-backfill: failed${pass:+ in pass $pass of the recorded series}" >&2
+        [ -n "$moving" ] || rm -rf "$staging"
+    fi
+}
+trap cleanup EXIT
+trap 'exit 130' INT TERM
+
 # Staged on the volume itself, so each block lands with a rename; the staging directory goes last.
 mkdir "$staging"
-php bin/console app:slo:backfill > "$staging/history.om"
+php bin/console app:slo:backfill --days="$days" --now="$now" > "$staging/history.om"
 # promtool reads the whole input once per block: 24h blocks took 23 s, one block per 61d under 1 s.
 promtool tsdb create-blocks-from openmetrics --max-block-duration=1464h "$staging/history.om" "$staging/tsdb"
 
-# The recorded history spans the raw one, so it ends before the real Prometheus records its first live sample.
-start=$(sed -n 2p "$staging/history.om" | awk '{print $NF}')
-end=$(tail -n 2 "$staging/history.om" | head -n 1 | awk '{print $NF}')
-
-# promtool tsdb create-blocks-from rules writes a block per rule and per 20-day window at a 5m step (about 1 s
-# each), so the rules run as range queries against a throwaway Prometheus on the staged blocks instead. It loads
+# promtool tsdb create-blocks-from rules writes a block per rule and per window of at most 11 000 steps (about
+# 1 s each), so the rules run as range queries against a throwaway Prometheus on the staged blocks instead. It loads
 # new blocks only once a minute, so it restarts for each pass that reads the records of the one before.
 printf 'global: {}\n' > "$staging/prometheus.yml"
 passes=$(php bin/console app:slo:backfill-recorded --passes)
+ready_tries=100
 pass=1
 while [ "$pass" -le "$passes" ]; do
     prometheus --config.file="$staging/prometheus.yml" --storage.tsdb.path="$staging/tsdb" \
@@ -38,7 +64,7 @@ while [ "$pass" -le "$passes" ]; do
     tries=0
     until curl -fs -o /dev/null http://127.0.0.1:9091/-/ready; do
         tries=$((tries + 1))
-        if [ "$tries" -gt 100 ] || ! kill -0 "$pid" 2> /dev/null; then
+        if [ "$tries" -gt "$ready_tries" ] || ! kill -0 "$pid" 2> /dev/null; then
             echo "prometheus-backfill: the throwaway Prometheus did not become ready" >&2
             exit 1
         fi
@@ -48,11 +74,14 @@ while [ "$pass" -le "$passes" ]; do
         --start="$start" --end="$end" > "$staging/recorded-$pass.om"
     kill "$pid"
     wait "$pid"
+    pid=
     promtool tsdb create-blocks-from openmetrics --max-block-duration=1464h "$staging/recorded-$pass.om" "$staging/tsdb"
     pass=$((pass + 1))
 done
+pass=
 
 # Blocks only: the throwaway Prometheus' WAL and head chunks stay behind.
+moving=1
 for meta in "$staging"/tsdb/*/meta.json; do
     mv "${meta%/meta.json}" "$tsdb"/
 done
