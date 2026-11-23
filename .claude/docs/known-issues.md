@@ -506,15 +506,25 @@
   (по границам имени метрики; с запасом: лишнее совпадение = лишний проход). Цикл → ошибка. Для текущих правил 2
   прохода: 13 правил, затем `slo:error_budget:remaining`. `--passes` печатает число проходов.
 - Окно: `backfill.sh` задаёт его один раз — `days=60`, `now=$(date +%s)` → `app:slo:backfill --days --now` и
-  `app:slo:backfill-recorded --start=now−60d --end=now`; `start ≥ end` → exit 1. Шаг каждого правила = `interval` его
+  `app:slo:backfill-recorded --start=now−60d --end=now` (команды сами проверяют окно). Шаг каждого правила = `interval` его
   группы из файла правил (`1m` / `5m`, как вживую; группа без целого `Ns|Nm|Nh` → ошибка): 1m-группа над 60 днями =
   86 400 точек → 8 кусков по ≤ 11 000. Замерено 2026-11-23 UTC: с 1m-шагом сервис 25.6 с (load ≈ 25) — как прежние
   21–37 с с единым 5m, т.к. время съедает `slo:sli:ratio` 5m-группы. Последняя точка ≤ «сейчас» backfill-а < первой
   живой оценки → без перекрытия с head.
-- Сбой внутри `backfill.sh` (trap на EXIT): временный Prometheus останавливается, в stderr «failed in pass N of the
+- Сбой внутри `backfill.sh` (trap на EXIT; INT → exit 130, TERM → exit 143): временный Prometheus останавливается, в stderr «failed in pass N of the
   recorded series»; пока ни один блок не перенесён в `/prometheus`, staging удаляется (следующий `make up` начнёт
   заново с пустого тома), после начала переноса staging остаётся → «half-written backfill», нужен `make down`.
   Проверено подменой `curl` (временный Prometheus «не готов»): сообщение с `pass 1`, том пустой.
+- Память `app:slo:backfill-recorded` (php:8.5-cli, `memory_limit` 128M по умолчанию), замер 2026-11-23 UTC
+  `memory_get_peak_usage(true)` против живого Prometheus: проход 1 держал все 13 правил до первого `yield` — 112 MiB
+  (почти лимит, 9 правил × 86 401 точка 1m-шага); после потоковой выдачи по family (record) — 57 MiB, проход 2 — 14 MiB.
+  Пик теперь — одно правило: склеенные куски JSON-ответа и его значения.
+- Описания значений в ошибках — `Diagnostics::describe()` (JSON, иначе `var_export` скаляра или тип): `interval: .inf`
+  из YAML — float INF, `json_encode` с `JSON_THROW_ON_ERROR` сам падал бы. Интервал проверяется на переполнение
+  (`max_range = intdiv(PHP_INT_MAX, единица)`), а не умножением.
+- phpunit orders: сьюты `unit` (`tests/Unit`, фикстуры) и `integration` (`tests/Integration`, в т. ч. контракт с
+  реальным `slo-recording.rules.yml`); `vendor/bin/phpunit` без опций (make check, CI quality.yml) гоняет обе,
+  `--testsuite unit` — без контрактных проверок.
 - Правило с `record`, но без `expr` (или не-массив) в файле → ошибка с именем файла и группы; `alert:` пропускаются.
 - Каждое правило обязано дать хоть одну серию, иначе команда падает («found nothing … is the history it reads
   loaded?»): иначе пустая история (не та ревизия, не загрузились блоки) прошла бы молча.

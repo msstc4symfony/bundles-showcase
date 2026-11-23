@@ -75,6 +75,24 @@ final class GeneratedRecordingRulesTest extends TestCase
         $this->rules("groups:\n  - name: g\n    {$line}\n    rules:\n      - record: 'a'\n        expr: 'vector(1)'\n")->ofObjective('s', 'o');
     }
 
+    #[TestWith(['99999999999999999999s'])]
+    #[TestWith(['9223372036854775807h'])]
+    public function testAnIntervalBeyondAnIntegerOfSecondsFails(string $interval): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage("the interval {$interval} does not fit in an integer of seconds");
+
+        $this->rules("groups:\n  - name: g\n    interval: {$interval}\n    rules:\n      - record: 'a'\n        expr: 'vector(1)'\n")->ofObjective('s', 'o');
+    }
+
+    public function testAnInfiniteIntervalIsReportedNotEncoded(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('the interval INF is not a whole number of s, m or h');
+
+        $this->rules("groups:\n  - name: g\n    interval: .inf\n    rules:\n      - record: 'a'\n        expr: 'vector(1)'\n")->ofObjective('s', 'o');
+    }
+
     private function rules(string $yaml): GeneratedRecordingRules
     {
         $file = tempnam(sys_get_temp_dir(), 'rules');

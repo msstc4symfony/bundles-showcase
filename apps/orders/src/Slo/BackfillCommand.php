@@ -70,12 +70,8 @@ final class BackfillCommand extends Command
             ...$this->selector->labels($options->string('slo'), $options->string('objective')),
             ...self::SCRAPE_LABELS,
         ];
-        if ($input->getOption('now') === null) {
-            $now = $this->clock->now()->getTimestamp();
-            Assert::positiveInteger($now, 'The clock must be after the Unix epoch.');
-        } else {
-            $now = $options->positiveInt('now');
-        }
+        $now = $options->optionalPositiveInt('now') ?? $this->clock->now()->getTimestamp();
+        Assert::positiveInteger($now, 'The clock must be after the Unix epoch.');
 
         foreach ($history->lines($labels, $now) as $line) {
             $output->writeln($line, OutputInterface::OUTPUT_RAW);

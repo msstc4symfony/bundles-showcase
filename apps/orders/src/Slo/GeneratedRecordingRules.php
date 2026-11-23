@@ -64,7 +64,7 @@ final readonly class GeneratedRecordingRules
                         '%s, group %s: %s is neither an alerting rule nor a recording rule with a record and an expr.',
                         $this->file,
                         $name,
-                        json_encode($rule, JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR),
+                        Diagnostics::describe($rule),
                     ));
                 }
                 $rules[] = new RecordingRule(
@@ -89,12 +89,16 @@ final readonly class GeneratedRecordingRules
                 '%s, group %s: the interval %s is not a whole number of s, m or h.',
                 $this->file,
                 $group,
-                json_encode($interval, JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR),
+                Diagnostics::describe($interval),
             ));
         }
-        $seconds = (int) $parts[1] * ['s' => 1, 'm' => 60, 'h' => 3600][$parts[2]];
+        $unit = ['s' => 1, 'm' => 60, 'h' => 3600][$parts[2]];
+        $count = filter_var($parts[1], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => intdiv(PHP_INT_MAX, $unit)]]);
+        if (!\is_int($count) || $count < 1) {
+            throw new RuntimeException(sprintf('%s, group %s: the interval %s does not fit in an integer of seconds.', $this->file, $group, $interval));
+        }
 
-        return $seconds > 0 ? $seconds : throw new RuntimeException(sprintf('%s, group %s: the interval overflows.', $this->file, $group));
+        return $count * $unit;
     }
 
     /**

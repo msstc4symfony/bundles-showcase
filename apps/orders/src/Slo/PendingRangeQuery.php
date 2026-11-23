@@ -88,7 +88,7 @@ final readonly class PendingRangeQuery
                 throw new RuntimeException(sprintf(
                     'Prometheus answered "%s" with the point %s, expected [whole Unix second, "value"].',
                     $this->expr,
-                    json_encode($point, JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR),
+                    Diagnostics::describe($point),
                 ));
             }
             $values[$timestamp] = $value;

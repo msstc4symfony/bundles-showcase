@@ -20,10 +20,6 @@ days=60
 now=$(date +%s)
 start=$((now - days * 86400))
 end=$now
-if [ "$start" -ge "$end" ]; then
-    echo "prometheus-backfill: empty window $start..$end" >&2
-    exit 1
-fi
 
 pid=
 pass=
@@ -42,7 +38,8 @@ cleanup() {
     fi
 }
 trap cleanup EXIT
-trap 'exit 130' INT TERM
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 # Staged on the volume itself, so each block lands with a rename; the staging directory goes last.
 mkdir "$staging"

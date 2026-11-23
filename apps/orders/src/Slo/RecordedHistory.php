@@ -33,40 +33,53 @@ final readonly class RecordedHistory
      */
     public function lines(string $url, RecordingRules $rules, int $start, int $end): Generator
     {
-        $families = [];
+        $byRecord = [];
         foreach ($rules as $rule) {
-            $window = new RangeWindow($start, $end, $rule->interval);
-            // One rule at a time: all rules at once took 10-18 s against 7 s, the queries compete for Prometheus' CPU.
-            $results = $this->query->start($url, $rule->expr, $window)->series();
-            if ($results === []) {
-                throw new RuntimeException(sprintf(
-                    'The %s rule found nothing at %s between %s and %s UTC: is the history it reads loaded?',
-                    $rule->record,
-                    $url,
-                    gmdate('Y-m-d H:i:s', $window->start),
-                    gmdate('Y-m-d H:i:s', $window->end),
-                ));
-            }
-            foreach ($results as $result) {
-                $labels = [...$result->labels, ...$rule->labels];
-                ksort($labels);
-                $key = serialize($labels);
-                if (isset($families[$rule->record][$key])) {
-                    throw new RuntimeException(sprintf('Two rules record the same series %s%s.', $rule->record, OpenMetrics::labelSet($labels)));
-                }
-                $families[$rule->record][$key] = new RangeSeries($labels, $result->values);
-            }
+            $byRecord[$rule->record][] = $rule;
         }
 
-        foreach ($families as $record => $series) {
+        // Streamed per family: holding every rule's 86 401 one-minute points peaked at 112 MiB of a 128 MiB limit.
+        foreach ($byRecord as $record => $family) {
             yield sprintf('# TYPE %s gauge', $record);
-            foreach ($series as $one) {
-                $name = $record . OpenMetrics::labelSet($one->labels);
-                foreach ($one->values as $timestamp => $value) {
-                    yield sprintf('%s %s %d', $name, $value, $timestamp);
+            $seen = [];
+            foreach ($family as $rule) {
+                // One rule at a time: all rules at once took 10-18 s against 7 s, the queries compete for Prometheus' CPU.
+                foreach ($this->series($url, $rule, new RangeWindow($start, $end, $rule->interval)) as $result) {
+                    $labels = [...$result->labels, ...$rule->labels];
+                    ksort($labels);
+                    $key = serialize($labels);
+                    if (isset($seen[$key])) {
+                        throw new RuntimeException(sprintf('Two rules record the same series %s%s.', $record, OpenMetrics::labelSet($labels)));
+                    }
+                    $seen[$key] = true;
+                    $name = $record . OpenMetrics::labelSet($labels);
+                    foreach ($result->values as $timestamp => $value) {
+                        yield sprintf('%s %s %d', $name, $value, $timestamp);
+                    }
                 }
             }
         }
         yield '# EOF';
+    }
+
+    /**
+     * @param non-empty-string $url
+     *
+     * @return non-empty-list<RangeSeries>
+     */
+    private function series(string $url, RecordingRule $rule, RangeWindow $window): array
+    {
+        $results = $this->query->start($url, $rule->expr, $window)->series();
+        if ($results === []) {
+            throw new RuntimeException(sprintf(
+                'The %s rule found nothing at %s between %s and %s UTC: is the history it reads loaded?',
+                $rule->record,
+                $url,
+                gmdate('Y-m-d H:i:s', $window->start),
+                gmdate('Y-m-d H:i:s', $window->end),
+            ));
+        }
+
+        return $results;
     }
 }

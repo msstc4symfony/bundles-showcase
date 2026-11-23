@@ -39,6 +39,14 @@ final readonly class ConsoleOptions
     }
 
     /**
+     * @return positive-int|null null when the option is not given
+     */
+    public function optionalPositiveInt(string $name): ?int
+    {
+        return $this->input->getOption($name) === null ? null : $this->positiveInt($name);
+    }
+
+    /**
      * @return non-negative-int
      */
     public function nonNegativeInt(string $name): int

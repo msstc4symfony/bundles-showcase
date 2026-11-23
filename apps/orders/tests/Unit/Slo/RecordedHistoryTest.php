@@ -114,6 +114,21 @@ final class RecordedHistoryTest extends TestCase
         self::assertSame([['vector(1)', '60'], ['vector(2)', '300']], array_map(static fn (array $request): array => [$request['query'], $request['step']], $this->requests));
     }
 
+    public function testRulesOfOneRecordStayOneContiguousFamily(): void
+    {
+        $history = $this->history(static fn (string $query, int $start): array => [['metric' => [], 'values' => [[$start, '1']]]]);
+        $rules = new RecordingRules([
+            new RecordingRule('a', 'vector(1)', ['x' => '1'], 60),
+            new RecordingRule('b', 'vector(2)', [], 60),
+            new RecordingRule('a', 'vector(3)', ['x' => '2'], 60),
+        ]);
+
+        self::assertSame(
+            ['# TYPE a gauge', 'a{x="1"} 1 60', 'a{x="2"} 1 60', '# TYPE b gauge', 'b 1 60', '# EOF'],
+            iterator_to_array($history->lines(self::URL, $rules, 60, 60), false),
+        );
+    }
+
     public function testNonFiniteValuesAreKept(): void
     {
         $history = $this->history(static fn (string $query, int $start): array => [['metric' => [], 'values' => [[$start, '+Inf'], [$start + 60, '-Inf'], [$start + 120, 'NaN']]]]);
