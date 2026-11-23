@@ -44,7 +44,7 @@ final readonly class AlertmanagerClient
             Assert::oneOf($state, ['active', 'suppressed', 'unprocessed']);
             $inhibitedBy = $status['inhibitedBy'] ?? null;
             Assert::isList($inhibitedBy);
-            Assert::allString($inhibitedBy);
+            Assert::allStringNotEmpty($inhibitedBy);
             $alerts[] = new ManagedAlert($fingerprint, AlertLabels::parse($alert['labels'] ?? null), $state, $inhibitedBy);
         }
 

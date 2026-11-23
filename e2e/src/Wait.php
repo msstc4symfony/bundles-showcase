@@ -15,9 +15,13 @@ final class Wait
      * @param Closure(): bool $condition
      * @param string|Closure(): string $failureMessage a closure is called after the timeout, so it can describe the last poll
      */
-    public static function until(Closure $condition, float $timeoutSeconds, string|Closure $failureMessage): void
-    {
-        if (!self::within($condition, $timeoutSeconds)) {
+    public static function until(
+        Closure $condition,
+        float $timeoutSeconds,
+        string|Closure $failureMessage,
+        float $pollSeconds = self::POLL_SECONDS,
+    ): void {
+        if (!self::within($condition, $timeoutSeconds, $pollSeconds)) {
             throw new RuntimeException(is_string($failureMessage) ? $failureMessage : $failureMessage());
         }
     }
@@ -27,7 +31,7 @@ final class Wait
      *
      * @return bool whether the condition held before the timeout
      */
-    public static function within(Closure $condition, float $timeoutSeconds): bool
+    public static function within(Closure $condition, float $timeoutSeconds, float $pollSeconds = self::POLL_SECONDS): bool
     {
         $deadline = microtime(true) + $timeoutSeconds;
         while (true) {
@@ -40,7 +44,7 @@ final class Wait
                 break;
             }
 
-            usleep((int) (min(self::POLL_SECONDS, $left) * 1_000_000));
+            usleep((int) (min($pollSeconds, $left) * 1_000_000));
         }
 
         return false;

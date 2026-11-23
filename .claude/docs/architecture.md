@@ -16,8 +16,8 @@
 | `gateway-sampled` | `app` (APP=gateway) | RoadRunner | gateway с `TRACING_SAMPLING_RATIO=0.5` (у `gateway` env по умолчанию `1`) — только для `sampling.feature`; Prometheus его не скрейпит |
 | `baggage-echo` | `php:8.5.10-cli` | `php -S` + `docker/baggage-echo/echo.php` | хост вне `allowed_hosts` gateway: логирует `trace_id`, `path`, `traceparent`, `tracestate`, `baggage` для e2e (кроме `/_/*`); gateway ждёт его healthy только ради `up --wait` перед e2e |
 | `alertmanager` | `prom/alertmanager:v0.34.0` | конфиг `docker/observability/alertmanager.yml` (собран, не редактировать) | получает алерты Prometheus (`alerting` в `prometheus.yml`), SLO-маршруты → `slo-page`/`slo-ticket` |
-| `prometheus-backfill` | `backfill` (`app` APP=orders + promtool, root) | one-shot `docker/prometheus-backfill/backfill.sh` | 60 дней сырых счётчиков `orders.search_index` availability (`app:slo:backfill`, `instance="backfill"`) блоками в пустой том `prometheus-data` до старта Prometheus; непустой том → `skipped` |
-| `alert-recorder` | `php:8.5.10-cli` | `php -S` + `docker/alert-recorder/recorder.php` | webhook обоих получателей; `GET /` — все уведомления, `DELETE /` — сброс (вручную) |
+| `prometheus-backfill` | `backfill` (`app` APP=orders + promtool, root) | one-shot `docker/prometheus-backfill/backfill.sh` | 60 дней сырых счётчиков `orders.search_index` availability (`app:slo:backfill`, `instance="backfill"`) блоками в пустой том `prometheus-data` до старта Prometheus; непустой том → `skipped`. `app:slo:backfill` — демо-инструмент: зарегистрирован и в образе `orders`, но запускается только этим сервисом, в runtime orders не участвует |
+| `alert-recorder` | `php:8.5.10-cli` | `php -S` + `docker/alert-recorder/recorder.php` | webhook обоих получателей; `GET /` — все уведомления, `GET /?since=N` — начиная с N-го (e2e: «новые» после запомненного числа), `DELETE /` — сброс (вручную) |
 | `e2e` (profile `e2e`) | `e2e` | Behat 4 (`behat.php`) | сценарии; docker CLI для `@chaos` |
 
 Три приложения независимы (свой `composer.json/lock`, свой Kernel), общий только `docker/php/Dockerfile`.

@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-// Alertmanager webhook receiver for e2e: POST stores the notification body, GET returns every stored body as a JSON
-// list (oldest first), DELETE forgets them. /_/* answers the compose healthcheck.
+// Alertmanager webhook receiver for e2e: POST stores the notification body, GET returns the stored bodies as a JSON
+// list (oldest first; ?since=N skips the first N), DELETE forgets them. /_/* answers the compose healthcheck.
 const STORE = '/tmp/alert-recorder.jsonl';
 
 function fail(string $message): never
@@ -60,11 +60,17 @@ switch ($_SERVER['REQUEST_METHOD'] ?? 'GET') {
         http_response_code(204);
         break;
     case 'GET':
+        $since = filter_var($_GET['since'] ?? '0', FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+        if ($since === false) {
+            http_response_code(400);
+            echo 'since must be a non-negative integer';
+            break;
+        }
         $stored = stream_get_contents($handle);
         if ($stored === false) {
             fail('Cannot read ' . STORE);
         }
-        $lines = array_filter(explode("\n", $stored));
+        $lines = \array_slice(array_values(array_filter(explode("\n", $stored))), $since);
         header('Content-Type: application/json');
         echo '[' . implode(',', $lines) . ']';
         break;

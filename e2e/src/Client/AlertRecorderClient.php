@@ -23,12 +23,15 @@ final readonly class AlertRecorderClient
     }
 
     /**
+     * @param non-negative-int $since position of the first notification to return
+     *
      * @return list<RecordedNotification> oldest first
      */
-    public function notifications(): array
+    public function notifications(int $since): array
     {
         $notifications = [];
-        foreach (WireList::ofArrays($this->http->request('GET', '/')->toArray()) as $record) {
+        $records = $this->http->request('GET', '/', ['query' => ['since' => $since]])->toArray();
+        foreach (WireList::ofArrays($records) as $record) {
             $receiver = $record['receiver'] ?? null;
             Assert::string($receiver);
             $payload = $record['payload'] ?? null;

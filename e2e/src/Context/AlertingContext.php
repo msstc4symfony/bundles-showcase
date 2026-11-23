@@ -26,6 +26,11 @@ final class AlertingContext implements Context
 
     private const string APPLICATION = 'showcase';
 
+    /** Alert state changes only on the 1m rule evaluation and the 10s group interval, so long waits poll coarsely. */
+    private const float LONG_WAIT_POLL_SECONDS = 2.0;
+
+    private const int LONG_WAIT_SECONDS = 60;
+
     private readonly AlertmanagerClient $alertmanager;
 
     private readonly AlertRecorderClient $recorder;
@@ -45,7 +50,7 @@ final class AlertingContext implements Context
     #[Given('I remember the notifications the alert recorder got so far')]
     public function iRememberTheNotifications(): void
     {
-        $this->rememberedNotifications = \count($this->recorder->notifications());
+        $this->rememberedNotifications = \count($this->recorder->notifications(0));
     }
 
     #[Then('within :seconds seconds the :receiver receiver got a firing :severity alert of :slo :objective')]
@@ -71,6 +76,7 @@ final class AlertingContext implements Context
             fn (): bool => $this->managedAlert($severity, $slo, $objective) instanceof ManagedAlert,
             $seconds,
             fn (): string => sprintf('Alertmanager has no %s alert of %s %s.', $severity, $slo, $objective),
+            $this->pollSeconds($seconds),
         );
     }
 
@@ -86,6 +92,7 @@ final class AlertingContext implements Context
             },
             $seconds,
             fn (): string => sprintf('Alertmanager has no active %s alert of %s %s: %s.', $severity, $slo, $objective, $this->lastPoll),
+            $this->pollSeconds($seconds),
         );
     }
 
@@ -101,6 +108,7 @@ final class AlertingContext implements Context
             },
             $seconds,
             fn (): string => sprintf('A %s alert of %s %s is still in Alertmanager (%s); wait for it to resolve or run on a fresh stack.', $severity, $slo, $objective, $this->lastPoll),
+            $this->pollSeconds($seconds),
         );
     }
 
@@ -119,6 +127,7 @@ final class AlertingContext implements Context
             },
             $seconds,
             fn (): string => sprintf('The %s alert of %s %s is not inhibited by its %s alert: %s.', $target, $slo, $objective, $source, $this->lastPoll),
+            $this->pollSeconds($seconds),
         );
     }
 
@@ -130,7 +139,7 @@ final class AlertingContext implements Context
         $wanted = $this->labels($severity, $slo, $objective);
         Wait::until(
             function () use ($receiver, $wanted, $since): bool {
-                $notifications = \array_slice($this->recorder->notifications(), $since);
+                $notifications = $this->recorder->notifications($since);
                 $this->lastPoll = sprintf('%d notifications', \count($notifications));
                 foreach ($notifications as $notification) {
                     if ($notification->receiver !== $receiver) {
@@ -149,7 +158,13 @@ final class AlertingContext implements Context
             $seconds,
             fn (): string => sprintf('The %s receiver got no firing alert %s (%s).', $receiver, json_encode($wanted, JSON_THROW_ON_ERROR), $this->lastPoll)
                 . ($severity === 'ticket' ? ' The ticket needs the backfilled history: on a stack older than ~6 h run make down && make up.' : ''),
+            $this->pollSeconds($seconds),
         );
+    }
+
+    private function pollSeconds(int $timeoutSeconds): float
+    {
+        return $timeoutSeconds >= self::LONG_WAIT_SECONDS ? self::LONG_WAIT_POLL_SECONDS : Wait::POLL_SECONDS;
     }
 
     private function managedAlert(string $severity, string $slo, string $objective): ?ManagedAlert
