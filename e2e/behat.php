@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\E2e\Context\AlertingContext;
 use App\E2e\Context\HealthContext;
 use App\E2e\Context\IdempotencyContext;
 use App\E2e\Context\MetricsContext;
@@ -21,5 +22,5 @@ return new Config()
     ->withProfile(new Profile('default')
         ->withSuite(new Suite('showcase')
             ->withPaths('%paths.base%/features')
-            ->withContexts(OrderContext::class, IdempotencyContext::class, TracingContext::class, WorkerResetContext::class, MetricsContext::class, HealthContext::class, ProfilingContext::class, TraceExportContext::class, SamplingContext::class, SloContext::class, SteadyScrapesContext::class)))
+            ->withContexts(OrderContext::class, IdempotencyContext::class, TracingContext::class, WorkerResetContext::class, MetricsContext::class, HealthContext::class, ProfilingContext::class, TraceExportContext::class, SamplingContext::class, SloContext::class, SteadyScrapesContext::class, AlertingContext::class)))
 ;

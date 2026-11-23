@@ -3,6 +3,8 @@ Feature: SLOs are counted by their strategy and evaluated by the generated rules
   Scenario: Prometheus and Grafana load what slo:generate produced
     Then within 330 seconds Prometheus has evaluated the rule groups of "gateway.create_order", "billing.process_payment", "orders.create_order" and "orders.search_index" without errors
     And within 60 seconds Grafana has 18 dashboards tagged "slo" with distinct uids in the folder "SLO"
+    # prometheus-backfill covers its whole 30d window from the start; SLOs without history may have no value yet.
+    And the "slo:window:coverage_ratio" rule of "orders.search_index" "availability" evaluates to exactly 1
 
   Scenario: Each objective is counted where its strategy says
     Given I remember the current metric values

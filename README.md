@@ -188,6 +188,11 @@ differ. `make slo-check` fails when `alertmanager.yml` is stale.
 JSON list, oldest first, each `{"receivedAt", "receiver", "payload"}` with the Alertmanager body as `payload`;
 `DELETE /` forgets them. Inside the compose network: `curl http://alert-recorder:8080/`.
 
+`e2e/features/alerting.feature` proves the path end to end: the backfilled slow burn of `orders.search_index` reaches
+`slo-ticket`; stopping Elasticsearch (`@chaos`) burns it fast enough to reach `slo-page`, and Alertmanager then shows
+the ticket inhibited by the page. Run it on a stack younger than about 6 hours (`make down` first otherwise): the
+ticket resolves once `rate6h` no longer sees the history.
+
 ## How bundle releases flow
 
 1. A bundle tags a release (`vX.Y.Z`).

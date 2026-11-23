@@ -467,7 +467,33 @@
 - Live bad-серия, появившаяся сразу с N > 0, даёт `increase() = 0` (см. инъекцию `deadbeef` выше) — для живой поломки
   это не мешает, пока серия `result="bad"` уже существует или растёт после первого скрейпа.
 - После полного e2e (non-chaos + chaos) горят ticket `orders.search_index` (backfill) и page `gateway.create_order`
-  (5xx @chaos-сценария) — Task 6 должен очищать recorder (`DELETE /`) и фильтровать уведомления по `slo`.
+  (5xx @chaos-сценария) — шаги `alerting.feature` всегда фильтруют по `alertname, application, severity, slo,
+  objective` (см. ниже).
 - Замер 2026-11-23 UTC: `make down` + `docker compose up --build --wait` (образы в кеше) — 49 с; контейнер
   `prometheus-backfill` от старта до выхода ≈ 1.7 с; ticket горит через ≈ 3 мин после старта Prometheus (первая
   оценка 5m-группы окна, затем 1m-группы алертов). Второй `make up` без `down` — 40 с, backfill `skipped`.
+
+## e2e alerting.feature: ticket, page, inhibition (2026-11-23 UTC)
+
+- Ticket (`@alerting`, идёт в non-chaos прогоне, первым по алфавиту): ждёт до 420 с уведомление `slo-ticket`. 5m-группа
+  окна (`rate3d`, `coverage_ratio`) впервые считается в слоте по настенным часам (`hash(group) mod 5m`), т. е. до 5 мин
+  после старта Prometheus, затем 1m-группа алертов и `group_wait` 5 с — замер «≈3 мин» из backfill был удачей слота.
+- Page + inhibition — один сценарий (`@alerting @chaos`, первый в chaos-прогоне): отдельный сценарий inhibition
+  зависел бы от порядка. Предусловия: ticket активен и не подавлен, page этой SLO в Alertmanager нет (иначе — горит от
+  прошлого прогона: page гаснет через ~5–30 мин, ждать или `make down`). Поломка — `I stop "elasticsearch"`: заказы
+  создаются (201), каждое событие `orders.search_index` availability — bad. Сначала 1 заказ и ожидание live-серии
+  `result="bad"` (серия, появившаяся сразу > 0, не даёт `increase()`), затем 50 заказов: 1h-доля ≥ (3.6 + 50) /
+  (120 истории + ≤ 100 живых good + 50) ≈ 20 % > 14.4 %; на свежем стеке хватило бы 16.
+- Recorder общий и **не сбрасывается**: ticket доставляется один раз при старте (`repeat_interval` 1h), `DELETE /`
+  после него сломал бы повторный ticket-сценарий. «Новые» уведомления — после запомненного числа (`I remember the
+  notifications the alert recorder got so far`). «Горит ли сейчас» и подавление читаются из
+  `/api/v2/alerts?filter=…` (повторяющийся параметр `filter`; HttpClient кодировал бы массив как `filter[0]`).
+  Подавленный алерт: `status.state = suppressed`, `status.inhibitedBy` содержит fingerprint page-алерта.
+- «Losing Redis» (health.feature, @chaos) на этой машине 2026-11-23 UTC падает на свежем стеке и **без** alerting
+  (проверено на fa6c0a8): readiness/заказ orders при лежащем Redis отвечают 5–21 с (getaddrinfo `redis` у
+  остановленного контейнера + зависшие Redis-вызовы метрик), окно «within 20 seconds readiness is down» и
+  таймаут gateway→orders впритык. На уже поработавшем стеке тот же прогон зелёный. Не связано с алертингом.
+- Все шаги фильтруют по `alertname=SloErrorBudgetBurn, application=showcase, severity, slo, objective` — после chaos
+  горит ещё page `gateway.create_order`.
+- `slo.feature`: `coverage_ratio` для `orders.search_index` availability строго `== 1` (шаг `evaluates to exactly`);
+  для остальных SLO «нет значения» по-прежнему допустимо.

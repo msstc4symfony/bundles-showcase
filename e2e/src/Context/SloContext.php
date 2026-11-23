@@ -142,6 +142,16 @@ final class SloContext implements Context
     }
 
     /**
+     * @param non-empty-string $record
+     */
+    #[Then('the :record rule of :slo :objective evaluates to exactly :expected')]
+    public function theRuleEvaluatesToExactly(string $record, string $slo, string $objective, float $expected): void
+    {
+        $value = $this->valueOf($this->prometheus->recordingRule($record, $slo, $objective));
+        Assert::same($value, $expected, sprintf('The %s rule of %s %s is %s, expected %s.', $record, $slo, $objective, $value, $expected));
+    }
+
+    /**
      * The coverage rule's subquery runs on a whole-hour UTC grid ([<window>:1h]), so it is empty until the first
      * whole UTC hour after the first event: that is the warming-up state. Once the rule was evaluated past that hour
      * it must have a value. NaN fails in sample().
