@@ -492,7 +492,7 @@
   `result="bad"` (серия, появившаяся сразу > 0, не даёт `increase()`), затем 50 заказов: 1h-доля ≥ (3.6 + 51) /
   (120 истории + ≤ 100 живых good + 51) ≈ 20 % > 14.4 %; на свежем стеке хватило бы 16. Граница «≤ 100 живых good
   за час» проверяется шагом-предусловием (`… is at most 100`), а не предполагается. Бóльший burst не выход: при
-  остановленном ES заказ orders каждые ~5 с зависает на ~4 с (Elastica перепробует мёртвый узел), рядом с 5-секундным
+  остановленном ES заказ orders каждые ~5 с зависает на ~4 с (поиск имени `elasticsearch` уходит на недоступный внешний DNS, см. «Losing Redis» ниже), рядом с 5-секундным
   таймаутом gateway→orders; прогон с 80 заказами 2026-11-23 UTC получил один 502 (orders ответил 201 за 5012 мс).
 - Ticket-сценарий заканчивается шагом «Alertmanager has a "ticket" alert» (любое состояние: page прошлого прогона
   может его подавлять): на старом стеке recorder хранит давно погасший firing-ticket, и шаг по recorder прошёл бы сразу. Таймаут ticket-шага называет причину (стек старше ~6 ч).
@@ -502,9 +502,15 @@
   `/api/v2/alerts?filter=…` (повторяющийся параметр `filter`; HttpClient кодировал бы массив как `filter[0]`).
   Подавленный алерт: `status.state = suppressed`, `status.inhibitedBy` содержит fingerprint page-алерта.
 - «Losing Redis» (health.feature, @chaos) на этой машине 2026-11-23 UTC падает на свежем стеке и **без** alerting
-  (проверено на fa6c0a8): readiness/заказ orders при лежащем Redis отвечают 5–21 с (getaddrinfo `redis` у
-  остановленного контейнера + зависшие Redis-вызовы метрик), окно «within 20 seconds readiness is down» и
-  таймаут gateway→orders впритык. На уже поработавшем стеке тот же прогон зелёный. Не связано с алертингом.
+  (проверено на fa6c0a8): readiness orders при лежащем Redis отвечает 0,5–21 с, окно «within 20 seconds readiness
+  is down» и таймаут gateway→orders впритык. В CI зелёный. Не связано с алертингом и не баг бандлов.
+  Причина (замерено 2026-11-23 UTC): имя остановленного контейнера пропадает из встроенного DNS Docker
+  (`127.0.0.11`), тот пересылает запрос на внешние `dns` из `/etc/docker/daemon.json` (8.8.8.8, 1.1.1.1), а из
+  контейнерной сети этой машины (VPN, mtu 1280) они не отвечают: `getent hosts nonexistent-xyz` ≈ 4,5 с,
+  `gethostbyname('redis')` ≈ 8 с (A + AAAA). `timeout=1` phpredis на getaddrinfo не распространяется, и каждый
+  Redis-клиент (cache-пулы, lock, метрики после окна backoff 5 с на воркер) платит этот поиск. То же самое у
+  остановленного Elasticsearch (~4 с на заказ, см. выше). Лечится на хосте: внутренний/доступный DNS в
+  `daemon.json`; в коде showcase/бандлов чинить нечего.
 - Все шаги фильтруют по `alertname=SloErrorBudgetBurn, application=showcase, severity, slo, objective` — после chaos
   горит ещё page `gateway.create_order`.
 - `slo.feature`: `coverage_ratio` для `orders.search_index` availability строго `== 1` (шаг `evaluates to exactly`);

@@ -14,8 +14,9 @@ Feature: SLO burn alerts reach their receivers through Alertmanager, and a page 
   # A live bad series that appears above 0 has no increase(), so one bad event is scraped before the burst.
   # 50 bad events: the 1h ratio is at least (3.6 + 51) / (120 of history + 100 live good + 51) ≈ 20 % > 14.4 %
   # (16 suffice on a fresh stack), and the 5m window holds the burst only. The 100 live good are checked, not
-  # assumed: a bigger burst would not need the check, but with Elasticsearch down an order stalls ~4 s every ~5 s,
-  # close to the gateway's 5 s timeout, so every extra order risks a 502.
+  # assumed: a bigger burst would not need the check, but where Docker's DNS forwards unknown names to an
+  # unreachable resolver, an order with Elasticsearch down stalls ~4 s on the name lookup, close to the gateway's
+  # 5 s timeout, so every extra order risks a 502.
   # A page left by an earlier run inhibits the ticket until it resolves, hence the 1800 s wait comes first.
   @alerting @chaos
   Scenario: A live breakage is delivered as a page that inhibits the ticket
