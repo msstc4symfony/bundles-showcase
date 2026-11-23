@@ -239,7 +239,7 @@ services:
     depends_on:
       alert-recorder: { condition: service_healthy }
 
-  # Webhook receiver of slo-page / slo-ticket: GET / lists the stored notifications, DELETE / forgets them (e2e).
+  # Webhook receiver of slo-page / slo-ticket: GET / lists the stored notifications, DELETE / forgets them (manual debugging).
   alert-recorder:
     image: php:8.5.10-cli
     command: ["php", "-S", "0.0.0.0:8080", "/srv/recorder.php"]

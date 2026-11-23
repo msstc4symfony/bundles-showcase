@@ -17,12 +17,15 @@ final class BackfillCommandTest extends TestCase
 {
     private const string NOW = '2026-11-23T10:00:00Z';
 
-    private const string RULES_FILE = 'backfill-command-test.rules.yml';
+    private ?string $rulesFile = null;
 
     #[Override]
     protected function tearDown(): void
     {
-        @unlink(sys_get_temp_dir() . '/' . self::RULES_FILE);
+        if ($this->rulesFile !== null) {
+            unlink($this->rulesFile);
+            $this->rulesFile = null;
+        }
     }
 
     public function testTheSeriesCarryTheRuleLabelsAndTheBackfillInstance(): void
@@ -69,7 +72,9 @@ final class BackfillCommandTest extends TestCase
                     expr: 'sum(rate(symfony_slo_events_total{application="showcase",component=~"orders",slo="orders.search_index",objective="availability",revision="1c380329"}[5m]))'
                     labels: { slo: orders.search_index, objective: availability }
             YAML;
-        $file = sys_get_temp_dir() . '/' . self::RULES_FILE;
+        $file = tempnam(sys_get_temp_dir(), 'rules');
+        self::assertIsString($file);
+        $this->rulesFile = $file;
         file_put_contents($file, $rules);
 
         return new CommandTester(new BackfillCommand(new MockClock(self::NOW), $file));

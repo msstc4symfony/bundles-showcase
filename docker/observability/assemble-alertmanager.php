@@ -97,4 +97,6 @@ if (in_array('--check', $argv, true)) {
     exit(0);
 }
 
-file_put_contents(TARGET, $assembled);
+if (file_put_contents(TARGET, $assembled) !== strlen($assembled)) {
+    fail('Cannot write ' . TARGET);
+}

@@ -4,3 +4,5 @@ parameters:
         - src
         - behat.php
         - bin/demo-traffic
+        - ../docker/alert-recorder
+        - ../docker/observability

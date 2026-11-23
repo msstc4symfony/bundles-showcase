@@ -148,7 +148,7 @@ never reach the Action. The generation selector is
 After changing an SLO or updating slo-bundle, run `make slo-generate` and commit the result. `make check` ends with
 `make slo-check`: `slo:validate`, `slo:coverage` and `slo:generate --check` per app (stale files fail it), then
 `make promtool`, which runs `promtool check config` on `prometheus.yml` with the same mounts as compose, and so checks
-every rule file it lists, then `amtool check-config` on both Alertmanager configs. `promtool` and `amtool` run in Docker; `slo-generate` and `slo-check` also run the host `php` (a local
+every rule file it lists, then `amtool check-config` on the assembled `alertmanager.yml` and on each app's full `slo-alertmanager.yml`. `promtool` and `amtool` run in Docker; `slo-generate` and `slo-check` also run the host `php` (a local
 PHP 8.4 with the app extensions: redis, amqp, intl, pdo_pgsql), unlike the Docker-based targets.
 
 The generated `slo.yaml` points its provider at `/var/lib/grafana/dashboards`, a fixed path that is already the
@@ -182,11 +182,13 @@ holds the showcase part (root receiver `null`, receivers `slo-page` and `slo-tic
 `docker/observability/assemble-alertmanager.php`, which appends the fragment's `routes` under `route` and its
 `inhibit_rules`, and writes `docker/observability/alertmanager.yml` (committed, do not edit). The three apps share
 `application: showcase`, so their fragments are identical and pasted once; the assembler refuses to run when they
-differ. `make slo-check` fails when `alertmanager.yml` is stale.
+differ. `make slo-check` fails when `alertmanager.yml` is stale. Alertmanager reads the file only at start, and
+`make up` does not recreate it for a changed file: after `make slo-generate`, run `docker compose restart alertmanager`
+(or `curl -XPOST localhost:9093/-/reload`).
 
 `alert-recorder` (`docker/alert-recorder/recorder.php`) stores every webhook notification: `GET /` returns them as a
 JSON list, oldest first, each `{"receivedAt", "receiver", "payload"}` with the Alertmanager body as `payload`;
-`DELETE /` forgets them. Inside the compose network: `curl http://alert-recorder:8080/`.
+`DELETE /` forgets them (for manual debugging; e2e never resets it). Inside the compose network: `curl http://alert-recorder:8080/`.
 
 `e2e/features/alerting.feature` proves the path end to end: the backfilled slow burn of `orders.search_index` reaches
 `slo-ticket`; stopping Elasticsearch (`@chaos`) burns it fast enough to reach `slo-page`, and Alertmanager then shows
@@ -213,7 +215,7 @@ No pull request is involved: GitHub Actions may not open pull requests in this o
 
 Each app requires a bundle at the release it relies on, a minor or a patch (`^2.3` for metrics, `^2.2` for
 profiling-bundle `^2.3.1`, `^2.3` for healthcheck, `^2.1` for logger, `^2.4` for tracing, `^1.3` for
-tracing-bridge-profiling, `^1.2.2` for tracing-bridge-otlp, `^1.0` for slo-bundle and both SLO bridges), so every later release of the same major is
+tracing-bridge-profiling, `^1.2.2` for tracing-bridge-otlp, `^1.1` for slo-bundle, `^1.0` for both SLO bridges), so every later release of the same major is
 picked up by that run. A major release goes through an rc tag first (`vX.0.0-rc.N`) and gets its final tag only after
 e2e is green here: until then the app requires it as `^X.0@rc` (logic-bundle 2.0.0 went this way), and the final
 tag replaces that with `^X.0`.

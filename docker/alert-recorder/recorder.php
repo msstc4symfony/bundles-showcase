@@ -6,7 +6,16 @@ declare(strict_types=1);
 // list (oldest first), DELETE forgets them. /_/* answers the compose healthcheck.
 const STORE = '/tmp/alert-recorder.jsonl';
 
-$path = (string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+function fail(string $message): never
+{
+    http_response_code(500);
+    file_put_contents('php://stderr', 'Alert recorder: ' . $message . "\n");
+    echo $message;
+    exit;
+}
+
+$uri = $_SERVER['REQUEST_URI'] ?? '/';
+$path = (string) parse_url(\is_string($uri) ? $uri : '/', PHP_URL_PATH);
 
 if (str_starts_with($path, '/_/')) {
     echo 'ok';
@@ -16,12 +25,11 @@ if (str_starts_with($path, '/_/')) {
 
 $handle = @fopen(STORE, 'c+');
 if ($handle === false) {
-    http_response_code(500);
-    echo 'Cannot open ' . STORE;
-
-    return;
+    fail('Cannot open ' . STORE);
 }
-flock($handle, LOCK_EX);
+if (!flock($handle, LOCK_EX)) {
+    fail('Cannot lock ' . STORE);
+}
 
 switch ($_SERVER['REQUEST_METHOD'] ?? 'GET') {
     case 'POST':
@@ -34,21 +42,29 @@ switch ($_SERVER['REQUEST_METHOD'] ?? 'GET') {
             echo $e->getMessage();
             break;
         }
-        fseek($handle, 0, SEEK_END);
-        fwrite($handle, json_encode([
+        $record = json_encode([
             'receivedAt' => gmdate('Y-m-d\TH:i:s\Z'),
             'receiver' => $payload instanceof stdClass ? ($payload->receiver ?? null) : null,
             'payload' => $payload,
-        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES) . "\n");
+        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES) . "\n";
+        if (fseek($handle, 0, SEEK_END) !== 0 || fwrite($handle, $record) !== \strlen($record) || !fflush($handle)) {
+            fail('Cannot append to ' . STORE);
+        }
         file_put_contents('php://stderr', 'Alert recorder stored a notification for ' . $path . "\n");
         http_response_code(204);
         break;
     case 'DELETE':
-        ftruncate($handle, 0);
+        if (!ftruncate($handle, 0)) {
+            fail('Cannot truncate ' . STORE);
+        }
         http_response_code(204);
         break;
     case 'GET':
-        $lines = array_filter(explode("\n", (string) stream_get_contents($handle)));
+        $stored = stream_get_contents($handle);
+        if ($stored === false) {
+            fail('Cannot read ' . STORE);
+        }
+        $lines = array_filter(explode("\n", $stored));
         header('Content-Type: application/json');
         echo '[' . implode(',', $lines) . ']';
         break;

@@ -17,7 +17,7 @@
 | `baggage-echo` | `php:8.5.10-cli` | `php -S` + `docker/baggage-echo/echo.php` | хост вне `allowed_hosts` gateway: логирует `trace_id`, `path`, `traceparent`, `tracestate`, `baggage` для e2e (кроме `/_/*`); gateway ждёт его healthy только ради `up --wait` перед e2e |
 | `alertmanager` | `prom/alertmanager:v0.34.0` | конфиг `docker/observability/alertmanager.yml` (собран, не редактировать) | получает алерты Prometheus (`alerting` в `prometheus.yml`), SLO-маршруты → `slo-page`/`slo-ticket` |
 | `prometheus-backfill` | `backfill` (`app` APP=orders + promtool, root) | one-shot `docker/prometheus-backfill/backfill.sh` | 60 дней сырых счётчиков `orders.search_index` availability (`app:slo:backfill`, `instance="backfill"`) блоками в пустой том `prometheus-data` до старта Prometheus; непустой том → `skipped` |
-| `alert-recorder` | `php:8.5.10-cli` | `php -S` + `docker/alert-recorder/recorder.php` | webhook обоих получателей; `GET /` — все уведомления, `DELETE /` — сброс (e2e) |
+| `alert-recorder` | `php:8.5.10-cli` | `php -S` + `docker/alert-recorder/recorder.php` | webhook обоих получателей; `GET /` — все уведомления, `DELETE /` — сброс (вручную) |
 | `e2e` (profile `e2e`) | `e2e` | Behat 4 (`behat.php`) | сценарии; docker CLI для `@chaos` |
 
 Три приложения независимы (свой `composer.json/lock`, свой Kernel), общий только `docker/php/Dockerfile`.
@@ -206,10 +206,11 @@ Elasticsearch), `profiling.feature` (SQL/HTTP-спаны и `trace_span_id` в �
   `route.routes` или `inhibit_rules`; `--check` — exit 1 при устаревшем файле (`make slo-check`, CI job `slo-rules`).
 - База: корневой получатель `null`, `group_wait` 5s, `group_interval` 10s, `repeat_interval` 1h; webhook
   `http://alert-recorder:8080/slo-page|slo-ticket`, `send_resolved: true`.
-- `make promtool` дополнительно: `amtool check-config` на собранном `alertmanager.yml` и на полном
-  `apps/gateway/.../slo-alertmanager.yml`.
+- `make promtool` дополнительно: `amtool check-config` на собранном `alertmanager.yml` и на полных
+  `apps/*/…/slo-alertmanager.yml` всех трёх приложений.
 - Контракт `alert-recorder`: `POST <любой путь>` — тело Alertmanager (JSON, иначе 400) дописывается в
   `/tmp/alert-recorder.jsonl` контейнера, ответ 204; `GET /` — JSON-список `{receivedAt (UTC, Z), receiver, payload}`
   от старых к новым; `DELETE /` — 204, список пуст; прочие методы — 405; `/_/*` — healthcheck. Состояние живёт до
-  пересоздания контейнера (`make down`/`up`), `restart` его не чистит — e2e сбрасывает явно через `DELETE`.
+  пересоздания контейнера (`make down`/`up`), `restart` его не чистит. e2e его не сбрасывает (см. known-issues
+  «e2e alerting.feature»); `DELETE /` — для ручной отладки.
 - e2e env: `ALERTMANAGER_URL=http://alertmanager:9093`, `ALERT_RECORDER_URL=http://alert-recorder:8080`.
