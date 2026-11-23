@@ -157,9 +157,17 @@ declares its own `slo` provider on `/var/lib/grafana/slo` instead; Grafana's fil
 subdirectories. The dashboard uids and titles include the component (`SLO: HTTP Routes (showcase: orders)`), so the three
 apps' 18 dashboards do not collide although they share `application="showcase"`.
 
-Prometheus keeps 31 days (`--storage.tsdb.retention.time=31d` in `compose.yaml`): retention must be at least the longest
-SLO window plus one hour. With less, `slo:window:coverage_ratio` never reaches 1, the SLOs stay in warming up and the
-ticket alerts never fire. The 30-day recording rules are evaluated every 5 minutes (group `slo-<name>-window`), the
+Prometheus keeps 61 days (`--storage.tsdb.retention.time=61d` in `compose.yaml`): retention must be at least the longest
+SLO window plus one hour, and here it also holds the backfilled history. With less, `slo:window:coverage_ratio` never
+reaches 1, the SLOs stay in warming up and the ticket alerts never fire.
+
+A fresh stack would need 30 days of uptime before a ticket alert can fire, so the one-shot service `prometheus-backfill`
+writes 60 days of raw `orders.search_index` availability counters into the empty TSDB before Prometheus starts:
+`app:slo:backfill` of orders prints them as OpenMetrics (2 events per minute, 0.2 % bad, 3 % bad in the last 4 days;
+labels read from the generated recording rules, plus `instance="backfill"`), and `promtool tsdb create-blocks-from
+openmetrics` turns them into blocks. The SLO is then covered from the start and its `ticket` alert fires; recording
+rules are not backfilled, so the recorded series on the dashboards begin at the stack's start. A second `make up`
+leaves a non-empty TSDB untouched (`prometheus-backfill: skipped`); `make down` drops the volume. The 30-day recording rules are evaluated every 5 minutes (group `slo-<name>-window`), the
 short-window rules and the alerts every minute (group `slo-<name>`).
 
 ### SLO alerts

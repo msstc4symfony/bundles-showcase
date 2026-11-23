@@ -45,9 +45,9 @@ SLO_RULE_FILES = $(foreach a,$(APPS),$(wildcard apps/$(a)/infrastructure/observa
 
 # The mounts mirror compose.yaml, so "check config" also checks every rule file prometheus.yml lists. A rule_files
 # glob that matches nothing passes "check config", hence the per-app guard and "check rules" on the explicit list.
-promtool: ## promtool check of prometheus.yml and every generated rule file, amtool check of both Alertmanager configs (needs Docker)
+promtool: ## promtool check of prometheus.yml and every generated rule file, amtool check of alertmanager.yml and every app's full Alertmanager config (needs Docker)
 	@for f in $(foreach a,$(APPS),$(foreach k,recording alerts,apps/$(a)/infrastructure/observability/prometheus/slo-$(k).rules.yml)) \
-		apps/gateway/infrastructure/observability/alertmanager/slo-alertmanager.yml docker/observability/alertmanager.yml; do \
+		$(foreach a,$(APPS),apps/$(a)/infrastructure/observability/alertmanager/slo-alertmanager.yml) docker/observability/alertmanager.yml; do \
 		[ -f $$f ] || { echo "$$f is missing (run make slo-generate)" >&2; exit 1; }; \
 	done
 	docker run --rm --entrypoint promtool \
@@ -58,8 +58,8 @@ promtool: ## promtool check of prometheus.yml and every generated rule file, amt
 		check rules $(SLO_RULE_FILES:apps/%=/apps/%)
 	docker run --rm --entrypoint amtool \
 		-v $(CURDIR)/docker/observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro \
-		-v $(CURDIR)/apps/gateway/infrastructure/observability/alertmanager/slo-alertmanager.yml:/etc/alertmanager/slo-alertmanager.yml:ro \
-		prom/alertmanager:v0.34.0 check-config /etc/alertmanager/alertmanager.yml /etc/alertmanager/slo-alertmanager.yml
+		$(foreach a,$(APPS),-v $(CURDIR)/apps/$(a)/infrastructure/observability/alertmanager/slo-alertmanager.yml:/etc/alertmanager/slo-$(a).yml:ro) \
+		prom/alertmanager:v0.34.0 check-config /etc/alertmanager/alertmanager.yml $(foreach a,$(APPS),/etc/alertmanager/slo-$(a).yml)
 
 # Per project with its own autoloader: the apps share class names (App\\...) with different signatures,
 # so one Rector run over all of them resolves a class to the wrong app.

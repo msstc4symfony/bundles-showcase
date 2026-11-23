@@ -16,6 +16,7 @@
 | `gateway-sampled` | `app` (APP=gateway) | RoadRunner | gateway с `TRACING_SAMPLING_RATIO=0.5` (у `gateway` env по умолчанию `1`) — только для `sampling.feature`; Prometheus его не скрейпит |
 | `baggage-echo` | `php:8.5.10-cli` | `php -S` + `docker/baggage-echo/echo.php` | хост вне `allowed_hosts` gateway: логирует `trace_id`, `path`, `traceparent`, `tracestate`, `baggage` для e2e (кроме `/_/*`); gateway ждёт его healthy только ради `up --wait` перед e2e |
 | `alertmanager` | `prom/alertmanager:v0.34.0` | конфиг `docker/observability/alertmanager.yml` (собран, не редактировать) | получает алерты Prometheus (`alerting` в `prometheus.yml`), SLO-маршруты → `slo-page`/`slo-ticket` |
+| `prometheus-backfill` | `backfill` (`app` APP=orders + promtool, root) | one-shot `docker/prometheus-backfill/backfill.sh` | 60 дней сырых счётчиков `orders.search_index` availability (`app:slo:backfill`, `instance="backfill"`) блоками в пустой том `prometheus-data` до старта Prometheus; непустой том → `skipped` |
 | `alert-recorder` | `php:8.5.10-cli` | `php -S` + `docker/alert-recorder/recorder.php` | webhook обоих получателей; `GET /` — все уведомления, `DELETE /` — сброс (e2e) |
 | `e2e` (profile `e2e`) | `e2e` | Behat 4 (`behat.php`) | сценарии; docker CLI для `@chaos` |
 
@@ -163,8 +164,8 @@ Loki не опубликован. Локально у владельца 8080 и
   обходит подкаталоги). Сгенерированный `slo.yaml` **не** монтируется: его путь — константа `/var/lib/grafana/dashboards`,
   то есть каталог провайдера `showcase`; два провайдера на одном каталоге дают дубли.
 - Группы правил: `slo-<name>` (interval 1m: короткие окна, алерты) и `slo-<name>-window` (interval 5m: правила окна 30d);
-  в Prometheus 8 групп записи (4 SLO × 2) и 4 группы алертов. Окно 30d → Prometheus с `--storage.tsdb.retention.time=31d`
-  (окно + 1h, иначе `slo:window:coverage_ratio` не доходит до 1 и ticket-алерты не срабатывают).
+  в Prometheus 8 групп записи (4 SLO × 2) и 4 группы алертов. Окно 30d → retention не меньше окна + 1h (иначе `slo:window:coverage_ratio` не доходит до 1 и ticket-алерты не
+  срабатывают); с backfill 60 дней — `--storage.tsdb.retention.time=61d`, данные в томе `prometheus-data`.
 - Коллизия дашбордов: у всех трёх приложений `application: showcase`; до slo-bundle rc.3 uid/title зависели только от
   application → 18 файлов давали 6 uid, Grafana провиженила набор одного приложения. С rc.3 uid и title учитывают
   `components` селектора (`SLO: HTTP Routes (showcase: orders)`) → 18 разных uid (проверено `api/search?tag=slo`).

@@ -430,3 +430,41 @@
   Alertmanager-файла существуют (иначе «… is missing (run make slo-generate)»).
 - Обновление slo-bundle, меняющее фрагмент, требует `make slo-generate` (пересобирает и `alertmanager.yml`), иначе
   `quality` (job `slo-rules`) падает на `--check` сборщика.
+- Сборщик `assemble-alertmanager.php` намеренно строг к раскладке фрагмента (ключи верхнего уровня ровно `inhibit_rules`
+  и `routes`, отступ 2 пробела): он текстовый, и любое отклонение генератора должно падать, а не склеиваться молча.
+
+## Backfill истории orders.search_index (2026-11-23 UTC)
+
+- Сервис `prometheus-backfill` (образ `backfill` = orders + promtool, root) до старта Prometheus пишет в **пустой** том
+  `prometheus-data` 60 дней сырых счётчиков `symfony_slo_events_total` для `orders.search_index` availability; Prometheus
+  ждёт его `service_completed_successfully`. Непустой том (второй `make up` без `down`) → лог
+  `prometheus-backfill: skipped, /prometheus is not empty` и exit 0: повторная заливка с новым «сейчас» перекрыла бы
+  первую историю, и счётчики читались бы как сбросы. Прерванный backfill оставляет том пустым (блоки пишутся во
+  временный каталог и переносятся после успеха promtool).
+- Профиль по умолчанию (`app:slo:backfill`): **2 события в минуту** (120/ч), **0.2 % bad** до последних 4 дней,
+  **3 % bad в последние 4 дня** (≈ 3.6 bad/ч); 172 802 сэмпла, 2 серии (`result` good/bad), последний сэмпл = «сейчас»
+  команды. Итог на старте: `coverage_ratio` = 1, `slo:error_ratio:rate6h` ≈ 0.031, `rate1h` ≈ 0.025–0.042 (bad
+  дискретны), `rate3d` ≈ 0.03, `slo:sli:ratio` ≈ 0.9943 → ticket (1× бюджета 1 %) горит, page (14.4 % / 6 %) — нет.
+- Для page поверх backfill (Task 6): история видна в `rate[1h]` ещё час после старта стека, в `rate[6h]` — шесть.
+  Худший случай (сразу после старта): 1h-доля = (3.6 + N_bad) / (120 + N_bad + N_good) > 0.144 → нужно N_bad > 16 при
+  N_good = 0 (и > 0.144 в 5m-окне, где истории уже нет). Ticket гаснет сам через ~6 ч работы стека (`rate6h` без
+  новой истории падает ниже 1 %).
+- Почему только сырые серии: алерты и `slo:window:coverage_ratio` (`min_over_time(timestamp(sum(raw))[721h:1h])`)
+  считаются из сырых счётчиков вживую. Цена: recorded-серии на дашбордах начинаются со старта стека.
+- Почему `instance="backfill"`: живые серии несут адрес контейнера в `instance`; общий набор меток склеил бы историю
+  с живым счётчиком (живой 0 после исторических 170 тыс. = сброс). Метки SLO (`application, component, slo,
+  objective, revision`) команда берёт из селектора `slo:events:rate5m` в `slo-recording.rules.yml` образа — новая
+  ревизия подхватывается после `make slo-generate`; `job`/`service` — как у скрейпа.
+- e2e: шаги «grows by» по `orders.search_index` фильтруют `instance!='backfill'` (историческая серия видна 5 мин
+  lookback после конца истории и, уйдя в stale, уменьшила бы сумму); сценарий NoData перенесён на
+  `orders.create_order` latency — у `orders.search_index` с историей значение SLI есть с первой секунды.
+- promtool читает весь вход заново на каждый блок: с `--max-block-duration` 24h — 81 блок за 23 с, с 1464h — 2 блока
+  меньше чем за 1 с. Сервис целиком (генерация ~36 МБ OpenMetrics + promtool + chown) — ≈ 2 с; на `make up` это
+  ≈ +2 с перед стартом Prometheus (образ `backfill` — слой поверх кешированного `app` orders).
+- Live bad-серия, появившаяся сразу с N > 0, даёт `increase() = 0` (см. инъекцию `deadbeef` выше) — для живой поломки
+  это не мешает, пока серия `result="bad"` уже существует или растёт после первого скрейпа.
+- После полного e2e (non-chaos + chaos) горят ticket `orders.search_index` (backfill) и page `gateway.create_order`
+  (5xx @chaos-сценария) — Task 6 должен очищать recorder (`DELETE /`) и фильтровать уведомления по `slo`.
+- Замер 2026-11-23 UTC: `make down` + `docker compose up --build --wait` (образы в кеше) — 49 с; контейнер
+  `prometheus-backfill` от старта до выхода ≈ 1.7 с; ticket горит через ≈ 3 мин после старта Prometheus (первая
+  оценка 5m-группы окна, затем 1m-группы алертов). Второй `make up` без `down` — 40 с, backfill `skipped`.

@@ -1,6 +1,7 @@
 FROM ghcr.io/roadrunner-server/roadrunner:2025.1.15 AS roadrunner
 FROM mlocati/php-extension-installer:2.12 AS extension-installer
 FROM composer:2.10.3 AS composer
+FROM prom/prometheus:v3.15.0 AS prometheus
 
 FROM php:8.5.10-cli AS runtime
 COPY --from=extension-installer /usr/bin/install-php-extensions /usr/local/bin/
@@ -34,6 +35,12 @@ COPY --from=build /app /app
 COPY --from=build --chown=www-data:www-data /app/var /app/var
 USER www-data
 CMD ["rr", "serve", "-c", ".rr.yaml"]
+
+# The orders app plus promtool for compose's prometheus-backfill. Root: it hands the new TSDB over to the
+# Prometheus image's user (nobody).
+FROM app AS backfill
+USER root
+COPY --from=prometheus /bin/promtool /usr/local/bin/promtool
 
 # Stays root: the @chaos scenarios drive the docker socket.
 FROM tools AS e2e

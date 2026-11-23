@@ -11,7 +11,7 @@ Feature: SLOs are counted by their strategy and evaluated by the generated rules
     Then within 20 seconds "symfony_slo_events_total{component='gateway',slo='gateway.create_order',objective='availability',result='good'}" grows by 1
     And within 20 seconds "symfony_slo_events_total{component='gateway',slo='gateway.create_order',objective='latency'}" grows by 1
     And within 20 seconds "symfony_slo_events_total{component='orders',slo='orders.create_order',objective='latency'}" grows by 1
-    And within 20 seconds "symfony_slo_events_total{component='orders',slo='orders.search_index',objective='availability',result='good'}" grows by 1
+    And within 20 seconds "symfony_slo_events_total{component='orders',instance!='backfill',slo='orders.search_index',objective='availability',result='good'}" grows by 1
     And "symfony_slo_events_total{slo=~'orders.create_order|billing.process_payment',objective='availability'}" has not grown after the next scrape
     And the "slo:sli:ratio" rule of "billing.process_payment" "availability" reads "symfony_messenger_message_handled"
     And the "slo:sli:ratio" rule of "orders.create_order" "availability" reads "symfony_logic_action"
@@ -22,12 +22,13 @@ Feature: SLOs are counted by their strategy and evaluated by the generated rules
     Then within 15 seconds the "orders" logs of that trace have a profiling span matching "/ > operation orders\.search_index$/"
 
   # Self-sufficient for --name runs: the order makes sure the SLO has a first event; t0 lies before the stack's first.
+  # Not orders.search_index: prometheus-backfill gives it 60 days of history, so it has a value from the start.
   Scenario: An SLO without events in the window is NoData, not 100 %
     Given I create an order for 5000
     And the order becomes "paid" within 15 seconds
-    And within 20 seconds "symfony_slo_events_total{slo='orders.search_index'}" has a series
-    Then at an instant before the first event of "orders.search_index" while "orders" was scraped, the "slo:sli:ratio" rule of "orders.search_index" "availability" has no value
-    And at that instant "slo:error_ratio:rate5m{slo='orders.search_index',objective='availability'}" has no sample
+    And within 20 seconds "symfony_slo_events_total{slo='orders.create_order'}" has a series
+    Then at an instant before the first event of "orders.create_order" while "orders" was scraped, the "slo:sli:ratio" rule of "orders.create_order" "latency" has no value
+    And at that instant "slo:error_ratio:rate5m{slo='orders.create_order',objective='latency'}" has no sample
 
   Scenario: A threshold change starts a new revision that warms up alone
     Given I create an order for 5000

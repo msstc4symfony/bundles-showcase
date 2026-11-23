@@ -14,7 +14,13 @@ if (str_starts_with($path, '/_/')) {
     return;
 }
 
-$handle = fopen(STORE, 'c+');
+$handle = @fopen(STORE, 'c+');
+if ($handle === false) {
+    http_response_code(500);
+    echo 'Cannot open ' . STORE;
+
+    return;
+}
 flock($handle, LOCK_EX);
 
 switch ($_SERVER['REQUEST_METHOD'] ?? 'GET') {
