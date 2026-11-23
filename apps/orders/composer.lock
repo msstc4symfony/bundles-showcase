@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "328fd4902c0719eda4b042c769e4baf2",
+    "content-hash": "79d3c670477486f6d688656658d57983",
     "packages": [
         {
             "name": "baldinof/roadrunner-bundle",
@@ -2983,16 +2983,16 @@
         },
         {
             "name": "msstc4symfony/slo-bundle",
-            "version": "v1.0.1",
+            "version": "v1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/msstc4symfony/slo-bundle.git",
-                "reference": "a0753b3346979667a27cf495ff8e2bffc002be8e"
+                "reference": "00e4777f154f6fcb29aff604746f7ca01afc016c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/msstc4symfony/slo-bundle/zipball/a0753b3346979667a27cf495ff8e2bffc002be8e",
-                "reference": "a0753b3346979667a27cf495ff8e2bffc002be8e",
+                "url": "https://api.github.com/repos/msstc4symfony/slo-bundle/zipball/00e4777f154f6fcb29aff604746f7ca01afc016c",
+                "reference": "00e4777f154f6fcb29aff604746f7ca01afc016c",
                 "shasum": ""
             },
             "require": {
@@ -3061,10 +3061,10 @@
                 "symfony"
             ],
             "support": {
-                "source": "https://github.com/msstc4symfony/slo-bundle/tree/v1.0.1",
+                "source": "https://github.com/msstc4symfony/slo-bundle/tree/v1.1.0",
                 "issues": "https://github.com/msstc4symfony/slo-bundle/issues"
             },
-            "time": "2026-11-22T19:19:54+00:00"
+            "time": "2026-11-23T10:03:11+00:00"
         },
         {
             "name": "msstc4symfony/sql-labeller",

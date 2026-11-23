@@ -1776,6 +1776,13 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             no_events_alert_hours?: int|Param, // Default: null
  *         },
  *         sloth?: bool|Param, // Default: false
+ *         alertmanager?: array{
+ *             enabled?: bool|Param, // Default: false
+ *             receivers?: array{
+ *                 page?: string|Param, // Default: "slo-page"
+ *                 ticket?: string|Param, // Default: "slo-ticket"
+ *             },
+ *         },
  *     },
  * }
  * @psalm-type ConfigType = array{

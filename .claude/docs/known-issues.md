@@ -419,3 +419,14 @@
 ## slo-bundle / SLO bridges 1.0 final (2026-11-22 UTC)
 
 - `msstc4symfony/slo-bundle`, `slo-bridge-logic` and `slo-bridge-profiling` are required as `^1.0` (v1.0.0); the rc constraints are gone. Orders keeps the explicit slo-bundle require because it uses the bundle directly. The final has no generator change after rc.4: `slo:generate --check` reported no diff.
+
+## Alertmanager и alert-recorder (2026-11-23 UTC)
+
+- `alert-recorder` декодирует тело как объекты (`json_decode(..., false)`): с `assoc=true` пустые `annotations: {}`
+  и `routeLabels: {}` Alertmanager превращаются при повторном кодировании в `[]`.
+- Ручная проверка доставки: POST `[{"labels":{"alertname":"SloErrorBudgetBurn","severity":"page","application":"showcase",...}}]`
+  на `alertmanager:9093/api/v2/alerts` → в recorder через ~5 с (`group_wait`) уведомление `receiver: slo-page`.
+- `docker -v` с несуществующим исходным файлом создаёт каталог → `make promtool` сначала проверяет, что оба
+  Alertmanager-файла существуют (иначе «… is missing (run make slo-generate)»).
+- Обновление slo-bundle, меняющее фрагмент, требует `make slo-generate` (пересобирает и `alertmanager.yml`), иначе
+  `quality` (job `slo-rules`) падает на `--check` сборщика.

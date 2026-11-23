@@ -22,7 +22,7 @@ client ──HTTP──▶ gateway ──HTTP──▶ orders ──AMQP: Proces
 | `orders` | Stores the order as `pending`, then sends `ProcessPayment` and indexes the order in Elasticsearch through FOSElasticaBundle. Applies `PaymentProcessed` and moves the order to `paid` or `declined`. | RoadRunner + `messenger:consume payment_processed`; one-shots `orders-migrate` (schema) and `orders-search-index` (Elasticsearch index) before start |
 | `billing` | Records the payment. Amounts above `BILLING_DECLINE_ABOVE` (100000) are declined. | RoadRunner (service routes) + `messenger:consume process_payment` |
 
-Infrastructure: PostgreSQL 18, Redis 7, RabbitMQ 4, Elasticsearch 9 (single node, used by orders). Observability: Prometheus, Loki, Tempo, Alloy and Grafana.
+Infrastructure: PostgreSQL 18, Redis 7, RabbitMQ 4, Elasticsearch 9 (single node, used by orders). Observability: Prometheus, Alertmanager, Loki, Tempo, Alloy and Grafana.
 
 ## Run it
 
@@ -38,11 +38,12 @@ make down          # stop and drop volumes
 | Gateway API | http://localhost:8080/orders |
 | Grafana (anonymous admin) | http://localhost:3000, dashboards "Showcase — services" and "Showcase — profiling spans"; 18 generated SLO dashboards in the folder "SLO" |
 | Prometheus | http://localhost:9090 |
+| Alertmanager | http://localhost:9093 (SLO alerts go to the webhook recorder `alert-recorder`, see [SLO alerts](#slo-alerts)) |
 | Tempo API | http://localhost:3200 (traces at `/api/v2/traces/<trace id>`; browse them in Grafana → Explore → Tempo) |
 | RabbitMQ management | http://localhost:15672 (guest / guest) |
 
 All ports bind to `127.0.0.1` only. When a port is already taken, override it:
-`SHOWCASE_GATEWAY_PORT`, `SHOWCASE_GRAFANA_PORT`, `SHOWCASE_PROMETHEUS_PORT`, `SHOWCASE_TEMPO_PORT`,
+`SHOWCASE_GATEWAY_PORT`, `SHOWCASE_GRAFANA_PORT`, `SHOWCASE_PROMETHEUS_PORT`, `SHOWCASE_ALERTMANAGER_PORT`, `SHOWCASE_TEMPO_PORT`,
 `SHOWCASE_RABBITMQ_PORT`, `SHOWCASE_POSTGRES_PORT`.
 
 ## Follow one request
@@ -141,11 +142,13 @@ never reach the Action. The generation selector is
 | `prometheus/slo-recording.rules.yml`, `prometheus/slo-alerts.rules.yml` | Prometheus `rule_files`, mounted at `/etc/prometheus/slo/<app>/` |
 | `grafana/dashboards/slo-*.json` (6 per app) | Grafana provider `slo` (`docker/observability/grafana/provisioning/dashboards/dashboards.yaml`), mounted at `/var/lib/grafana/slo/<app>/`, folder "SLO" |
 | `grafana/provisioning/dashboards/slo.yaml` | committed, **not mounted** (see below) |
+| `alertmanager/slo-alertmanager-routes.yml` | the routes and inhibit rules pasted into `docker/observability/alertmanager.yml` (see [SLO alerts](#slo-alerts)) |
+| `alertmanager/slo-alertmanager.yml` | committed, not mounted: the full config with empty receivers, checked by `amtool` |
 
 After changing an SLO or updating slo-bundle, run `make slo-generate` and commit the result. `make check` ends with
 `make slo-check`: `slo:validate`, `slo:coverage` and `slo:generate --check` per app (stale files fail it), then
 `make promtool`, which runs `promtool check config` on `prometheus.yml` with the same mounts as compose, and so checks
-every rule file it lists. `promtool` runs in Docker; `slo-generate` and `slo-check` also run the host `php` (a local
+every rule file it lists, then `amtool check-config` on both Alertmanager configs. `promtool` and `amtool` run in Docker; `slo-generate` and `slo-check` also run the host `php` (a local
 PHP 8.4 with the app extensions: redis, amqp, intl, pdo_pgsql), unlike the Docker-based targets.
 
 The generated `slo.yaml` points its provider at `/var/lib/grafana/dashboards`, a fixed path that is already the
@@ -159,6 +162,21 @@ SLO window plus one hour. With less, `slo:window:coverage_ratio` never reaches 1
 ticket alerts never fire. The 30-day recording rules are evaluated every 5 minutes (group `slo-<name>-window`), the
 short-window rules and the alerts every minute (group `slo-<name>`).
 
+### SLO alerts
+
+Prometheus sends its alerts to Alertmanager (`alertmanager:9093`). The showcase does what an application would do with
+slo-bundle's `slo-alertmanager-routes.yml`: paste it into its own config. `docker/observability/alertmanager.base.yml`
+holds the showcase part (root receiver `null`, receivers `slo-page` and `slo-ticket` as webhooks to `alert-recorder`,
+`group_wait` 5s, `group_interval` 10s, `repeat_interval` 1h); `make slo-generate` runs
+`docker/observability/assemble-alertmanager.php`, which appends the fragment's `routes` under `route` and its
+`inhibit_rules`, and writes `docker/observability/alertmanager.yml` (committed, do not edit). The three apps share
+`application: showcase`, so their fragments are identical and pasted once; the assembler refuses to run when they
+differ. `make slo-check` fails when `alertmanager.yml` is stale.
+
+`alert-recorder` (`docker/alert-recorder/recorder.php`) stores every webhook notification: `GET /` returns them as a
+JSON list, oldest first, each `{"receivedAt", "receiver", "payload"}` with the Alertmanager body as `payload`;
+`DELETE /` forgets them. Inside the compose network: `curl http://alert-recorder:8080/`.
+
 ## How bundle releases flow
 
 1. A bundle tags a release (`vX.Y.Z`).
@@ -171,7 +189,7 @@ short-window rules and the alerts every minute (group `slo-<name>`).
    and the run fails; its summary names the update and the failed gate.
 
 `quality` also gates the SLO definitions: `slo:validate`, `slo:coverage` and `slo:generate --check` per app, and
-`promtool` on every rule file. A slo-bundle release that changes the generated output therefore fails `quality` on the
+`promtool` on every rule file, the staleness check of `alertmanager.yml` and `amtool`. A slo-bundle release that changes the generated output therefore fails `quality` on the
 `bundle-updates` branch. That is intended: run `make slo-generate`, commit and push to that branch.
 
 No pull request is involved: GitHub Actions may not open pull requests in this organisation. A push made with

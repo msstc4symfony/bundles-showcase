@@ -181,6 +181,8 @@ services:
       LOKI_URL: http://loki:3100
       TEMPO_URL: http://tempo:3200
       GRAFANA_URL: http://grafana:3000
+      ALERTMANAGER_URL: http://alertmanager:9093
+      ALERT_RECORDER_URL: http://alert-recorder:8080
       RABBITMQ_URL: http://rabbitmq:15672
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
@@ -207,7 +209,27 @@ services:
       - ./apps/orders/infrastructure/observability/prometheus:/etc/prometheus/slo/orders:ro
       - ./apps/billing/infrastructure/observability/prometheus:/etc/prometheus/slo/billing:ro
     networks: [default, docker-api]
-    depends_on: [docker-proxy]
+    depends_on: [docker-proxy, alertmanager]
+
+  # alertmanager.yml is assembled by make slo-generate from alertmanager.base.yml and the generated routes fragment.
+  alertmanager:
+    image: prom/alertmanager:v0.34.0
+    command: ["--config.file=/etc/alertmanager/alertmanager.yml", "--storage.path=/alertmanager"]
+    ports: ["127.0.0.1:${SHOWCASE_ALERTMANAGER_PORT:-9093}:9093"]
+    volumes: ["./docker/observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro"]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9093/-/ready"]
+      interval: 5s
+      retries: 20
+    depends_on:
+      alert-recorder: { condition: service_healthy }
+
+  # Webhook receiver of slo-page / slo-ticket: GET / lists the stored notifications, DELETE / forgets them (e2e).
+  alert-recorder:
+    image: php:8.5.10-cli
+    command: ["php", "-S", "0.0.0.0:8080", "/srv/recorder.php"]
+    volumes: ["./docker/alert-recorder/recorder.php:/srv/recorder.php:ro"]
+    healthcheck: *liveliness
 
   loki:
     image: grafana/loki:3.7.8

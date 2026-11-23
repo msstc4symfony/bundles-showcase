@@ -1,7 +1,7 @@
 <?php
 
 $finder = (new PhpCsFixer\Finder())
-    ->in([__DIR__ . '/apps/gateway', __DIR__ . '/apps/orders', __DIR__ . '/apps/billing', __DIR__ . '/e2e', __DIR__ . '/docker/baggage-echo'])
+    ->in([__DIR__ . '/apps/gateway', __DIR__ . '/apps/orders', __DIR__ . '/apps/billing', __DIR__ . '/e2e', __DIR__ . '/docker/baggage-echo', __DIR__ . '/docker/alert-recorder', __DIR__ . '/docker/observability'])
     ->exclude(['vendor', 'var', 'config', 'public', 'bin'])
     ->exclude('var')
 ;

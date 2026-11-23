@@ -1,0 +1,32 @@
+inhibit_rules:
+  - equal:
+      - application
+      - slo
+      - objective
+    source_matchers:
+      - 'alertname="SloErrorBudgetBurn"'
+      - 'severity="page"'
+    target_matchers:
+      - 'alertname="SloErrorBudgetBurn"'
+      - 'severity="ticket"'
+receivers:
+  - name: slo-unrouted
+  - name: slo-page
+  - name: slo-ticket
+route:
+  receiver: slo-unrouted
+  routes:
+    - group_by:
+        - application
+        - slo
+        - objective
+      matchers:
+        - 'alertname=~"SloErrorBudgetBurn|SloNoEvents"'
+        - 'application="showcase"'
+      routes:
+        - matchers:
+            - 'severity="page"'
+          receiver: slo-page
+        - matchers:
+            - 'severity="ticket"'
+          receiver: slo-ticket

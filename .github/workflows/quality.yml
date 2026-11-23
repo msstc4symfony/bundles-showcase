@@ -61,13 +61,14 @@ jobs:
       - run: php bin/console slo:generate --env=test --check
 
   slo-rules:
-    name: promtool (SLO rules)
+    name: promtool + amtool (SLO rules, alertmanager.yml)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref }}
+      - run: php docker/observability/assemble-alertmanager.php --check
       - run: make promtool
 
   e2e-static:

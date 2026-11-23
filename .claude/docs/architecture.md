@@ -15,6 +15,8 @@
 | `billing-migrate` | `app` (APP=billing) | one-shot миграции | — |
 | `gateway-sampled` | `app` (APP=gateway) | RoadRunner | gateway с `TRACING_SAMPLING_RATIO=0.5` (у `gateway` env по умолчанию `1`) — только для `sampling.feature`; Prometheus его не скрейпит |
 | `baggage-echo` | `php:8.5.10-cli` | `php -S` + `docker/baggage-echo/echo.php` | хост вне `allowed_hosts` gateway: логирует `trace_id`, `path`, `traceparent`, `tracestate`, `baggage` для e2e (кроме `/_/*`); gateway ждёт его healthy только ради `up --wait` перед e2e |
+| `alertmanager` | `prom/alertmanager:v0.34.0` | конфиг `docker/observability/alertmanager.yml` (собран, не редактировать) | получает алерты Prometheus (`alerting` в `prometheus.yml`), SLO-маршруты → `slo-page`/`slo-ticket` |
+| `alert-recorder` | `php:8.5.10-cli` | `php -S` + `docker/alert-recorder/recorder.php` | webhook обоих получателей; `GET /` — все уведомления, `DELETE /` — сброс (e2e) |
 | `e2e` (profile `e2e`) | `e2e` | Behat 4 (`behat.php`) | сценарии; docker CLI для `@chaos` |
 
 Три приложения независимы (свой `composer.json/lock`, свой Kernel), общий только `docker/php/Dockerfile`.
@@ -191,3 +193,22 @@ Loki не опубликован. Локально у владельца 8080 и
 `cache_request`, глубина очереди, в т.ч. @chaos с остановленным `billing-worker`), `health.feature` (`degraded` при падении
 Elasticsearch), `profiling.feature` (SQL/HTTP-спаны и `trace_span_id` в логах), `tracing.feature` (id на верхнем уровне),
 `sampling.feature` (20 проб `gateway-sampled`: флаги `03`/`02` и `ot=th:8` по trace id, в Tempo только сэмплированные).
+
+## Alertmanager (slo-bundle 1.1, 2026-11-23 UTC)
+
+- Все три приложения: `generation.alertmanager: { enabled: true }`, получатели по умолчанию `slo-page`/`slo-ticket`;
+  `slo:generate` пишет `infrastructure/observability/alertmanager/slo-alertmanager{,-routes}.yml` (коммитятся, у трёх
+  приложений байт-в-байт одинаковые: общий `application: showcase`, у алертов нет лейбла компонента).
+- `docker/observability/alertmanager.yml` = `alertmanager.base.yml` + фрагмент gateway: `routes` фрагмента — под `route`
+  базы (с отступом 2), `inhibit_rules` — в конец. Сборщик `assemble-alertmanager.php` (хостовый `php`, без YAML-библиотеки,
+  текстовый: ключи верхнего уровня с колонки 0) отказывается, если фрагменты приложений различаются, если в базе уже есть
+  `route.routes` или `inhibit_rules`; `--check` — exit 1 при устаревшем файле (`make slo-check`, CI job `slo-rules`).
+- База: корневой получатель `null`, `group_wait` 5s, `group_interval` 10s, `repeat_interval` 1h; webhook
+  `http://alert-recorder:8080/slo-page|slo-ticket`, `send_resolved: true`.
+- `make promtool` дополнительно: `amtool check-config` на собранном `alertmanager.yml` и на полном
+  `apps/gateway/.../slo-alertmanager.yml`.
+- Контракт `alert-recorder`: `POST <любой путь>` — тело Alertmanager (JSON, иначе 400) дописывается в
+  `/tmp/alert-recorder.jsonl` контейнера, ответ 204; `GET /` — JSON-список `{receivedAt (UTC, Z), receiver, payload}`
+  от старых к новым; `DELETE /` — 204, список пуст; прочие методы — 405; `/_/*` — healthcheck. Состояние живёт до
+  пересоздания контейнера (`make down`/`up`), `restart` его не чистит — e2e сбрасывает явно через `DELETE`.
+- e2e env: `ALERTMANAGER_URL=http://alertmanager:9093`, `ALERT_RECORDER_URL=http://alert-recorder:8080`.

@@ -5,6 +5,7 @@ msstc4symfony_slo:
         - { type: availability, target: 99 }
         - { type: latency, threshold: 100ms, target: 99 }
   generation:
+    alertmanager: { enabled: true }
     selector:
       application: showcase
       components: [orders]

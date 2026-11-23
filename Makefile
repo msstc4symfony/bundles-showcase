@@ -29,22 +29,25 @@ e2e: ## Behat scenarios against the running stack (make up first); @chaos runs l
 demo-traffic: ## About 60 orders over a minute, then a trace id to follow in Loki
 	docker compose run --rm --build --entrypoint php e2e bin/demo-traffic
 
-slo-generate: ## Regenerate each app's SLO rules and dashboards (commit the result)
+slo-generate: ## Regenerate each app's SLO rules, dashboards, Alertmanager routes and alertmanager.yml (commit the result)
 	@for a in $(APPS); do (cd apps/$$a && php bin/console slo:generate --env=test) || exit 1; done
+	php docker/observability/assemble-alertmanager.php
 
 slo-check: ## SLO catalog gates per app, stale generated files fail; then promtool (needs Docker)
 	@for a in $(APPS); do \
 		(cd apps/$$a && php bin/console slo:validate --env=test && php bin/console slo:coverage --env=test \
 			&& php bin/console slo:generate --check --env=test) || exit 1; \
 	done
+	php docker/observability/assemble-alertmanager.php --check
 	$(MAKE) --no-print-directory promtool
 
 SLO_RULE_FILES = $(foreach a,$(APPS),$(wildcard apps/$(a)/infrastructure/observability/prometheus/slo-*.rules.yml))
 
 # The mounts mirror compose.yaml, so "check config" also checks every rule file prometheus.yml lists. A rule_files
 # glob that matches nothing passes "check config", hence the per-app guard and "check rules" on the explicit list.
-promtool: ## promtool check of prometheus.yml and every generated rule file (needs Docker)
-	@for f in $(foreach a,$(APPS),$(foreach k,recording alerts,apps/$(a)/infrastructure/observability/prometheus/slo-$(k).rules.yml)); do \
+promtool: ## promtool check of prometheus.yml and every generated rule file, amtool check of both Alertmanager configs (needs Docker)
+	@for f in $(foreach a,$(APPS),$(foreach k,recording alerts,apps/$(a)/infrastructure/observability/prometheus/slo-$(k).rules.yml)) \
+		apps/gateway/infrastructure/observability/alertmanager/slo-alertmanager.yml docker/observability/alertmanager.yml; do \
 		[ -f $$f ] || { echo "$$f is missing (run make slo-generate)" >&2; exit 1; }; \
 	done
 	docker run --rm --entrypoint promtool \
@@ -53,6 +56,10 @@ promtool: ## promtool check of prometheus.yml and every generated rule file (nee
 		prom/prometheus:v3.15.0 check config /etc/prometheus/prometheus.yml
 	docker run --rm --entrypoint promtool -v $(CURDIR)/apps:/apps:ro prom/prometheus:v3.15.0 \
 		check rules $(SLO_RULE_FILES:apps/%=/apps/%)
+	docker run --rm --entrypoint amtool \
+		-v $(CURDIR)/docker/observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro \
+		-v $(CURDIR)/apps/gateway/infrastructure/observability/alertmanager/slo-alertmanager.yml:/etc/alertmanager/slo-alertmanager.yml:ro \
+		prom/alertmanager:v0.34.0 check-config /etc/alertmanager/alertmanager.yml /etc/alertmanager/slo-alertmanager.yml
 
 # Per project with its own autoloader: the apps share class names (App\\...) with different signatures,
 # so one Rector run over all of them resolves a class to the wrong app.

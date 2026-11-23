@@ -1,0 +1,18 @@
+# Showcase part of alertmanager.yml. make slo-generate appends the gateway's generated slo-alertmanager-routes.yml
+# (route.routes and inhibit_rules) and writes docker/observability/alertmanager.yml; edit this file, not that one.
+# Timings are short so that e2e alerting scenarios finish in minutes.
+route:
+  receiver: "null"
+  group_wait: 5s
+  group_interval: 10s
+  repeat_interval: 1h
+receivers:
+  - name: "null"
+  - name: slo-page
+    webhook_configs:
+      - url: http://alert-recorder:8080/slo-page
+        send_resolved: true
+  - name: slo-ticket
+    webhook_configs:
+      - url: http://alert-recorder:8080/slo-ticket
+        send_resolved: true
