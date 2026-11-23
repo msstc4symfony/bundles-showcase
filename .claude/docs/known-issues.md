@@ -439,8 +439,9 @@
   `prometheus-data` 60 дней сырых счётчиков `symfony_slo_events_total` для `orders.search_index` availability; Prometheus
   ждёт его `service_completed_successfully`. Непустой том (второй `make up` без `down`) → лог
   `prometheus-backfill: skipped, /prometheus is not empty` и exit 0: повторная заливка с новым «сейчас» перекрыла бы
-  первую историю, и счётчики читались бы как сбросы. Прерванный backfill оставляет том пустым (блоки пишутся во
-  временный каталог и переносятся после успеха promtool).
+  первую историю, и счётчики читались бы как сбросы. Блоки собираются в `/prometheus/.backfill` (тот же том) и
+  переносятся rename-ом; каталог удаляется последним. Оставшийся `.backfill` (прерванный запуск) → exit 1
+  «half-written backfill … run make down», Prometheus не стартует.
 - Профиль по умолчанию (`app:slo:backfill`): **2 события в минуту** (120/ч), **0.2 % bad** до последних 4 дней,
   **3 % bad в последние 4 дня** (≈ 3.6 bad/ч); 172 802 сэмпла, 2 серии (`result` good/bad), последний сэмпл = «сейчас»
   команды. Итог на старте: `coverage_ratio` = 1, `slo:error_ratio:rate6h` ≈ 0.031, `rate1h` ≈ 0.025–0.042 (bad
@@ -454,12 +455,14 @@
 - Почему `instance="backfill"`: живые серии несут адрес контейнера в `instance`; общий набор меток склеил бы историю
   с живым счётчиком (живой 0 после исторических 170 тыс. = сброс). Метки SLO (`application, component, slo,
   objective, revision`) команда берёт из селектора `slo:events:rate5m` в `slo-recording.rules.yml` образа — новая
-  ревизия подхватывается после `make slo-generate`; `job`/`service` — как у скрейпа.
+  ревизия попадает в историю только после `make slo-generate` **и `make down`**: без `down` backfill пропускается,
+  история остаётся со старой ревизией, правила новой её не видят → `coverage_ratio` < 1 и ticket гаснет.
+  `job`/`service` — как у скрейпа.
 - e2e: шаги «grows by» по `orders.search_index` фильтруют `instance!='backfill'` (историческая серия видна 5 мин
   lookback после конца истории и, уйдя в stale, уменьшила бы сумму); сценарий NoData перенесён на
   `orders.create_order` latency — у `orders.search_index` с историей значение SLI есть с первой секунды.
 - promtool читает весь вход заново на каждый блок: с `--max-block-duration` 24h — 81 блок за 23 с, с 1464h — 2 блока
-  меньше чем за 1 с. Сервис целиком (генерация ~36 МБ OpenMetrics + promtool + chown) — ≈ 2 с; на `make up` это
+  меньше чем за 1 с. Сервис целиком (генерация ≈ 38 МБ OpenMetrics, 38 106 116 байт + promtool + chown) — ≈ 2 с; на `make up` это
   ≈ +2 с перед стартом Prometheus (образ `backfill` — слой поверх кешированного `app` orders).
 - Live bad-серия, появившаяся сразу с N > 0, даёт `increase() = 0` (см. инъекцию `deadbeef` выше) — для живой поломки
   это не мешает, пока серия `result="bad"` уже существует или растёт после первого скрейпа.

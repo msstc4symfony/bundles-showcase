@@ -52,9 +52,18 @@ final readonly class GeneratedEventSelector
         if (preg_match('/' . BackfillHistory::FAMILY . '_total\{([^}]*)}/', $expression, $selector) !== 1) {
             throw new RuntimeException(sprintf('No %s_total selector in "%s".', BackfillHistory::FAMILY, $expression));
         }
-        preg_match_all('/([a-zA-Z_]\w*)(=~|=)"([^"]*)"/', $selector[1], $matchers, PREG_SET_ORDER);
         $labels = [];
-        foreach ($matchers as [, $name, $operator, $value]) {
+        foreach (explode(',', $selector[1]) as $matcher) {
+            if (trim($matcher) === '') {
+                continue;
+            }
+            if (preg_match('/^\s*([a-zA-Z_]\w*)\s*(=~|!=|!~|=)\s*"([^"]*)"\s*$/', $matcher, $parts) !== 1) {
+                throw new RuntimeException(sprintf('Cannot parse the matcher "%s" in "%s".', trim($matcher), $expression));
+            }
+            [, $name, $operator, $value] = $parts;
+            if ($operator === '!=' || $operator === '!~') {
+                throw new RuntimeException(sprintf('The negative matcher %s%s"%s" names no historical value.', $name, $operator, $value));
+            }
             // A one-value regex (component=~"orders") is a literal; anything wider has no single historical value.
             if ($operator === '=~' && preg_match('/^[\w.-]+$/', $value) !== 1) {
                 throw new RuntimeException(sprintf('The matcher %s=~"%s" selects more than one value.', $name, $value));

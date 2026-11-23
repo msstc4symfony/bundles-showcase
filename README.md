@@ -167,7 +167,10 @@ writes 60 days of raw `orders.search_index` availability counters into the empty
 labels read from the generated recording rules, plus `instance="backfill"`), and `promtool tsdb create-blocks-from
 openmetrics` turns them into blocks. The SLO is then covered from the start and its `ticket` alert fires; recording
 rules are not backfilled, so the recorded series on the dashboards begin at the stack's start. A second `make up`
-leaves a non-empty TSDB untouched (`prometheus-backfill: skipped`); `make down` drops the volume. The 30-day recording rules are evaluated every 5 minutes (group `slo-<name>-window`), the
+leaves a non-empty TSDB untouched (`prometheus-backfill: skipped`); `make down` drops the volume, and is needed after a
+revision change of the SLO for the history to carry the new revision.
+
+The 30-day recording rules are evaluated every 5 minutes (group `slo-<name>-window`), the
 short-window rules and the alerts every minute (group `slo-<name>`).
 
 ### SLO alerts

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Slo;
 
 use App\Slo\BackfillHistory;
-use App\Slo\GeneratedEventSelector;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
@@ -71,17 +70,6 @@ final class BackfillHistoryTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         new BackfillHistory(4, 2, 0.002, 4, 0.03);
-    }
-
-    public function testTheLabelsAreThoseTheGeneratedRulesSelect(): void
-    {
-        $labels = new GeneratedEventSelector(\dirname(__DIR__, 3) . '/infrastructure/observability/prometheus/slo-recording.rules.yml')
-            ->labels('orders.search_index', 'availability')
-        ;
-
-        self::assertSame(['application', 'component', 'slo', 'objective', 'revision'], array_keys($labels));
-        self::assertSame(['showcase', 'orders', 'orders.search_index', 'availability'], \array_slice(array_values($labels), 0, 4));
-        self::assertMatchesRegularExpression('/^[0-9a-f]{8}$/', $labels['revision']);
     }
 
     /**

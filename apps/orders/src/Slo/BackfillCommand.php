@@ -27,6 +27,9 @@ final class BackfillCommand extends Command
      */
     private const array SCRAPE_LABELS = ['job' => 'showcase', 'service' => 'orders', 'instance' => 'backfill'];
 
+    /**
+     * @param non-empty-string $rulesFile
+     */
     public function __construct(
         private readonly ClockInterface $clock,
         #[Autowire('%kernel.project_dir%/infrastructure/observability/prometheus/slo-recording.rules.yml')]
@@ -44,7 +47,7 @@ final class BackfillCommand extends Command
             ->addOption('days', null, InputOption::VALUE_REQUIRED, 'History length, ending now', '60')
             ->addOption('events-per-minute', null, InputOption::VALUE_REQUIRED, 'Total events per minute', '2')
             ->addOption('bad-ratio', null, InputOption::VALUE_REQUIRED, 'Bad share before the burning tail', '0.002')
-            ->addOption('burning-days', null, InputOption::VALUE_REQUIRED, 'Length of the burning tail, ending now', '4')
+            ->addOption('burning-days', null, InputOption::VALUE_REQUIRED, 'Length of the burning tail, ending now (0: none)', '4')
             ->addOption('burning-bad-ratio', null, InputOption::VALUE_REQUIRED, 'Bad share in the burning tail', '0.03')
         ;
     }
@@ -56,12 +59,11 @@ final class BackfillCommand extends Command
             $this->positiveInt($input, 'days'),
             $this->positiveInt($input, 'events-per-minute'),
             $this->ratio($input, 'bad-ratio'),
-            $this->positiveInt($input, 'burning-days'),
+            $this->nonNegativeInt($input, 'burning-days'),
             $this->ratio($input, 'burning-bad-ratio'),
         );
-        $rulesFile = $this->rulesFile !== '' ? $this->rulesFile : throw new InvalidArgumentException('No rules file.');
         $labels = [
-            ...new GeneratedEventSelector($rulesFile)->labels($this->string($input, 'slo'), $this->string($input, 'objective')),
+            ...new GeneratedEventSelector($this->rulesFile)->labels($this->string($input, 'slo'), $this->string($input, 'objective')),
             ...self::SCRAPE_LABELS,
         ];
 
@@ -87,6 +89,16 @@ final class BackfillCommand extends Command
         $value = filter_var($this->string($input, $name), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
         return \is_int($value) && $value > 0 ? $value : throw new InvalidArgumentException(sprintf('--%s must be a positive integer.', $name));
+    }
+
+    /**
+     * @return non-negative-int
+     */
+    private function nonNegativeInt(InputInterface $input, string $name): int
+    {
+        $value = filter_var($this->string($input, $name), FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+
+        return \is_int($value) && $value >= 0 ? $value : throw new InvalidArgumentException(sprintf('--%s must be a non-negative integer.', $name));
     }
 
     private function ratio(InputInterface $input, string $name): float
