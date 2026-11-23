@@ -1,5 +1,9 @@
 APPS := gateway orders billing
 
+# compose.yaml is the single source of the observability image pins (Dependabot bumps it); see image-pins.
+PROMETHEUS_IMAGE := $(shell sed -n 's/^ *image: *\(prom\/prometheus:[^ ]*\).*/\1/p' compose.yaml)
+ALERTMANAGER_IMAGE := $(shell sed -n 's/^ *image: *\(prom\/alertmanager:[^ ]*\).*/\1/p' compose.yaml)
+
 up: ## Build and start the whole stack
 	docker compose up --build --wait --wait-timeout 300
 
@@ -16,6 +20,7 @@ check: ## Quality gate (needs Postgres on 127.0.0.1:5432: docker compose up -d p
 	cd e2e && composer validate --strict --no-check-publish -q && composer audit --locked && vendor/bin/phpstan analyse --no-progress
 	vendor/bin/php-cs-fixer check
 	$(MAKE) --no-print-directory rector RECTOR_FLAGS=--dry-run
+	$(MAKE) --no-print-directory image-pins
 	$(MAKE) --no-print-directory slo-check
 
 fix: ## Apply Rector, then cs-fixer (Rector's imports must be re-sorted)
@@ -41,6 +46,12 @@ slo-check: ## SLO catalog gates per app, stale generated files fail; then promto
 	php docker/observability/assemble-alertmanager.php --check
 	$(MAKE) --no-print-directory promtool
 
+# Dependabot bumps the Dockerfile and compose.yaml in separate PRs; the backfill's promtool must match the server.
+image-pins: ## The prom/prometheus tag in docker/php/Dockerfile equals the one in compose.yaml
+	@[ -n "$(PROMETHEUS_IMAGE)" ] && [ -n "$(ALERTMANAGER_IMAGE)" ] || { echo "compose.yaml has no prom/prometheus or prom/alertmanager image" >&2; exit 1; }
+	@grep -q '^FROM $(PROMETHEUS_IMAGE) AS prometheus$$' docker/php/Dockerfile \
+		|| { echo "docker/php/Dockerfile does not use $(PROMETHEUS_IMAGE); bump it together with compose.yaml" >&2; exit 1; }
+
 SLO_RULE_FILES = $(foreach a,$(APPS),$(wildcard apps/$(a)/infrastructure/observability/prometheus/slo-*.rules.yml))
 
 # The mounts mirror compose.yaml, so "check config" also checks every rule file prometheus.yml lists. A rule_files
@@ -53,13 +64,13 @@ promtool: ## promtool check of prometheus.yml and every generated rule file, amt
 	docker run --rm --entrypoint promtool \
 		-v $(CURDIR)/docker/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro \
 		$(foreach a,$(APPS),-v $(CURDIR)/apps/$(a)/infrastructure/observability/prometheus:/etc/prometheus/slo/$(a):ro) \
-		prom/prometheus:v3.15.0 check config /etc/prometheus/prometheus.yml
-	docker run --rm --entrypoint promtool -v $(CURDIR)/apps:/apps:ro prom/prometheus:v3.15.0 \
+		$(PROMETHEUS_IMAGE) check config /etc/prometheus/prometheus.yml
+	docker run --rm --entrypoint promtool -v $(CURDIR)/apps:/apps:ro $(PROMETHEUS_IMAGE) \
 		check rules $(SLO_RULE_FILES:apps/%=/apps/%)
 	docker run --rm --entrypoint amtool \
 		-v $(CURDIR)/docker/observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro \
 		$(foreach a,$(APPS),-v $(CURDIR)/apps/$(a)/infrastructure/observability/alertmanager/slo-alertmanager.yml:/etc/alertmanager/slo-$(a).yml:ro) \
-		prom/alertmanager:v0.34.0 check-config /etc/alertmanager/alertmanager.yml $(foreach a,$(APPS),/etc/alertmanager/slo-$(a).yml)
+		$(ALERTMANAGER_IMAGE) check-config /etc/alertmanager/alertmanager.yml $(foreach a,$(APPS),/etc/alertmanager/slo-$(a).yml)
 
 # Per project with its own autoloader: the apps share class names (App\\...) with different signatures,
 # so one Rector run over all of them resolves a class to the wrong app.

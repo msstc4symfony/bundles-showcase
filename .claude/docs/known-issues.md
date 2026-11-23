@@ -430,9 +430,10 @@
   `alertmanager.yml` и полные файлы трёх приложений существуют (иначе «… is missing (run make slo-generate)»).
 - Обновление slo-bundle, меняющее фрагмент, требует `make slo-generate` (пересобирает и `alertmanager.yml`), иначе
   `quality` (job `slo-rules`) падает на `--check` сборщика.
-- Пин `prom/prometheus` живёт в `docker/php/Dockerfile` (promtool образа backfill), `compose.yaml` и `Makefile`
-  (`make promtool`), `prom/alertmanager` — в `compose.yaml` и `Makefile` (amtool). Dependabot двигает Dockerfile и
-  compose отдельными PR и не трогает Makefile — обновлять все места вместе.
+- Пины `prom/prometheus` и `prom/alertmanager` — в `compose.yaml`; `Makefile` читает их оттуда (`PROMETHEUS_IMAGE`,
+  `ALERTMANAGER_IMAGE`). Второе место `prom/prometheus` — `docker/php/Dockerfile` (promtool образа backfill):
+  Dependabot двигает его и compose отдельными PR, поэтому `make image-pins` (часть `make check`) падает при
+  расхождении — в PR Dependabot нужно поднять второе место.
 - `alertmanager.yml` смонтирован одним файлом и читается Alertmanager только при старте; `make up` после
   `make slo-generate` контейнер не пересоздаёт (конфиг compose не менялся) → `docker compose restart alertmanager`
   (или `curl -XPOST localhost:9093/-/reload`).

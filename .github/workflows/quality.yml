@@ -61,7 +61,7 @@ jobs:
       - run: php bin/console slo:generate --env=test --check
 
   slo-rules:
-    name: promtool + amtool (SLO rules, alertmanager.yml)
+    name: promtool + amtool (SLO rules, alertmanager.yml, image pins)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -73,6 +73,7 @@ jobs:
           php-version: '8.4'
           coverage: none
       - run: php docker/observability/assemble-alertmanager.php --check
+      - run: make image-pins
       - run: make promtool
 
   e2e-static:
