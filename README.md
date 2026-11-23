@@ -165,10 +165,15 @@ A fresh stack would need 30 days of uptime before a ticket alert can fire, so th
 writes 60 days of raw `orders.search_index` availability counters into the empty TSDB before Prometheus starts:
 `app:slo:backfill` of orders prints them as OpenMetrics (2 events per minute, 0.2 % bad, 3 % bad in the last 4 days;
 labels read from the generated recording rules, plus `instance="backfill"`), and `promtool tsdb create-blocks-from
-openmetrics` turns them into blocks. The SLO is then covered from the start and its `ticket` alert fires; recording
-rules are not backfilled, so the recorded series on the dashboards begin at the stack's start. A second `make up`
-leaves a non-empty TSDB untouched (`prometheus-backfill: skipped`); `make down` drops the volume, and is needed after a
-revision change of the SLO for the history to carry the new revision.
+openmetrics` turns them into blocks. The SLO is then covered from the start and its `ticket` alert fires. The same
+service then backfills what that objective's recording rules record over the history, so its dashboards show the 60
+days too: a throwaway Prometheus on the staged blocks evaluates each rule as a range query at a 5-minute step
+(`app:slo:backfill-recorded`), and the results become blocks the same way. A rule that reads another rule's record
+(`slo:error_budget:remaining` reads `slo:sli:ratio`) runs in a second pass, after a restart of the throwaway
+Prometheus has loaded the first pass's blocks. Only that objective's rules are backfilled; the other SLOs' recorded
+series begin at the stack's start. A second `make up` leaves a non-empty TSDB untouched (`prometheus-backfill:
+skipped`); `make down` drops the volume, and is needed after a revision change of the SLO for the history to carry the
+new revision.
 
 The 30-day recording rules are evaluated every 5 minutes (group `slo-<name>-window`), the
 short-window rules and the alerts every minute (group `slo-<name>`).

@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Slo;
 
 use RuntimeException;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\Yaml\Yaml;
 
 /**
  * The labels of symfony_slo_events_total that the generated recording rules of one objective select, read from
@@ -19,12 +17,8 @@ final readonly class GeneratedEventSelector
     /** A PromQL double-quoted string with its escapes, so a quoted "," or "}" does not end a matcher early. */
     private const string QUOTED = '"(?:[^"\\\\]|\\\\.)*"';
 
-    /**
-     * @param non-empty-string $rulesFile
-     */
     public function __construct(
-        #[Autowire('%kernel.project_dir%/infrastructure/observability/prometheus/slo-recording.rules.yml')]
-        private string $rulesFile,
+        private GeneratedRecordingRules $rules,
     ) {
     }
 
@@ -37,13 +31,9 @@ final readonly class GeneratedEventSelector
     public function labels(string $slo, string $objective): array
     {
         $expressions = [];
-        foreach ($this->rules() as $rule) {
-            $labels = \is_array($rule['labels'] ?? null) ? $rule['labels'] : [];
-            if (($rule['record'] ?? null) === self::RECORD
-                && ($labels['slo'] ?? null) === $slo
-                && ($labels['objective'] ?? null) === $objective
-                && \is_string($rule['expr'] ?? null)) {
-                $expressions[] = $rule['expr'];
+        foreach ($this->rules->ofObjective($slo, $objective) as $rule) {
+            if ($rule->record === self::RECORD) {
+                $expressions[] = $rule->expr;
             }
         }
         if (\count($expressions) !== 1) {
@@ -52,7 +42,7 @@ final readonly class GeneratedEventSelector
                 self::RECORD,
                 $slo,
                 $objective,
-                $this->rulesFile,
+                $this->rules->file,
                 \count($expressions),
             ));
         }
@@ -108,23 +98,5 @@ final readonly class GeneratedEventSelector
         }
 
         return $labels;
-    }
-
-    /**
-     * @return list<array<array-key, mixed>>
-     */
-    private function rules(): array
-    {
-        $parsed = Yaml::parseFile($this->rulesFile);
-        $rules = [];
-        foreach (\is_array($parsed) && \is_array($parsed['groups'] ?? null) ? $parsed['groups'] : [] as $group) {
-            foreach (\is_array($group) && \is_array($group['rules'] ?? null) ? $group['rules'] : [] as $rule) {
-                if (\is_array($rule)) {
-                    $rules[] = $rule;
-                }
-            }
-        }
-
-        return $rules;
     }
 }

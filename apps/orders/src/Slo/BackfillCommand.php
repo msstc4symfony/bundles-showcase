@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Slo;
 
-use InvalidArgumentException;
 use Override;
 use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -16,7 +15,8 @@ use Webmozart\Assert\Assert;
 
 /**
  * Raw SLO counter history for an empty Prometheus TSDB (compose service prometheus-backfill), so the 30d window is
- * covered from the stack's start. Only the raw series: recording rules and alerts compute from it live.
+ * covered from the stack's start. Only the raw series: app:slo:backfill-recorded derives the recorded ones from it,
+ * and alerts compute live.
  */
 #[AsCommand('app:slo:backfill', "Writes the OpenMetrics history of one SLO objective's event counters to stdout")]
 final class BackfillCommand extends Command
@@ -57,15 +57,16 @@ final class BackfillCommand extends Command
     #[Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $options = new ConsoleOptions($input);
         $history = new BackfillHistory(
-            $this->positiveInt($input, 'days'),
-            $this->positiveInt($input, 'events-per-minute'),
-            $this->ratio($input, 'bad-ratio'),
-            $this->nonNegativeInt($input, 'burning-days'),
-            $this->ratio($input, 'burning-bad-ratio'),
+            $options->positiveInt('days'),
+            $options->positiveInt('events-per-minute'),
+            $options->ratio('bad-ratio'),
+            $options->nonNegativeInt('burning-days'),
+            $options->ratio('burning-bad-ratio'),
         );
         $labels = [
-            ...$this->selector->labels($this->string($input, 'slo'), $this->string($input, 'objective')),
+            ...$this->selector->labels($options->string('slo'), $options->string('objective')),
             ...self::SCRAPE_LABELS,
         ];
         $now = $this->clock->now()->getTimestamp();
@@ -76,50 +77,5 @@ final class BackfillCommand extends Command
         }
 
         return Command::SUCCESS;
-    }
-
-    /**
-     * @return non-empty-string
-     */
-    private function string(InputInterface $input, string $name): string
-    {
-        $value = $input->getOption($name);
-
-        return \is_string($value) && $value !== ''
-            ? $value
-            : throw new InvalidArgumentException(sprintf('--%s must be set and not empty.', $name));
-    }
-
-    /**
-     * @return positive-int
-     */
-    private function positiveInt(InputInterface $input, string $name): int
-    {
-        $value = filter_var($this->string($input, $name), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-
-        return \is_int($value) && $value > 0
-            ? $value
-            : throw new InvalidArgumentException(sprintf('--%s must be a positive integer.', $name));
-    }
-
-    /**
-     * @return non-negative-int
-     */
-    private function nonNegativeInt(InputInterface $input, string $name): int
-    {
-        $value = filter_var($this->string($input, $name), FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
-
-        return \is_int($value) && $value >= 0
-            ? $value
-            : throw new InvalidArgumentException(sprintf('--%s must be a non-negative integer.', $name));
-    }
-
-    private function ratio(InputInterface $input, string $name): float
-    {
-        $value = filter_var($this->string($input, $name), FILTER_VALIDATE_FLOAT);
-
-        return \is_float($value)
-            ? $value
-            : throw new InvalidArgumentException(sprintf('--%s must be a number.', $name));
     }
 }

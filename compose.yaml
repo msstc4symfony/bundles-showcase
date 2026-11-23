@@ -198,7 +198,8 @@ services:
     networks: [docker-api]
 
   # 60 days of raw orders.search_index counters (instance "backfill") as TSDB blocks, so its 30d window is covered
-  # from the start and the ticket alert can fire; skipped when the TSDB is not empty (make down drops the volume).
+  # from the start and the ticket alert can fire, plus what its recording rules record over them, so the dashboards
+  # show that history; skipped when the TSDB is not empty (make down drops the volume).
   prometheus-backfill:
     build: { context: ., dockerfile: docker/php/Dockerfile, target: backfill, args: { APP: orders } }
     command: ["sh", "/usr/local/bin/backfill.sh"]

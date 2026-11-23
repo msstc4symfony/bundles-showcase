@@ -5,6 +5,10 @@ Feature: SLOs are counted by their strategy and evaluated by the generated rules
     And within 60 seconds Grafana has 18 dashboards tagged "slo" with distinct uids in the folder "SLO"
     # prometheus-backfill covers its whole 30d window from the start; SLOs without history may have no value yet.
     And the "slo:window:coverage_ratio" rule of "orders.search_index" "availability" evaluates to exactly 1
+    # It also writes what that objective's recording rules record over the history, in two passes: the error budget
+    # reads slo:sli:ratio. 0.2 % bad back then: 0.8 of the budget left.
+    And the recorded "slo:error_ratio:rate1h" series of "orders.search_index" "availability" was between 0 and 0.05 30 days ago
+    And the recorded "slo:error_budget:remaining" series of "orders.search_index" "availability" was between 0.7 and 0.9 30 days ago
 
   Scenario: Each objective is counted where its strategy says
     Given I remember the current metric values

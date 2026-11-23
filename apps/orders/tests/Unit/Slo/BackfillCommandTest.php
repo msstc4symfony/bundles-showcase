@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Slo;
 
 use App\Slo\BackfillCommand;
 use App\Slo\GeneratedEventSelector;
+use App\Slo\GeneratedRecordingRules;
 use DateTimeImmutable;
 use InvalidArgumentException;
 use Override;
@@ -81,6 +82,6 @@ final class BackfillCommandTest extends TestCase
         $this->rulesFile = $file;
         file_put_contents($file, $rules);
 
-        return new CommandTester(new BackfillCommand(new MockClock(self::NOW), new GeneratedEventSelector($file)));
+        return new CommandTester(new BackfillCommand(new MockClock(self::NOW), new GeneratedEventSelector(new GeneratedRecordingRules($file))));
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Slo;
 
 use App\Slo\GeneratedEventSelector;
+use App\Slo\GeneratedRecordingRules;
 use Override;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
@@ -23,7 +24,7 @@ final class GeneratedEventSelectorTest extends TestCase
 
     public function testTheLabelsAreThoseTheGeneratedRulesSelect(): void
     {
-        $labels = new GeneratedEventSelector(\dirname(__DIR__, 3) . '/infrastructure/observability/prometheus/slo-recording.rules.yml')
+        $labels = new GeneratedEventSelector(new GeneratedRecordingRules(\dirname(__DIR__, 3) . '/infrastructure/observability/prometheus/slo-recording.rules.yml'))
             ->labels('orders.search_index', 'availability')
         ;
 
@@ -90,7 +91,7 @@ final class GeneratedEventSelectorTest extends TestCase
         $this->files[] = $file;
         file_put_contents($file, "groups:\n  - name: test\n    rules:\n" . implode('', $rules));
 
-        return new GeneratedEventSelector($file);
+        return new GeneratedEventSelector(new GeneratedRecordingRules($file));
     }
 
     private function rule(?string $matchers, string $slo = 'orders.search_index'): string

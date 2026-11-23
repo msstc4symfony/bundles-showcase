@@ -60,7 +60,7 @@ final readonly class BackfillHistory
     {
         yield '# TYPE ' . self::FAMILY . ' counter';
         foreach (['good', 'bad'] as $result) {
-            $series = self::FAMILY . '_total' . $this->labelSet([...$labels, 'result' => $result]);
+            $series = self::FAMILY . '_total' . OpenMetrics::labelSet([...$labels, 'result' => $result]);
             foreach ($this->samples($now) as $timestamp => [$total, $bad]) {
                 yield sprintf('%s %d %d', $series, $result === 'bad' ? $bad : $total - $bad, $timestamp);
             }
@@ -89,18 +89,5 @@ final readonly class BackfillHistory
                 (int) floor($expectedBad + self::FLOAT_SLACK),
             ];
         }
-    }
-
-    /**
-     * @param non-empty-array<string, string> $labels
-     */
-    private function labelSet(array $labels): string
-    {
-        $pairs = [];
-        foreach ($labels as $name => $value) {
-            $pairs[] = sprintf('%s="%s"', $name, addcslashes($value, "\\\"\n"));
-        }
-
-        return '{' . implode(',', $pairs) . '}';
     }
 }

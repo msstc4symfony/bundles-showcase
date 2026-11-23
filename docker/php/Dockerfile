@@ -36,11 +36,11 @@ COPY --from=build --chown=www-data:www-data /app/var /app/var
 USER www-data
 CMD ["rr", "serve", "-c", ".rr.yaml"]
 
-# The orders app plus promtool for compose's prometheus-backfill. Root: it hands the new TSDB over to the
-# Prometheus image's user (nobody).
+# The orders app plus promtool and a throwaway Prometheus (it evaluates the recording rules over the raw history)
+# for compose's prometheus-backfill. Root: it hands the new TSDB over to the Prometheus image's user (nobody).
 FROM app AS backfill
 USER root
-COPY --from=prometheus /bin/promtool /usr/local/bin/promtool
+COPY --from=prometheus /bin/promtool /bin/prometheus /usr/local/bin/
 
 # Stays root: the @chaos scenarios drive the docker socket.
 FROM tools AS e2e

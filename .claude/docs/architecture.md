@@ -16,7 +16,7 @@
 | `gateway-sampled` | `app` (APP=gateway) | RoadRunner | gateway с `TRACING_SAMPLING_RATIO=0.5` (у `gateway` env по умолчанию `1`) — только для `sampling.feature`; Prometheus его не скрейпит |
 | `baggage-echo` | `php:8.5.10-cli` | `php -S` + `docker/baggage-echo/echo.php` | хост вне `allowed_hosts` gateway: логирует `trace_id`, `path`, `traceparent`, `tracestate`, `baggage` для e2e (кроме `/_/*`); gateway ждёт его healthy только ради `up --wait` перед e2e |
 | `alertmanager` | `prom/alertmanager:v0.34.0` | конфиг `docker/observability/alertmanager.yml` (собран, не редактировать) | получает алерты Prometheus (`alerting` в `prometheus.yml`), SLO-маршруты → `slo-page`/`slo-ticket` |
-| `prometheus-backfill` | `backfill` (`app` APP=orders + promtool, root) | one-shot `docker/prometheus-backfill/backfill.sh` | 60 дней сырых счётчиков `orders.search_index` availability (`app:slo:backfill`, `instance="backfill"`) блоками в пустой том `prometheus-data` до старта Prometheus; непустой том → `skipped`. `app:slo:backfill` — демо-инструмент: зарегистрирован и в образе `orders`, но запускается только этим сервисом, в runtime orders не участвует |
+| `prometheus-backfill` | `backfill` (`app` APP=orders + promtool + prometheus, root) | one-shot `docker/prometheus-backfill/backfill.sh` | 60 дней сырых счётчиков `orders.search_index` availability (`app:slo:backfill`, `instance="backfill"`) и записанных серий её recording rules (`app:slo:backfill-recorded` против временного Prometheus на `127.0.0.1:9091` внутри контейнера, по проходам) блоками в пустой том `prometheus-data` до старта Prometheus; непустой том → `skipped`. Обе команды — демо-инструменты: зарегистрированы и в образе `orders`, но запускаются только этим сервисом, в runtime orders не участвуют |
 | `alert-recorder` | `php:8.5.10-cli` | `php -S` + `docker/alert-recorder/recorder.php` | webhook обоих получателей; `GET /` — все уведомления, `GET /?since=N` — начиная с N-го (e2e: «новые» после запомненного числа), `DELETE /` — сброс (вручную) |
 | `e2e` (profile `e2e`) | `e2e` | Behat 4 (`behat.php`) | сценарии; docker CLI для `@chaos` |
 
@@ -151,6 +151,10 @@ Loki не опубликован. Локально у владельца 8080 и
   `output_dir` по умолчанию — `apps/<app>/infrastructure/observability`.
 - orders: `SloMiddleware` (slo-bridge-logic, приоритет 350) стоит между `MetricsMiddleware` и `LoggingMiddleware`
   (`CreateOrderActionWiringTest`); slo-bridge-profiling открывает спан `operation orders.search_index`.
+- Backfill в orders (`App\Slo`, 2026-11-23 UTC): `app:slo:backfill` (`BackfillHistory` → OpenMetrics сырых счётчиков,
+  метки из `GeneratedEventSelector`) и `app:slo:backfill-recorded` (`GeneratedRecordingRules::ofObjective()` →
+  `RecordingRules::passes()` → `RecordedHistory` поверх `PrometheusRangeQuery`, POST `/api/v1/query_range` кусками
+  ≤ 11 000 точек). Обе читают сгенерированный `slo-recording.rules.yml` образа; опции — через `ConsoleOptions`.
 
 ### Сгенерированные правила и дашборды (2026-11-22 UTC)
 

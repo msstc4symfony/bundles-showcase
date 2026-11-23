@@ -321,6 +321,22 @@ final class SloContext implements Context
         $this->storage()->increment($database, $key, $copy, $count);
     }
 
+    /**
+     * The stored series, not the rule's query evaluated back then: only a backfill can have recorded that far back.
+     *
+     * @param non-empty-string $record
+     * @param positive-int $days
+     */
+    #[Then('the recorded :record series of :slo :objective was between :min and :max :days days ago')]
+    public function theRecordedSeriesWasBetween(string $record, string $slo, string $objective, float $min, float $max, int $days): void
+    {
+        $instant = time() - $days * 86_400;
+        $value = $this->prometheus->sample(sprintf('%s{slo="%s",objective="%s"}', $record, $slo, $objective), $instant);
+        Assert::notNull($value, sprintf('%s of %s %s has no sample at %s.', $record, $slo, $objective, $this->utc($instant)));
+        Assert::range($value, $min, $max, sprintf('%s of %s %s is %s at %s, expected [%s, %s].', $record, $slo, $objective, $value, $this->utc($instant), $min, $max));
+        echo sprintf('value %s at %s', $value, $this->utc($instant));
+    }
+
     #[Then(':query has no series')]
     public function hasNoSeries(string $query): void
     {
