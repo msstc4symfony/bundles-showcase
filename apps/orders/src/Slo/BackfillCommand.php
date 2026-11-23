@@ -69,7 +69,7 @@ final class BackfillCommand extends Command
             ...self::SCRAPE_LABELS,
         ];
         $now = $this->clock->now()->getTimestamp();
-        Assert::positiveInteger($now, 'The clock is before the Unix epoch.');
+        Assert::positiveInteger($now, 'The clock must be after the Unix epoch.');
 
         foreach ($history->lines($labels, $now) as $line) {
             $output->writeln($line, OutputInterface::OUTPUT_RAW);
@@ -87,7 +87,7 @@ final class BackfillCommand extends Command
 
         return \is_string($value) && $value !== ''
             ? $value
-            : throw new InvalidArgumentException(sprintf('--%s is required.', $name));
+            : throw new InvalidArgumentException(sprintf('--%s must be set and not empty.', $name));
     }
 
     /**
