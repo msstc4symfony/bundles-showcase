@@ -23,7 +23,7 @@
         "msstc4symfony/profiling-bundle": "^2.3.1",
         "msstc4symfony/slo-bridge-logic": "^1.0",
         "msstc4symfony/slo-bridge-profiling": "^1.0",
-        "msstc4symfony/slo-bundle": "^1.1",
+        "msstc4symfony/slo-bundle": "^1.2",
         "msstc4symfony/sql-labeller": "^1.0",
         "msstc4symfony/tracing-bridge-logic": "^2.0.1",
         "msstc4symfony/tracing-bridge-otlp": "^1.2.2",

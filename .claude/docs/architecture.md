@@ -12,6 +12,7 @@
 | `elasticsearch` | `elasticsearch:9.5.5` | single-node, без security | поиск заказов (только orders) |
 | `billing` | `app` (APP=billing) | RoadRunner (только `/_/metrics`, `/_/healthcheck/*`) | — |
 | `billing-worker` | `app` (APP=billing) | `messenger:consume process_payment` | платёж + ответ `PaymentProcessed` |
+| `billing-scheduler` | `app` (APP=billing) | `messenger:consume scheduler_billing` | расписание `billing`: `ReconcilePayments` каждые 15 с (SLO `billing.reconcile_payments`) |
 | `billing-migrate` | `app` (APP=billing) | one-shot миграции | — |
 | `gateway-sampled` | `app` (APP=gateway) | RoadRunner | gateway с `TRACING_SAMPLING_RATIO=0.5` (у `gateway` env по умолчанию `1`) — только для `sampling.feature`; Prometheus его не скрейпит |
 | `baggage-echo` | `php:8.5.10-cli` | `php -S` + `docker/baggage-echo/echo.php` | хост вне `allowed_hosts` gateway: логирует `trace_id`, `path`, `traceparent`, `tracestate`, `baggage` для e2e (кроме `/_/*`); gateway ждёт его healthy только ради `up --wait` перед e2e |
@@ -135,6 +136,7 @@ Loki не опубликован. Локально у владельца 8080 и
   С 2026-11-22 UTC: metrics ^2.3 (роутерные 404 и error-страницы попадают в `http_response`, см. known-issues).
   С 2026-11-22 UTC: slo-bundle ^1.0.0-rc.4 (все приложения; rc.4 — consume-only хендлеры), slo-bridge-logic и slo-bridge-profiling ^1.0.0-rc.1 (orders);
   RC разрешены только явным RC-ограничением в корневом `require` (`minimum-stability: stable`).
+  С 2026-11-25 UTC: slo-bundle ^1.2 (все приложения; SLO на задачах Scheduler), billing — `symfony/scheduler` 8.1.*.
 
 ## SLO (slo-bundle, 2026-11-22 UTC)
 
@@ -144,6 +146,7 @@ Loki не опубликован. Локально у владельца 8080 и
 | `billing.process_payment` | `ProcessPaymentHandler` (`ProcessPayment`) | Availability 99.9, Latency 1s/99 (бакет Messenger) | existing_series, existing_series |
 | `orders.create_order` | Action `App\Application\Order\Create\Action` | Availability 99.9, Latency 300ms/99 (не бакет logic) | existing_series, dedicated |
 | `orders.search_index` | операция в `ElasticaOrderIndex::add()` (`msstc4symfony_slo.operations`) | Availability 99, Latency 100ms/99 | dedicated, dedicated |
+| `billing.reconcile_payments` | задача Scheduler `App\Scheduler\ReconcilePayments::__invoke` (`#[AsPeriodicTask(15, schedule: 'billing')]`, billing-scheduler) | Availability 99, Latency 5s/99 (deadline = порог 5s) | dedicated, dedicated |
 
 - Остальные маршруты и хендлеры — `#[IgnoreMonitoring(reason)]`, coverage-гейт с дефолтными процентами;
   `SloCatalogTest` каждого приложения закрепляет имена, `point_type`, стратегии и `slo:validate`/`slo:coverage` = 0.
@@ -181,6 +184,9 @@ Loki не опубликован. Локально у владельца 8080 и
   application → 18 файлов давали 6 uid, Grafana провиженила набор одного приложения. С rc.3 uid и title учитывают
   `components` селектора (`SLO: HTTP Routes (showcase: orders)`) → 18 разных uid (проверено `api/search?tag=slo`).
 - e2e получает `GRAFANA_URL=http://grafana:3000`.
+- С slo-bundle 1.2 (2026-11-25 UTC) дашбордов 7 на приложение (новый `slo-scheduled-tasks.json` у всех, даже без
+  задач) → 21 в папке SLO; групп записи 10 (5 SLO × 2), алертов 5. Группа `slo-billing.reconcile_payments` содержит
+  `slo:unfinished_runs:step` (незавершённые за deadline запуски — bad во всех целях).
 
 ### e2e SLO (2026-11-22 UTC)
 

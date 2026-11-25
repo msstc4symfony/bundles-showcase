@@ -17,6 +17,10 @@ final class SloCatalogTest extends KernelTestCase
                 'point_type' => 'messenger_message',
                 'strategies' => ['availability' => 'existing_series', 'latency' => 'existing_series'],
             ],
+            'billing.reconcile_payments' => [
+                'point_type' => 'scheduled_task',
+                'strategies' => ['availability' => 'dedicated', 'latency' => 'dedicated'],
+            ],
         ], $this->declaredSlos());
     }
 

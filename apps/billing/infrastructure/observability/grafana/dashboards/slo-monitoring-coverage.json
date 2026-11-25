@@ -16,7 +16,7 @@
             },
             "id": 1,
             "options": {
-                "content": "| Kind | SLO coverage | Measured by a metric |\n| --- | --- | --- |\n| http_route | 100% | 0% |\n| messenger_handler | 100% | 25% |\n| logic_action | 100% | 100% |\n| operation | 100% | 100% |\n\nGenerated from the compiled SLO catalog; it changes only when slo:generate is run.\n",
+                "content": "| Kind | SLO coverage | Measured by a metric |\n| --- | --- | --- |\n| http_route | 100% | 0% |\n| messenger_handler | 100% | 20% |\n| logic_action | 100% | 100% |\n| operation | 100% | 100% |\n| scheduled_task | 100% | 0% |\n\nGenerated from the compiled SLO catalog; it changes only when slo:generate is run.\n",
                 "mode": "markdown"
             },
             "title": "Coverage by kind",
@@ -24,14 +24,14 @@
         },
         {
             "gridPos": {
-                "h": 11,
+                "h": 13,
                 "w": 24,
                 "x": 0,
                 "y": 8
             },
             "id": 2,
             "options": {
-                "content": "| Point | Kind | Status | SLOs | Note |\n| --- | --- | --- | --- | --- |\n| healthcheck-liveliness | http_route | ignored | - | system route |\n| healthcheck-ping | http_route | ignored | - | system route |\n| healthcheck-readiness | http_route | ignored | - | system route |\n| metrics-get | http_route | ignored | - | system route |\n| App\\MessageHandler\\ProcessPaymentHandler::__invoke | messenger_handler | monitored | billing.process_payment | - |\n| Symfony\\Component\\Console\\Messenger\\RunCommandMessageHandler::__invoke | messenger_handler | unsupported | - | sync handling is not measured |\n| Symfony\\Component\\HttpClient\\Messenger\\PingWebhookMessageHandler::__invoke | messenger_handler | unsupported | - | sync handling is not measured |\n| Symfony\\Component\\Messenger\\Handler\\RedispatchMessageHandler::__invoke | messenger_handler | unsupported | - | sync handling is not measured |\n",
+                "content": "| Point | Kind | Status | SLOs | Note |\n| --- | --- | --- | --- | --- |\n| healthcheck-liveliness | http_route | ignored | - | system route |\n| healthcheck-ping | http_route | ignored | - | system route |\n| healthcheck-readiness | http_route | ignored | - | system route |\n| metrics-get | http_route | ignored | - | system route |\n| App\\MessageHandler\\ProcessPaymentHandler::__invoke | messenger_handler | monitored | billing.process_payment | - |\n| Symfony\\Component\\Console\\Messenger\\RunCommandMessageHandler::__invoke | messenger_handler | unsupported | - | sync handling is not measured |\n| Symfony\\Component\\HttpClient\\Messenger\\PingWebhookMessageHandler::__invoke | messenger_handler | unsupported | - | sync handling is not measured |\n| Symfony\\Component\\Messenger\\Handler\\RedispatchMessageHandler::__invoke | messenger_handler | unsupported | - | sync handling is not measured |\n| Symfony\\Component\\Scheduler\\Messenger\\ServiceCallMessageHandler::__invoke | messenger_handler | unsupported | - | sync handling is not measured |\n| App\\Scheduler\\ReconcilePayments::__invoke | scheduled_task | monitored | billing.reconcile_payments | - |\n",
                 "mode": "markdown"
             },
             "title": "Points",

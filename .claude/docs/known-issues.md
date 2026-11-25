@@ -592,3 +592,26 @@
   горит ещё page `gateway.create_order`.
 - `slo.feature`: `coverage_ratio` для `orders.search_index` availability строго `== 1` (шаг `evaluates to exactly`);
   для остальных SLO «нет значения» по-прежнему допустимо.
+
+## slo-bundle 1.2: SLO на задаче Scheduler в billing (2026-11-25 UTC)
+
+- Расписание `billing` исполняется только там, где читают транспорт `scheduler_billing` → отдельный сервис
+  `billing-scheduler` (`messenger:consume scheduler_billing`). `billing-worker` его не читает: без нового сервиса
+  `ReconcilePayments` не запускается, и SLO молчит (не bad — «задача не запускается» bundle не ловит).
+- `task` в метриках — `<service id>::<method>`, у автоконфигурированного класса id = FQCN:
+  `task="App\\Scheduler\\ReconcilePayments::__invoke"` (в PromQL обратный слеш экранируется).
+- `scrape_interval_seconds: 5` в `msstc4symfony_slo.yaml` billing = `global.scrape_interval` в `prometheus.yml`; при
+  дефолте 60 `slo:validate` отверг бы deadline 5s (порог latency) — меняешь scrape interval стенда, меняй и это.
+- Поломка задачи: `redis-cli -n 4 set showcase:billing:reconcile:fail 1` (DB кеша billing). Проверено 2026-11-25 UTC:
+  3 запуска → `finished_total{outcome="error"}` и `events_total{objective="availability",result="bad"}` +3; latency
+  ошибки не считает (bad только по длительности/незавершённым). Ретраев нет, failure transport пуст
+  (`Removing from transport after 0 retries`).
+- После апгрейда `slo:generate --check` дрейфует (новый `slo-scheduled-tasks.json` у всех трёх приложений, строка
+  `scheduled_task` в coverage-дашборде) — перегенерировать. `slo:coverage` billing показывает
+  новый `ServiceCallMessageHandler` как `unsupported … sync handling` (как уже `RunCommandMessageHandler`) — гейт не
+  валит, `messenger_handler` «measured by universal metrics» упал с 25 % до 20 %. Flex-рецепт `symfony/scheduler`
+  (дефолтный `src/Schedule.php`) намеренно не установлен: задача объявлена атрибутом.
+- Lock-и обновлены `composer:2.11` в Docker с `--no-install --no-scripts --ignore-platform-req='ext-*'` (PHP образа
+  8.5, частичное обновление не трогает остальные пакеты); `symfony/scheduler` встал как 8.1.12 при messenger 8.1.8.
+  `composer require` в одном запуске с ещё не обновлённым в lock `slo-bundle ^1.2` падает («fixed to v1.1.0 by a
+  partial update») — сначала `update msstc4symfony/slo-bundle`, потом `require`.

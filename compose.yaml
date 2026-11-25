@@ -131,6 +131,15 @@ services:
     depends_on:
       billing: { condition: service_healthy }
 
+  # Schedule "billing" (ReconcilePayments) runs only where its transport scheduler_billing is consumed.
+  billing-scheduler:
+    restart: unless-stopped
+    build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: billing } }
+    command: ["php", "bin/console", "messenger:consume", "scheduler_billing", "--time-limit=3600", "-vv"]
+    environment: *billing-env
+    depends_on:
+      billing: { condition: service_healthy }
+
   # A host off the gateway's baggage.allowed_hosts: logs the baggage it gets, for e2e.
   baggage-echo:
     image: php:8.5.10-cli

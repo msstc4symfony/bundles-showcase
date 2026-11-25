@@ -20,7 +20,7 @@ client ──HTTP──▶ gateway ──HTTP──▶ orders ──AMQP: Proces
 |---|---|---|
 | `gateway` | Public `POST /orders` and `GET /orders/{id}`. Proxies to orders and makes `POST` idempotent through the `Idempotency-Key` header, using a Redis cache and a Redis lock. | RoadRunner |
 | `orders` | Stores the order as `pending`, then sends `ProcessPayment` and indexes the order in Elasticsearch through FOSElasticaBundle. Applies `PaymentProcessed` and moves the order to `paid` or `declined`. | RoadRunner + `messenger:consume payment_processed`; one-shots `orders-migrate` (schema) and `orders-search-index` (Elasticsearch index) before start |
-| `billing` | Records the payment. Amounts above `BILLING_DECLINE_ABOVE` (100000) are declined. | RoadRunner (service routes) + `messenger:consume process_payment` |
+| `billing` | Records the payment. Amounts above `BILLING_DECLINE_ABOVE` (100000) are declined. Runs the Scheduler task `ReconcilePayments` every 15 seconds. | RoadRunner (service routes) + `messenger:consume process_payment` + `billing-scheduler` (`messenger:consume scheduler_billing`) |
 
 Infrastructure: PostgreSQL 18, Redis 7, RabbitMQ 4, Elasticsearch 9 (single node, used by orders). Observability: Prometheus, Alertmanager, Loki, Tempo, Alloy and Grafana.
 
@@ -36,7 +36,7 @@ make down          # stop and drop volumes
 | What | URL |
 |---|---|
 | Gateway API | http://localhost:8080/orders |
-| Grafana (anonymous admin) | http://localhost:3000, dashboards "Showcase — services" and "Showcase — profiling spans"; 18 generated SLO dashboards in the folder "SLO" |
+| Grafana (anonymous admin) | http://localhost:3000, dashboards "Showcase — services" and "Showcase — profiling spans"; 21 generated SLO dashboards in the folder "SLO" |
 | Prometheus | http://localhost:9090 |
 | Alertmanager | http://localhost:9093 (SLO alerts go to the webhook recorder `alert-recorder`, see [SLO alerts](#slo-alerts)) |
 | Tempo API | http://localhost:3200 (traces at `/api/v2/traces/<trace id>`; browse them in Grafana → Explore → Tempo) |
@@ -105,7 +105,7 @@ messages stamped by 1.x cannot be decoded.
 | [tracing-bridge-profiling](https://github.com/msstc4symfony/tracing-bridge-profiling) | Every non-detached profiling span runs in its own trace span; its `profiling` record carries `trace_span_id` and `trace_parent_span_id` in `context` |
 | [tracing-bridge-otlp](https://github.com/msstc4symfony/tracing-bridge-otlp) | Every sampled profiling span exported over OTLP with the trace and span ids of the logs, HTTP calls as CLIENT spans that the callee's request span hangs under, plus the logs over OTLP; one export per request or message; a stopped collector costs one `OTLP span export failed` and one `OTLP log export failed` warning per 30 seconds and the OTLP records of that time — the stderr lines still reach Loki (e2e `@chaos`) |
 | [logic-bundle](https://github.com/msstc4symfony/logic-bundle) | orders creates an order through an `Action` (`src/Application/Order/Create/`): `Start/Finish application action` log records around it and validation of its `Input`. No lock: the gateway idempotency store already serialises duplicate `POST /orders`, and a non-blocking lock would answer 409 instead of the stored response |
-| [slo-bundle](https://github.com/msstc4symfony/slo-bundle) | Four SLOs (see [SLOs](#slos)), the coverage gate of `make check`, `symfony_slo_events_total{slo,objective,revision,result}` on `/_/metrics`, and the generated recording rules, alerts and Grafana dashboards loaded by Prometheus and Grafana |
+| [slo-bundle](https://github.com/msstc4symfony/slo-bundle) | Five SLOs (see [SLOs](#slos)), one on a Scheduler task with its run metrics `symfony_slo_scheduled_task_*{task}`, the coverage gate of `make check`, `symfony_slo_events_total{slo,objective,revision,result}` on `/_/metrics`, and the generated recording rules, alerts and Grafana dashboards loaded by Prometheus and Grafana |
 | [slo-bridge-logic](https://github.com/msstc4symfony/slo-bridge-logic) | orders: `SloMiddleware` in the Action chain measures `orders.create_order` on the create Action |
 | [slo-bridge-profiling](https://github.com/msstc4symfony/slo-bridge-profiling) | orders: every measured operation (`orders.search_index`) runs in a profiling span `operation orders.search_index` |
 
@@ -128,19 +128,22 @@ Each app declares its SLOs with [slo-bundle](https://github.com/msstc4symfony/sl
 |---|---|---|---|
 | `gateway.create_order` | route `gateway_create_order` (`POST /orders`) | availability 99.5, latency 200ms / 99 | dedicated, dedicated |
 | `billing.process_payment` | `ProcessPaymentHandler` (`ProcessPayment`, billing-worker) | availability 99.9, latency 1s / 99 | existing_series, existing_series |
+| `billing.reconcile_payments` | Scheduler task `App\Scheduler\ReconcilePayments::__invoke` (schedule `billing`, billing-scheduler) | availability 99, latency 5s / 99 (also the run deadline) | dedicated, dedicated |
 | `orders.create_order` | the create Action `App\Application\Order\Create\Action` | availability 99.9, latency 300ms / 99 | existing_series, dedicated |
 | `orders.search_index` | operation in `ElasticaOrderIndex::add()` (`msstc4symfony_slo.operations`) | availability 99, latency 100ms / 99 | dedicated, dedicated |
 
 Every other route and handler carries `#[IgnoreMonitoring(reason)]`. Orders' `CreateOrderController` is one of them:
 the `orders.create_order` Action SLO covers it, while `gateway.create_order` also catches the 422 and 5xx answers that
-never reach the Action. The generation selector is
+never reach the Action. `ReconcilePayments` has nothing to reconcile: it fails while the Redis key
+`showcase:billing:reconcile:fail` exists (`docker compose exec redis redis-cli -n 4 set showcase:billing:reconcile:fail 1`,
+`del` to heal), which turns its runs into bad availability events. The generation selector is
 `{application: showcase, components: [<app>]}`, so each app generates its own set into
 `apps/<app>/infrastructure/observability/`:
 
 | File | Loaded as |
 |---|---|
 | `prometheus/slo-recording.rules.yml`, `prometheus/slo-alerts.rules.yml` | Prometheus `rule_files`, mounted at `/etc/prometheus/slo/<app>/` |
-| `grafana/dashboards/slo-*.json` (6 per app) | Grafana provider `slo` (`docker/observability/grafana/provisioning/dashboards/dashboards.yaml`), mounted at `/var/lib/grafana/slo/<app>/`, folder "SLO" |
+| `grafana/dashboards/slo-*.json` (7 per app) | Grafana provider `slo` (`docker/observability/grafana/provisioning/dashboards/dashboards.yaml`), mounted at `/var/lib/grafana/slo/<app>/`, folder "SLO" |
 | `grafana/provisioning/dashboards/slo.yaml` | committed, **not mounted** (see below) |
 | `alertmanager/slo-alertmanager-routes.yml` | the routes and inhibit rules pasted into `docker/observability/alertmanager.yml` (see [SLO alerts](#slo-alerts)) |
 | `alertmanager/slo-alertmanager.yml` | committed, not mounted: the full config with empty receivers, checked by `amtool` |
@@ -155,7 +158,7 @@ The generated `slo.yaml` points its provider at `/var/lib/grafana/dashboards`, a
 directory of the showcase provider. Two providers on one directory provision every dashboard twice, so the showcase
 declares its own `slo` provider on `/var/lib/grafana/slo` instead; Grafana's file provider reads the per-app
 subdirectories. The dashboard uids and titles include the component (`SLO: HTTP Routes (showcase: orders)`), so the three
-apps' 18 dashboards do not collide although they share `application="showcase"`.
+apps' 21 dashboards do not collide although they share `application="showcase"`.
 
 Prometheus keeps 61 days (`--storage.tsdb.retention.time=61d` in `compose.yaml`): retention must be at least the longest
 SLO window plus one hour, and here it also holds the backfilled history. With less, `slo:window:coverage_ratio` never

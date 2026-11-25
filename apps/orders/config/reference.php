@@ -1749,6 +1749,9 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         logic_actions?: array{
  *             required_percent?: int|Param, // Default: 0
  *         },
+ *         scheduled_tasks?: array{
+ *             required_percent?: int|Param, // Default: 0
+ *         },
  *     },
  *     operations?: array<string, array{ // Default: []
  *         objectives?: list<array{ // Default: []
@@ -1774,6 +1777,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             rules?: bool|Param, // Default: true
  *             alerts?: bool|Param, // Default: true
  *             no_events_alert_hours?: int|Param, // Default: null
+ *             scrape_interval_seconds?: int|Param, // Default: 60
  *         },
  *         sloth?: bool|Param, // Default: false
  *         alertmanager?: array{

@@ -16,7 +16,7 @@
             },
             "id": 1,
             "options": {
-                "content": "| Kind | SLO coverage | Measured by a metric |\n| --- | --- | --- |\n| http_route | 100% | 42.86% |\n| messenger_handler | 100% | 0% |\n| logic_action | 100% | 100% |\n| operation | 100% | 100% |\n\nGenerated from the compiled SLO catalog; it changes only when slo:generate is run.\n",
+                "content": "| Kind | SLO coverage | Measured by a metric |\n| --- | --- | --- |\n| http_route | 100% | 42.86% |\n| messenger_handler | 100% | 0% |\n| logic_action | 100% | 100% |\n| operation | 100% | 100% |\n| scheduled_task | 100% | 100% |\n\nGenerated from the compiled SLO catalog; it changes only when slo:generate is run.\n",
                 "mode": "markdown"
             },
             "title": "Coverage by kind",
