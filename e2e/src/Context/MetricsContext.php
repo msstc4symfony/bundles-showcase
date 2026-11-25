@@ -81,6 +81,18 @@ final class MetricsContext implements Context
         Assert::same($after - $before, 0.0, sprintf('%s grew: %s → %s.', $query, $before, $after));
     }
 
+    /**
+     * Both are read at one instant, so a scrape landing between the two reads cannot skew the comparison.
+     */
+    #[Then(':query has grown at least as much as :other')]
+    public function hasGrownAtLeastAsMuchAs(string $query, string $other): void
+    {
+        $now = microtime(true);
+        $growth = $this->prometheus->value($query, $now) - $this->baseline($query);
+        $otherGrowth = $this->prometheus->value($other, $now) - $this->baseline($other);
+        Assert::greaterThanEq($growth, $otherGrowth, sprintf('%s grew by %s, less than %s, which grew by %s.', $query, $growth, $other, $otherGrowth));
+    }
+
     #[Then('within :seconds seconds :query has a series')]
     public function hasASeries(int $seconds, string $query): void
     {

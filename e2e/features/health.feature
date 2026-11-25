@@ -32,7 +32,7 @@ Feature: Readiness reflects real dependencies
     Given I remember the current metric values
     When I create an order for 5000
     Then the order becomes "paid" within 15 seconds
-    And within 20 seconds "symfony_messenger_message_handled{component='billing',status='handled'}" grows by 1
+    And within 20 seconds "symfony_messenger_message_handled{component='billing',transport='process_payment',status='handled'}" grows by 1
     And within 20 seconds "symfony_slo_events_total{component='gateway',slo='gateway.create_order',objective='availability'}" grows by 1
     And within 20 seconds "symfony_slo_events_total{component='orders',instance!='backfill',slo='orders.search_index',objective='availability'}" grows by 1
 

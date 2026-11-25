@@ -615,3 +615,21 @@
   8.5, частичное обновление не трогает остальные пакеты); `symfony/scheduler` встал как 8.1.12 при messenger 8.1.8.
   `composer require` в одном запуске с ещё не обновлённым в lock `slo-bundle ^1.2` падает («fixed to v1.1.0 by a
   partial update») — сначала `update msstc4symfony/slo-bundle`, потом `require`.
+
+## e2e scheduler.feature (2026-11-25 UTC)
+
+- billing-scheduler шлёт `ServiceCallMessage` каждые 15 с, и он попадает в `symfony_messenger_message_handled{component='billing'}`
+  (`transport='scheduler_billing'`). Шаги «grows by N» по billing без `transport='process_payment'` теперь ловят лишний рост
+  (так было в health.feature «Losing Redis», исправлено). Новые шаги по billing всегда фильтровать по транспорту.
+- В PromQL фичи метка задачи пишется как `task='App\\Scheduler\\ReconcilePayments::__invoke'`: Gherkin не экранирует, Prometheus
+  читает `\\` как один `\`.
+- Fail-switch задачи ставится через `SET … EX 40`: истечение снимает поломку, даже если прогон убит до `#[AfterScenario]`.
+- При остановленном Redis `RedisConnectionGuard` останавливает и billing-scheduler (`Stopping worker.`, compose поднимает заново,
+  2 рестарта за chaos-прогон). `ReconcilePayments` Redis-ошибку не ловит: запуск, попавший на простой, был бы error/bad
+  `billing.reconcile_payments`. В прогонах 2026-11-25 UTC такого запуска не было (метрики в простое всё равно не пишутся), ни один
+  сценарий от этого не упал, поэтому задача не менялась. Если алертинг-сценарий начнёт ловить page этой SLO, читать ошибку Redis как
+  «ключа нет» (fail-open feature switch).
+- «Losing Redis» (health.feature, @chaos) 2026-11-25 UTC снова падает локально, и DNS тут ни при чём: `gethostbyname('redis')` при
+  остановленном Redis 0,08 с. Liveliness orders при лежащем Redis отвечает 0,6–8,8 с, рядом с 10-секундным таймаутом клиента e2e,
+  поэтому сценарий падает на разных шагах (502 на создании заказа, idle timeout gateway, idle timeout liveliness). На main cceec28
+  та же картина: 1 из 2 одиночных прогонов упал, liveliness 3,9–8,8 с. Ветка ни при чём, причина медленных ответов не выяснена.
