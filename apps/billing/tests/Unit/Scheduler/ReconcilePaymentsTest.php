@@ -9,6 +9,7 @@ use App\Scheduler\ReconciliationFailed;
 use Override;
 use PHPUnit\Framework\TestCase;
 use Redis;
+use RedisException;
 
 final class ReconcilePaymentsTest extends TestCase
 {
@@ -24,6 +25,13 @@ final class ReconcilePaymentsTest extends TestCase
         $this->expectException(ReconciliationFailed::class);
 
         new ReconcilePayments($this->redisWithKeys([ReconcilePayments::FAIL_SWITCH]))();
+    }
+
+    public function testARunSucceedsWhenRedisCannotBeRead(): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        new ReconcilePayments($this->unreachableRedis())();
     }
 
     /**
@@ -43,7 +51,21 @@ final class ReconcilePaymentsTest extends TestCase
             #[Override]
             public function exists(mixed $key, mixed ...$other_keys): int
             {
-                return \count(array_filter([$key, ...$other_keys], fn (mixed $candidate): bool => \in_array($candidate, $this->keys, true)));
+                return \count(array_filter(
+                    [$key, ...$other_keys],
+                    fn (mixed $candidate): bool => \in_array($candidate, $this->keys, true),
+                ));
+            }
+        };
+    }
+
+    private function unreachableRedis(): Redis
+    {
+        return new class extends Redis {
+            #[Override]
+            public function exists(mixed $key, mixed ...$other_keys): never
+            {
+                throw new RedisException('Redis server redis:6379 went away');
             }
         };
     }

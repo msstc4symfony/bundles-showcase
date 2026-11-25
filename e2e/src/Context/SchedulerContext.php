@@ -15,13 +15,14 @@ use Webmozart\Assert\Assert;
  */
 final class SchedulerContext implements Context
 {
-    // Billing's REDIS_CACHE_DSN in compose.yaml.
-    private const int BILLING_CACHE_DATABASE = 4;
-
+    // App\Scheduler\ReconcilePayments::FAIL_SWITCH: the e2e image has no app code to import it from.
     private const string FAIL_SWITCH = 'showcase:billing:reconcile:fail';
 
     // Created on first use: other scenarios do not need the docker socket.
     private ?DockerClient $docker = null;
+
+    /** @var non-negative-int|null the database of billing's REDIS_CACHE_DSN, read from its scheduler container */
+    private ?int $database = null;
 
     private bool $switched = false;
 
@@ -54,7 +55,26 @@ final class SchedulerContext implements Context
     private function redis(string ...$arguments): string
     {
         $this->docker ??= new DockerClient();
+        $this->database ??= $this->billingCacheDatabase($this->docker);
+        $command = ['redis-cli', '-n', (string) $this->database, ...array_values($arguments)];
 
-        return trim($this->docker->exec('redis', ['redis-cli', '-n', (string) self::BILLING_CACHE_DATABASE, ...array_values($arguments)]));
+        return trim($this->docker->exec('redis', $command));
+    }
+
+    /**
+     * @return non-negative-int
+     */
+    private function billingCacheDatabase(DockerClient $docker): int
+    {
+        $dsn = trim($docker->exec('billing-scheduler', ['printenv', 'REDIS_CACHE_DSN']));
+        Assert::eq(
+            preg_match('~^redis://[^/?]+/(\d+)(?:\?|$)~', $dsn, $matches),
+            1,
+            sprintf('No database in REDIS_CACHE_DSN "%s".', $dsn),
+        );
+        $database = (int) $matches[1];
+        Assert::natural($database);
+
+        return $database;
     }
 }

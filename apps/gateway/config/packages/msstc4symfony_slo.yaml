@@ -1,6 +1,8 @@
 msstc4symfony_slo:
   generation:
     alertmanager: { enabled: true }
+    # global.scrape_interval of docker/observability/prometheus.yml; slo:validate checks task deadlines against it.
+    prometheus: { scrape_interval_seconds: 5 }
     selector:
       application: showcase
       # Not gateway-sampled: Prometheus does not scrape it.

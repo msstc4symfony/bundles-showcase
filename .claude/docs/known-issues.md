@@ -474,8 +474,9 @@
 - Live bad-серия, появившаяся сразу с N > 0, даёт `increase() = 0` (см. инъекцию `deadbeef` выше) — для живой поломки
   это не мешает, пока серия `result="bad"` уже существует или растёт после первого скрейпа.
 - После полного e2e (non-chaos + chaos) горят ticket `orders.search_index` (backfill) и page `gateway.create_order`
-  (5xx @chaos-сценария) — шаги `alerting.feature` всегда фильтруют по `alertname, application, severity, slo,
-  objective` (см. ниже).
+  (5xx @chaos-сценария), а при повторном прогоне может гореть и ticket/page `billing.reconcile_payments` (bad-запуски
+  scheduler.feature, см. «e2e scheduler.feature»). Шаги `alerting.feature` всегда фильтруют по `alertname, application,
+  severity, slo, objective` (см. ниже).
 - Замер 2026-11-23 UTC: `make down` + `docker compose up --build --wait` (образы в кеше) — 49 с; контейнер
   `prometheus-backfill` от старта до выхода ≈ 1.7 с; ticket горит через ≈ 3 мин после старта Prometheus (первая
   оценка 5m-группы окна, затем 1m-группы алертов). Второй `make up` без `down` — 40 с, backfill `skipped`.
@@ -600,7 +601,7 @@
   `ReconcilePayments` не запускается, и SLO молчит (не bad — «задача не запускается» bundle не ловит).
 - `task` в метриках — `<service id>::<method>`, у автоконфигурированного класса id = FQCN:
   `task="App\\Scheduler\\ReconcilePayments::__invoke"` (в PromQL обратный слеш экранируется).
-- `scrape_interval_seconds: 5` в `msstc4symfony_slo.yaml` billing = `global.scrape_interval` в `prometheus.yml`; при
+- `scrape_interval_seconds: 5` в `msstc4symfony_slo.yaml` (с 2026-11-25 UTC во всех трёх приложениях) = `global.scrape_interval` в `prometheus.yml`; при
   дефолте 60 `slo:validate` отверг бы deadline 5s (порог latency) — меняешь scrape interval стенда, меняй и это.
 - Поломка задачи: `redis-cli -n 4 set showcase:billing:reconcile:fail 1` (DB кеша billing). Проверено 2026-11-25 UTC:
   3 запуска → `finished_total{outcome="error"}` и `events_total{objective="availability",result="bad"}` +3; latency
@@ -623,12 +624,26 @@
   (так было в health.feature «Losing Redis», исправлено). Новые шаги по billing всегда фильтровать по транспорту.
 - В PromQL фичи метка задачи пишется как `task='App\\Scheduler\\ReconcilePayments::__invoke'`: Gherkin не экранирует, Prometheus
   читает `\\` как один `\`.
-- Fail-switch задачи ставится через `SET … EX 40`: истечение снимает поломку, даже если прогон убит до `#[AfterScenario]`.
+- Fail-switch задачи ставится через `SET … EX 20` (чуть больше периода 15 с: запуск может стартовать до 1 с позже) и снимается,
+  как только bad-запуск попал в scrape: 1–2 bad-запуска. Истечение снимает поломку, даже если прогон убит до `#[AfterScenario]`.
+  DB берётся из `REDIS_CACHE_DSN` контейнера `billing-scheduler`, ключ — копия `ReconcilePayments::FAIL_SWITCH` (кода приложений
+  в e2e-образе нет).
+- Эти bad-события настоящие. Первый bad на стеке — новая серия сразу с 1, её `increase()` не видит (2026-11-25 UTC: после
+  сценария `ALERTS{slo="billing.reconcile_payments"}` пуст). Если bad-серия уже есть (повторный прогон на том же стеке),
+  1–2 bad из ~30–40 запусков молодого стека (сценарий идёт после 420-секундного ticket-сценария) могут зажечь ticket
+  `billing.reconcile_payments` availability (rate6h и rate30m > 6 %), а на стеке моложе нескольких минут и page. Он
+  уходит в `slo-ticket`/`slo-page` и держится часами, как page `gateway.create_order` после @chaos. Шаги alerting.feature фильтруют по
+  `slo`, поэтому им это не мешает.
+- `started_total` и `finished_total` проверяются на равный рост (`… and … have grown equally`). Базовая разность берётся как
+  `min_over_time` за 30 с до снимка, потому что запуск может быть «в полёте» в любом scrape, а текущая разность опрашивается.
+  Обе стороны читаются одним запросом, поэтому гонки между двумя чтениями нет.
 - При остановленном Redis `RedisConnectionGuard` останавливает и billing-scheduler (`Stopping worker.`, compose поднимает заново,
-  2 рестарта за chaos-прогон). `ReconcilePayments` Redis-ошибку не ловит: запуск, попавший на простой, был бы error/bad
-  `billing.reconcile_payments`. В прогонах 2026-11-25 UTC такого запуска не было (метрики в простое всё равно не пишутся), ни один
-  сценарий от этого не упал, поэтому задача не менялась. Если алертинг-сценарий начнёт ловить page этой SLO, читать ошибку Redis как
-  «ключа нет» (fail-open feature switch).
+  2 рестарта за chaos-прогон). `ReconcilePayments` читает переключатель fail-open: `RedisException` = «ключа нет». Так короткий
+  сбой Redis (окно до 5 с, пока guard не заметил «went away») не сжигает SLO задачи.
+- `scrape_interval_seconds: 5` задан во всех трёх приложениях, а не только в billing: у gateway и orders задач пока нет, но
+  новые задачи будут проверяться против scrape interval стенда, а не против дефолта 60. Сгенерированные файлы от этого
+  не изменились.
+- `billing-scheduler` — ровно одна реплика: у расписания нет state и lock, второй consumer `scheduler_billing` удвоит запуски.
 - «Losing Redis» (health.feature, @chaos) 2026-11-25 UTC снова падает локально, и DNS тут ни при чём: `gethostbyname('redis')` при
   остановленном Redis 0,08 с. Liveliness orders при лежащем Redis отвечает 0,6–8,8 с, рядом с 10-секундным таймаутом клиента e2e,
   поэтому сценарий падает на разных шагах (502 на создании заказа, idle timeout gateway, idle timeout liveliness). На main cceec28

@@ -197,8 +197,9 @@ Loki не опубликован. Локально у владельца 8080 и
 - Клиенты: `PrometheusClient::{recordingRule, ruleGroups, sample}`, `GrafanaClient`, `DockerClient::exec`, `MetricsStorageClient`
   (redis-cli в контейнере `redis`, создаются лениво); `App\E2e\ScrapeBarrier` — общий барьер «очереди пусты + свежий scrape»; `SteadyScrapesContext` (`#[BeforeSuite]`) ждёт 20 с непрерывных скрейпов всех сервисов.
 - `features/scheduler.feature` + `SchedulerContext` (2026-11-25 UTC): good/success-запуски `billing.reconcile_payments`, bad/error при
-  ключе `showcase:billing:reconcile:fail` (`SET … EX <n>` в Redis DB 4 через `DockerClient::exec`, `#[AfterScenario]` удаляет его),
-  `started_total` растёт не меньше `finished_total` (шаг `MetricsContext` «… has grown at least as much as …», обе величины на один момент).
+  ключе `showcase:billing:reconcile:fail` (`SET … EX <n>` в DB из `REDIS_CACHE_DSN` billing-scheduler через `DockerClient::exec`,
+  `#[AfterScenario]` удаляет его), равный рост `started_total` и `finished_total` (шаг `MetricsContext` «… and … have grown equally»).
+  Проводку расписания (`billing`, каждые 15 с, `ReconcilePayments::__invoke`) проверяет `apps/billing/tests/Integration/BillingScheduleTest`.
 
 ## Конфигурация бандлов 2.2 (2026-10-23 UTC)
 

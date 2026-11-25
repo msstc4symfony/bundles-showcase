@@ -132,6 +132,7 @@ services:
       billing: { condition: service_healthy }
 
   # Schedule "billing" (ReconcilePayments) runs only where its transport scheduler_billing is consumed.
+  # Exactly one replica: the schedule has no state or lock, so a second consumer doubles every run.
   billing-scheduler:
     restart: unless-stopped
     build: { context: ., dockerfile: docker/php/Dockerfile, target: app, args: { APP: billing } }

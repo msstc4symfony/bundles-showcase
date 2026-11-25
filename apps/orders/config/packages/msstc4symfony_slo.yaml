@@ -6,6 +6,8 @@ msstc4symfony_slo:
         - { type: latency, threshold: 100ms, target: 99 }
   generation:
     alertmanager: { enabled: true }
+    # global.scrape_interval of docker/observability/prometheus.yml; slo:validate checks task deadlines against it.
+    prometheus: { scrape_interval_seconds: 5 }
     selector:
       application: showcase
       components: [orders]

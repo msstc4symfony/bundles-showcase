@@ -82,15 +82,24 @@ final class MetricsContext implements Context
     }
 
     /**
-     * Both are read at one instant, so a scrape landing between the two reads cannot skew the comparison.
+     * For a unit $query counts before $other does (a run's start before its finish): one may be in flight at any
+     * scrape, so the baseline difference is the smallest over the 30 s before the remembered moment, and the
+     * current one is polled until no unit is in flight. Each difference is one query, so it reads one scrape.
      */
-    #[Then(':query has grown at least as much as :other')]
-    public function hasGrownAtLeastAsMuchAs(string $query, string $other): void
+    #[Then('within :seconds seconds :query and :other have grown equally')]
+    public function haveGrownEqually(int $seconds, string $query, string $other): void
     {
-        $now = microtime(true);
-        $growth = $this->prometheus->value($query, $now) - $this->baseline($query);
-        $otherGrowth = $this->prometheus->value($other, $now) - $this->baseline($other);
-        Assert::greaterThanEq($growth, $otherGrowth, sprintf('%s grew by %s, less than %s, which grew by %s.', $query, $growth, $other, $otherGrowth));
+        $since = $this->rememberedAt ?? throw new LogicException('Remember the metric values first.');
+        $difference = sprintf('(sum(%s) or vector(0)) - (sum(%s) or vector(0))', $query, $other);
+        $baseline = $this->prometheus->value(sprintf('min_over_time((%s)[30s:1s])', $difference), $since);
+
+        $this->waitFor(
+            $seconds,
+            $difference,
+            $baseline,
+            static fn (float $growth): bool => abs($growth) < 1e-9,
+            sprintf('keep the difference of %s and %s', $query, $other),
+        );
     }
 
     #[Then('within :seconds seconds :query has a series')]
