@@ -657,3 +657,11 @@
   ответы кратны 4 с (4,0 / 7,9 / 3,8 с), а в логе между двумя Redis-ошибками одного воркера пауза ровно ~4 с.
   Одиночный замер `gethostbyname` (0,08 с) хвост не ловит — мерить сериями. Лечится на хосте (`dns` в
   `/etc/docker/daemon.json`), код бандлов и showcase ни при чём.
+
+## Локальный `composer update` и git@ в lock (2026-11-27 UTC)
+
+- Глобальный `github-protocols` на машине автора `["https","ssh"]`: локальный `composer update` записал `source.url`
+  пакетов msstc4symfony как `git@github.com:…` (их VCS-репозитории). После любого локального update:
+  `sed -i -E 's#"git@github\.com:([^"]+)"#"https://github.com/\1"#' apps/*/composer.lock` (content-hash не меняется).
+- `symfony/flex` 2.12 при `composer update 'symfony/*'` сам меняет `"symfony/flex": "^2"` на `"^2.12"` в composer.json —
+  откатить и `composer update --lock`.
