@@ -59,7 +59,7 @@ Feature: Readiness reflects real dependencies
     And the order becomes "paid" within 15 seconds
     When I start "elasticsearch"
     # Wait for green|yellow: a run that ends on the red cluster of a fresh start would leave it to the next one.
-    Then within 90 seconds "orders" readiness has a line matching "/^Elastica connection \(fos_elastica\.client\.default\) passed \(cluster status: (green|yellow)\)$/"
+    Then within 180 seconds "orders" readiness has a line matching "/^Elastica connection \(fos_elastica\.client\.default\) passed \(cluster status: (green|yellow)\)$/"
     And within 10 seconds "orders" readiness is up
     # A non-critical checker that failed is "degraded", and its probe still passes.
     And within 20 seconds "symfony_healthcheck_checker_run{component='orders',probe='readiness',checker='healthcheck.checker.fos_elastica.client.default',status='degraded'}" grows by at least 1

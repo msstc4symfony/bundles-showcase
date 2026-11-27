@@ -556,6 +556,10 @@
   has a line matching …passed (cluster status: (green|yellow))» после `I start "elasticsearch"` (health.feature:62,
   alerting.feature:37) падает, когда перезапуск ES дольше 90 с — замерено 113 с при load average ≈ 46. Так же падал
   на main 7f545d5 (health.feature:62, 6/7 chaos-сценариев).
+  Разобрано 2026-11-27 UTC: при load average ≈ 5 ES после `docker compose start` отвечает green/yellow через 27 с, и
+  readiness orders видит его в ту же секунду (`BoundedPingResurrect` не отстаёт). Значит, флейк — только время холодного
+  старта ES (CPU), DNS и код orders ни при чём. Ожидание поднято до 180 с в health.feature и alerting.feature: шаг
+  опрашивает, на быстром стенде это бесплатно.
 
 ## e2e alerting.feature: ticket, page, inhibition (2026-11-23 UTC)
 

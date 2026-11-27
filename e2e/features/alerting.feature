@@ -34,5 +34,5 @@ Feature: SLO burn alerts reach their receivers through Alertmanager, and a page 
     And within 60 seconds Alertmanager shows the "ticket" alert of "orders.search_index" "availability" inhibited by its "page" alert
     When I start "elasticsearch"
     # Wait for green|yellow: a run that ends on the red cluster of a fresh start would leave it to the next one.
-    Then within 90 seconds "orders" readiness has a line matching "/^Elastica connection \(fos_elastica\.client\.default\) passed \(cluster status: (green|yellow)\)$/"
+    Then within 180 seconds "orders" readiness has a line matching "/^Elastica connection \(fos_elastica\.client\.default\) passed \(cluster status: (green|yellow)\)$/"
     And within 10 seconds "orders" readiness is up
