@@ -143,7 +143,7 @@ services:
 
   # A host off the gateway's baggage.allowed_hosts: logs the baggage it gets, for e2e.
   baggage-echo:
-    image: php:8.5.10-cli
+    image: php:8.5.13-cli
     command: ["php", "-S", "0.0.0.0:8080", "/srv/echo.php"]
     volumes: ["./docker/baggage-echo/echo.php:/srv/echo.php:ro"]
     healthcheck: *liveliness
@@ -252,7 +252,7 @@ services:
 
   # Webhook receiver of slo-page / slo-ticket: GET / lists the stored notifications, DELETE / forgets them (manual debugging).
   alert-recorder:
-    image: php:8.5.10-cli
+    image: php:8.5.13-cli
     command: ["php", "-S", "0.0.0.0:8080", "/srv/recorder.php"]
     volumes: ["./docker/alert-recorder/recorder.php:/srv/recorder.php:ro"]
     healthcheck: *liveliness

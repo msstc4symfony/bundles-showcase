@@ -7,8 +7,8 @@ together, the way a production system would. The repository serves three purpose
   HTTP client only, Doctrine with Messenger, or mostly Messenger.
 - **Showcase.** Run `make up` and `make demo-traffic`, then follow one request through logs,
   metrics and spans in Grafana.
-- **Release gate.** A new bundle tag reaches this repository through a Dependabot PR. Behat e2e
-  has to be green before the PR is merged.
+- **Release gate.** A new bundle tag reaches this repository through the `bundle-updates` workflow. Behat e2e
+  has to be green before it reaches `main`.
 
 ```text
 client ──HTTP──▶ gateway ──HTTP──▶ orders ──AMQP: ProcessPayment──▶ billing
@@ -206,9 +206,12 @@ ticket resolves once `rate6h` no longer sees the history.
 ## How bundle releases flow
 
 1. A bundle tags a release (`vX.Y.Z`).
-2. The `bundle-updates` workflow (daily at 06:00 UTC, or run by hand) runs `composer update 'msstc4symfony/*'`
-   in every app and commits the result to the `bundle-updates` branch. Dependabot cannot do this: it does not see
-   releases of packages installed from `vcs` repositories. It still handles Symfony, Docker images and actions.
+2. The `bundle-updates` workflow (daily at 06:00 UTC, or run by hand) runs `composer update` in every Composer
+   project (the three apps, `e2e`, the root tools) and commits the result to the `bundle-updates` branch: bundle
+   releases, Symfony patch and security releases and every other dependency, within the constraints. Dependabot
+   is not used: it does not see releases of packages installed from `vcs` repositories, and it may not open pull
+   requests here. Docker images (`docker/php/Dockerfile`, `compose.yaml`, checked by `make image-pins`) and the
+   actions are bumped by hand; Dependabot alerts are on and name a vulnerable dependency.
 3. The same run gates that commit with `quality` (PHPStan and PHPUnit per app) and `e2e` (the full stack plus
    Behat, chaos included), called as reusable workflows.
 4. When both pass, the run fast-forwards `main` to the commit and deletes the branch. Otherwise the branch stays
@@ -221,10 +224,9 @@ ticket resolves once `rate6h` no longer sees the history.
 No pull request is involved: GitHub Actions may not open pull requests in this organisation. A push made with
 `GITHUB_TOKEN` does not start the `main` push workflows; the gate has already run on that exact commit.
 
-Each app requires a bundle at the release it relies on, a minor or a patch (`^2.3` for metrics, `^2.2` for
-profiling-bundle `^2.3.1`, `^2.3` for healthcheck, `^2.1` for logger, `^2.4` for tracing, `^1.3` for
-tracing-bridge-profiling, `^1.2.2` for tracing-bridge-otlp, `^1.1` for slo-bundle, `^1.0` for both SLO bridges), so every later release of the same major is
-picked up by that run. A major release goes through an rc tag first (`vX.0.0-rc.N`) and gets its final tag only after
+Each app requires a bundle at the release it relies on, a minor or a patch (see the `require` of each
+`apps/*/composer.json`; `bump-after-update` moves these floors with every update), so every later release of the
+same major is picked up by that run. A major release goes through an rc tag first (`vX.0.0-rc.N`) and gets its final tag only after
 e2e is green here: until then the app requires it as `^X.0@rc` (logic-bundle 2.0.0 went this way), and the final
 tag replaces that with `^X.0`.
 

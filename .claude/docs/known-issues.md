@@ -220,7 +220,7 @@
 
 ## PHP 8.5, Postgres 18, Elasticsearch 9 (2026-10-13 UTC)
 
-- Образ приложений `php:8.5.10-cli`; quality-CI и локальный `make check` по-прежнему на PHP 8.4 (lock-файлы
+- Образ приложений `php:8.5.13-cli`; quality-CI и локальный `make check` по-прежнему на PHP 8.4 (lock-файлы
   резолвятся под 8.4, рантайм 8.5 — e2e подтверждает совместимость).
 - Postgres 18: `serverVersion=18` в `DATABASE_URL` (compose, `.env`, `.env.test`) и `postgres:18` в quality.yml.
   Тома данных у сервиса нет, поэтому перенос `PGDATA` в образе 18 (`/var/lib/postgresql/18/docker`) не мешает;
@@ -432,8 +432,7 @@
   `quality` (job `slo-rules`) падает на `--check` сборщика.
 - Пины `prom/prometheus` и `prom/alertmanager` — в `compose.yaml`; `Makefile` читает их оттуда (`PROMETHEUS_IMAGE`,
   `ALERTMANAGER_IMAGE`). Второе место `prom/prometheus` — `docker/php/Dockerfile` (promtool образа backfill):
-  Dependabot двигает его и compose отдельными PR, поэтому `make image-pins` (часть `make check`) падает при
-  расхождении — в PR Dependabot нужно поднять второе место.
+  при ручном обновлении образа поднимать оба места, иначе `make image-pins` (часть `make check`) падает.
 - `alertmanager.yml` смонтирован одним файлом и читается Alertmanager только при старте; `make up` после
   `make slo-generate` контейнер не пересоздаёт (конфиг compose не менялся) → `docker compose restart alertmanager`
   (или `curl -XPOST localhost:9093/-/reload`).
@@ -665,3 +664,14 @@
   `sed -i -E 's#"git@github\.com:([^"]+)"#"https://github.com/\1"#' apps/*/composer.lock` (content-hash не меняется).
 - `symfony/flex` 2.12 при `composer update 'symfony/*'` сам меняет `"symfony/flex": "^2"` на `"^2.12"` в composer.json —
   откатить и `composer update --lock`.
+
+## Обновления зависимостей без Dependabot (2026-11-27 UTC)
+
+- Dependabot не мог открывать PR в этой организации (API pulls у репозитория → 404): его ветки висели с октября
+  (symfony 2026-10-15, php 8.6.0RC2 2026-10-22, doctrine-bundle 3.3.3 2026-10-28, composer 2.11.0), и в main ничего
+  не попадало. `dependabot.yml` удалён, ветки удалены; Dependabot alerts включены (`PUT …/vulnerability-alerts`) во всех
+  репозиториях организации.
+- `bundle-updates` теперь делает полный `composer update` в `apps/*`, `e2e` и корне — отсюда и CVE-фиксы Symfony;
+  2026-11-26 run упал на `composer audit` (e2e: symfony/http-client), то есть без этого конвейер вставал.
+  `bump-after-update` двигает нижние границы в composer.json — это ожидаемая часть коммита.
+- Образы Docker и actions — вручную: 2026-11-27 подняты `php:8.5.13-cli` и `composer:2.11.3`.

@@ -15,10 +15,10 @@
 | `billing-scheduler` | `app` (APP=billing) | `messenger:consume scheduler_billing` | расписание `billing`: `ReconcilePayments` каждые 15 с (SLO `billing.reconcile_payments`) |
 | `billing-migrate` | `app` (APP=billing) | one-shot миграции | — |
 | `gateway-sampled` | `app` (APP=gateway) | RoadRunner | gateway с `TRACING_SAMPLING_RATIO=0.5` (у `gateway` env по умолчанию `1`) — только для `sampling.feature`; Prometheus его не скрейпит |
-| `baggage-echo` | `php:8.5.10-cli` | `php -S` + `docker/baggage-echo/echo.php` | хост вне `allowed_hosts` gateway: логирует `trace_id`, `path`, `traceparent`, `tracestate`, `baggage` для e2e (кроме `/_/*`); gateway ждёт его healthy только ради `up --wait` перед e2e |
+| `baggage-echo` | `php:8.5.13-cli` | `php -S` + `docker/baggage-echo/echo.php` | хост вне `allowed_hosts` gateway: логирует `trace_id`, `path`, `traceparent`, `tracestate`, `baggage` для e2e (кроме `/_/*`); gateway ждёт его healthy только ради `up --wait` перед e2e |
 | `alertmanager` | `prom/alertmanager:v0.34.0` | конфиг `docker/observability/alertmanager.yml` (собран, не редактировать) | получает алерты Prometheus (`alerting` в `prometheus.yml`), SLO-маршруты → `slo-page`/`slo-ticket` |
 | `prometheus-backfill` | `backfill` (`app` APP=orders + promtool + prometheus, root) | one-shot `docker/prometheus-backfill/backfill.sh` | 60 дней сырых счётчиков `orders.search_index` availability (`app:slo:backfill`, `instance="backfill"`) и записанных серий её recording rules (`app:slo:backfill-recorded` против временного Prometheus на `127.0.0.1:9091` внутри контейнера, по проходам) блоками в пустой том `prometheus-data` до старта Prometheus; непустой том → `skipped`. Обе команды — демо-инструменты: зарегистрированы и в образе `orders`, но запускаются только этим сервисом, в runtime orders не участвуют |
-| `alert-recorder` | `php:8.5.10-cli` | `php -S` + `docker/alert-recorder/recorder.php` | webhook обоих получателей; `GET /` — все уведомления, `GET /?since=N` — начиная с N-го (e2e: «новые» после запомненного числа), `DELETE /` — сброс (вручную) |
+| `alert-recorder` | `php:8.5.13-cli` | `php -S` + `docker/alert-recorder/recorder.php` | webhook обоих получателей; `GET /` — все уведомления, `GET /?since=N` — начиная с N-го (e2e: «новые» после запомненного числа), `DELETE /` — сброс (вручную) |
 | `e2e` (profile `e2e`) | `e2e` | Behat 4 (`behat.php`) | сценарии; docker CLI для `@chaos` |
 
 Три приложения независимы (свой `composer.json/lock`, свой Kernel), общий только `docker/php/Dockerfile`.
