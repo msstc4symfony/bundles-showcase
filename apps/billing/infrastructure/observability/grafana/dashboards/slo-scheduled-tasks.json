@@ -149,7 +149,23 @@
             },
             "fieldConfig": {
                 "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
                     "noValue": "No data",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 1.0
+                            }
+                        ]
+                    },
                     "unit": "none"
                 },
                 "overrides": []
@@ -162,16 +178,16 @@
             },
             "id": 4,
             "options": {
-                "legend": {
-                    "calcs": [],
-                    "displayMode": "list",
-                    "placement": "bottom",
-                    "showLegend": true
+                "colorMode": "value",
+                "graphMode": "none",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
                 },
-                "tooltip": {
-                    "mode": "multi",
-                    "sort": "none"
-                }
+                "textMode": "auto"
             },
             "targets": [
                 {
@@ -179,13 +195,15 @@
                         "type": "prometheus",
                         "uid": "${datasource}"
                     },
-                    "expr": "sum by (task) (increase(symfony_slo_scheduled_task_started_total{application=\"$application\",component=~\"$component\"}[$__range])) - sum by (task) (increase(symfony_slo_scheduled_task_finished_total{application=\"$application\",component=~\"$component\"}[$__range]))",
-                    "legendFormat": "{{task}}",
+                    "expr": "sum by (slo) (sum_over_time(slo:unfinished_runs:step{application=\"$application\",objective=\"\"}[$__range]))",
+                    "instant": true,
+                    "legendFormat": "{{slo}}",
+                    "range": false,
                     "refId": "A"
                 }
             ],
-            "title": "Runs started minus finished over the time range",
-            "type": "timeseries"
+            "title": "Runs counted unfinished over the time range",
+            "type": "stat"
         },
         {
             "collapsed": false,

@@ -207,12 +207,34 @@ groups:
       - expr: '(sum(clamp_min((symfony_slo_scheduled_task_started_total{application="showcase",component=~"billing",task="App\\Scheduler\\ReconcilePayments::__invoke"} offset 5s - symfony_slo_scheduled_task_started_total{application="showcase",component=~"billing",task="App\\Scheduler\\ReconcilePayments::__invoke"} offset 65s) - ((sum without (outcome) (symfony_slo_scheduled_task_finished_total{application="showcase",component=~"billing",task="App\\Scheduler\\ReconcilePayments::__invoke"}) or (symfony_slo_scheduled_task_started_total{application="showcase",component=~"billing",task="App\\Scheduler\\ReconcilePayments::__invoke"} * 0)) - (sum without (outcome) (symfony_slo_scheduled_task_finished_total{application="showcase",component=~"billing",task="App\\Scheduler\\ReconcilePayments::__invoke"} offset 65s) or (symfony_slo_scheduled_task_started_total{application="showcase",component=~"billing",task="App\\Scheduler\\ReconcilePayments::__invoke"} offset 65s * 0))), 0) unless ignoring (outcome) (resets(symfony_slo_scheduled_task_started_total{application="showcase",component=~"billing",task="App\\Scheduler\\ReconcilePayments::__invoke"}[65s]) > 0 or resets(symfony_slo_scheduled_task_finished_total{application="showcase",component=~"billing",task="App\\Scheduler\\ReconcilePayments::__invoke"}[65s]) > 0)) or vector(0))'
         labels:
           application: showcase
-          objective: availability
-          revision: e16395ab
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:unfinished_runs:step'
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[5m])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[5m])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[5m])) or vector(0)) > 0)) / 300'
+      - expr: '(sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective=""}[5m])) or vector(0))'
+        labels:
+          application: showcase
+          slo: billing.reconcile_payments
+          window: 30d
+        record: 'slo:unfinished_runs:increase5m'
+      - expr: '(sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective=""}[30m])) or vector(0))'
+        labels:
+          application: showcase
+          slo: billing.reconcile_payments
+          window: 30d
+        record: 'slo:unfinished_runs:increase30m'
+      - expr: '(sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective=""}[1h])) or vector(0))'
+        labels:
+          application: showcase
+          slo: billing.reconcile_payments
+          window: 30d
+        record: 'slo:unfinished_runs:increase1h'
+      - expr: '(sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective=""}[6h])) or vector(0))'
+        labels:
+          application: showcase
+          slo: billing.reconcile_payments
+          window: 30d
+        record: 'slo:unfinished_runs:increase6h'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[5m])) + (sum(slo:unfinished_runs:increase5m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase5m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) / 300'
         labels:
           application: showcase
           objective: availability
@@ -220,7 +242,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:events:rate5m'
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab",result="bad"}[5m])) or vector(0)) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[5m])) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[5m])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[5m])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[5m])) or vector(0)) > 0)) > 0)'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab",result="bad"}[5m])) or vector(0)) + (sum(slo:unfinished_runs:increase5m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[5m])) + (sum(slo:unfinished_runs:increase5m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase5m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) > 0)'
         labels:
           application: showcase
           objective: availability
@@ -228,7 +250,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:error_ratio:rate5m'
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[30m])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[30m])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[30m])) or vector(0)) > 0)) / 1800'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[30m])) + (sum(slo:unfinished_runs:increase30m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase30m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) / 1800'
         labels:
           application: showcase
           objective: availability
@@ -236,7 +258,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:events:rate30m'
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab",result="bad"}[30m])) or vector(0)) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[30m])) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[30m])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[30m])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[30m])) or vector(0)) > 0)) > 0)'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab",result="bad"}[30m])) or vector(0)) + (sum(slo:unfinished_runs:increase30m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[30m])) + (sum(slo:unfinished_runs:increase30m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase30m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) > 0)'
         labels:
           application: showcase
           objective: availability
@@ -244,7 +266,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:error_ratio:rate30m'
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[1h])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[1h])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[1h])) or vector(0)) > 0)) / 3600'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[1h])) + (sum(slo:unfinished_runs:increase1h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase1h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) / 3600'
         labels:
           application: showcase
           objective: availability
@@ -252,7 +274,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:events:rate1h'
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab",result="bad"}[1h])) or vector(0)) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[1h])) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[1h])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[1h])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[1h])) or vector(0)) > 0)) > 0)'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab",result="bad"}[1h])) or vector(0)) + (sum(slo:unfinished_runs:increase1h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[1h])) + (sum(slo:unfinished_runs:increase1h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase1h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) > 0)'
         labels:
           application: showcase
           objective: availability
@@ -260,7 +282,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:error_ratio:rate1h'
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[6h])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[6h])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[6h])) or vector(0)) > 0)) / 21600'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[6h])) + (sum(slo:unfinished_runs:increase6h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase6h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) / 21600'
         labels:
           application: showcase
           objective: availability
@@ -268,7 +290,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:events:rate6h'
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab",result="bad"}[6h])) or vector(0)) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[6h])) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[6h])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[6h])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[6h])) or vector(0)) > 0)) > 0)'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab",result="bad"}[6h])) or vector(0)) + (sum(slo:unfinished_runs:increase6h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[6h])) + (sum(slo:unfinished_runs:increase6h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase6h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) > 0)'
         labels:
           application: showcase
           objective: availability
@@ -284,15 +306,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:objective:target'
-      - expr: '(sum(clamp_min((symfony_slo_scheduled_task_started_total{application="showcase",component=~"billing",task="App\\Scheduler\\ReconcilePayments::__invoke"} offset 5s - symfony_slo_scheduled_task_started_total{application="showcase",component=~"billing",task="App\\Scheduler\\ReconcilePayments::__invoke"} offset 65s) - ((sum without (outcome) (symfony_slo_scheduled_task_finished_total{application="showcase",component=~"billing",task="App\\Scheduler\\ReconcilePayments::__invoke"}) or (symfony_slo_scheduled_task_started_total{application="showcase",component=~"billing",task="App\\Scheduler\\ReconcilePayments::__invoke"} * 0)) - (sum without (outcome) (symfony_slo_scheduled_task_finished_total{application="showcase",component=~"billing",task="App\\Scheduler\\ReconcilePayments::__invoke"} offset 65s) or (symfony_slo_scheduled_task_started_total{application="showcase",component=~"billing",task="App\\Scheduler\\ReconcilePayments::__invoke"} offset 65s * 0))), 0) unless ignoring (outcome) (resets(symfony_slo_scheduled_task_started_total{application="showcase",component=~"billing",task="App\\Scheduler\\ReconcilePayments::__invoke"}[65s]) > 0 or resets(symfony_slo_scheduled_task_finished_total{application="showcase",component=~"billing",task="App\\Scheduler\\ReconcilePayments::__invoke"}[65s]) > 0)) or vector(0))'
-        labels:
-          application: showcase
-          objective: latency
-          revision: 8da6b748
-          slo: billing.reconcile_payments
-          window: 30d
-        record: 'slo:unfinished_runs:step'
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[5m])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[5m])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[5m])) or vector(0)) > 0)) / 300'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[5m])) + (sum(slo:unfinished_runs:increase5m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase5m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) / 300'
         labels:
           application: showcase
           objective: latency
@@ -300,7 +314,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:events:rate5m'
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748",result="bad"}[5m])) or vector(0)) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[5m])) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[5m])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[5m])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[5m])) or vector(0)) > 0)) > 0)'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748",result="bad"}[5m])) or vector(0)) + (sum(slo:unfinished_runs:increase5m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[5m])) + (sum(slo:unfinished_runs:increase5m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase5m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) > 0)'
         labels:
           application: showcase
           objective: latency
@@ -308,7 +322,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:error_ratio:rate5m'
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[30m])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[30m])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[30m])) or vector(0)) > 0)) / 1800'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[30m])) + (sum(slo:unfinished_runs:increase30m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase30m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) / 1800'
         labels:
           application: showcase
           objective: latency
@@ -316,7 +330,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:events:rate30m'
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748",result="bad"}[30m])) or vector(0)) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[30m])) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[30m])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[30m])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[30m])) or vector(0)) > 0)) > 0)'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748",result="bad"}[30m])) or vector(0)) + (sum(slo:unfinished_runs:increase30m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[30m])) + (sum(slo:unfinished_runs:increase30m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase30m{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) > 0)'
         labels:
           application: showcase
           objective: latency
@@ -324,7 +338,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:error_ratio:rate30m'
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[1h])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[1h])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[1h])) or vector(0)) > 0)) / 3600'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[1h])) + (sum(slo:unfinished_runs:increase1h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase1h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) / 3600'
         labels:
           application: showcase
           objective: latency
@@ -332,7 +346,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:events:rate1h'
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748",result="bad"}[1h])) or vector(0)) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[1h])) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[1h])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[1h])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[1h])) or vector(0)) > 0)) > 0)'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748",result="bad"}[1h])) or vector(0)) + (sum(slo:unfinished_runs:increase1h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[1h])) + (sum(slo:unfinished_runs:increase1h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase1h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) > 0)'
         labels:
           application: showcase
           objective: latency
@@ -340,7 +354,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:error_ratio:rate1h'
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[6h])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[6h])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[6h])) or vector(0)) > 0)) / 21600'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[6h])) + (sum(slo:unfinished_runs:increase6h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase6h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) / 21600'
         labels:
           application: showcase
           objective: latency
@@ -348,7 +362,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:events:rate6h'
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748",result="bad"}[6h])) or vector(0)) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[6h])) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[6h])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[6h])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[6h])) or vector(0)) > 0)) > 0)'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748",result="bad"}[6h])) or vector(0)) + (sum(slo:unfinished_runs:increase6h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[6h])) + (sum(slo:unfinished_runs:increase6h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase6h{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) > 0)'
         labels:
           application: showcase
           objective: latency
@@ -367,7 +381,19 @@ groups:
   - interval: 5m
     name: slo-billing.reconcile_payments-window
     rules:
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[3d])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[3d])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[3d])) or vector(0)) > 0)) / 259200'
+      - expr: '(sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective=""}[3d])) or vector(0))'
+        labels:
+          application: showcase
+          slo: billing.reconcile_payments
+          window: 30d
+        record: 'slo:unfinished_runs:increase3d'
+      - expr: '(sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective=""}[30d])) or vector(0))'
+        labels:
+          application: showcase
+          slo: billing.reconcile_payments
+          window: 30d
+        record: 'slo:unfinished_runs:increase30d'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[3d])) + (sum(slo:unfinished_runs:increase3d{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase3d{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) / 259200'
         labels:
           application: showcase
           objective: availability
@@ -375,7 +401,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:events:rate3d'
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab",result="bad"}[3d])) or vector(0)) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[3d])) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[3d])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[3d])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[3d])) or vector(0)) > 0)) > 0)'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab",result="bad"}[3d])) or vector(0)) + (sum(slo:unfinished_runs:increase3d{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[3d])) + (sum(slo:unfinished_runs:increase3d{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase3d{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) > 0)'
         labels:
           application: showcase
           objective: availability
@@ -383,7 +409,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:error_ratio:rate3d'
-      - expr: '1 - (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab",result="bad"}[30d])) or vector(0)) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[30d])) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[30d])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[30d])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="availability"}[30d])) or vector(0)) > 0)) > 0))'
+      - expr: '1 - (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab",result="bad"}[30d])) or vector(0)) + (sum(slo:unfinished_runs:increase30d{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="availability",revision="e16395ab"}[30d])) + (sum(slo:unfinished_runs:increase30d{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase30d{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) > 0))'
         labels:
           application: showcase
           objective: availability
@@ -407,7 +433,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:window:coverage_ratio'
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[3d])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[3d])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[3d])) or vector(0)) > 0)) / 259200'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[3d])) + (sum(slo:unfinished_runs:increase3d{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase3d{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) / 259200'
         labels:
           application: showcase
           objective: latency
@@ -415,7 +441,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:events:rate3d'
-      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748",result="bad"}[3d])) or vector(0)) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[3d])) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[3d])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[3d])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[3d])) or vector(0)) > 0)) > 0)'
+      - expr: '((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748",result="bad"}[3d])) or vector(0)) + (sum(slo:unfinished_runs:increase3d{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[3d])) + (sum(slo:unfinished_runs:increase3d{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase3d{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) > 0)'
         labels:
           application: showcase
           objective: latency
@@ -423,7 +449,7 @@ groups:
           slo: billing.reconcile_payments
           window: 30d
         record: 'slo:error_ratio:rate3d'
-      - expr: '1 - (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748",result="bad"}[30d])) or vector(0)) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[30d])) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[30d])) + (sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[30d])) or vector(0))) or ((sum(sum_over_time(slo:unfinished_runs:step{application="showcase",slo="billing.reconcile_payments",objective="latency"}[30d])) or vector(0)) > 0)) > 0))'
+      - expr: '1 - (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748",result="bad"}[30d])) or vector(0)) + (sum(slo:unfinished_runs:increase30d{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) / (((sum(increase(symfony_slo_events_total{application="showcase",component=~"billing",slo="billing.reconcile_payments",objective="latency",revision="8da6b748"}[30d])) + (sum(slo:unfinished_runs:increase30d{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0))) or ((sum(slo:unfinished_runs:increase30d{application="showcase",slo="billing.reconcile_payments",objective=""}) or vector(0)) > 0)) > 0))'
         labels:
           application: showcase
           objective: latency
