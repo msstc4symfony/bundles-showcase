@@ -1,9 +1,10 @@
 name: bundle-updates
 
 # Dependabot does not see releases of the msstc4symfony bundles (they come from vcs repositories), and neither it
-# nor GITHUB_TOKEN may open pull requests in this organisation. So this workflow updates every Composer dependency
-# within its constraints (bundle releases, Symfony patch and security releases, the rest), commits that to the
-# bundle-updates branch, gates the commit with quality and e2e, and fast-forwards main when both pass.
+# nor GITHUB_TOKEN may open pull requests in this organisation. So this workflow updates the msstc4symfony bundles
+# and the Symfony packages with their dependencies, within the constraints (patch and security releases), commits
+# that to the bundle-updates branch, gates the commit with quality and e2e, and fast-forwards main when both pass.
+# Other vendors are not updated here: they would reach main without anyone reviewing them.
 # A failed gate leaves the branch in place; the run fails and its summary names the update (issues are off here).
 on:
   schedule:
@@ -26,22 +27,26 @@ jobs:
       sha: ${{ steps.commit.outputs.sha }}
       summary: ${{ steps.update.outputs.summary }}
     steps:
+      # No token on disk while Composer resolves: the push step below gets it, after the update.
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           extensions: redis, amqp, intl, pdo_pgsql
           coverage: none
           tools: composer:v2
-      - name: Update the dependencies of every Composer project
+      - name: Update the bundles and Symfony in every app and in e2e
         id: update
+        # No scripts; only the plugins of allow-plugins run (Flex keeps extra.symfony.require, which --no-plugins would drop).
         run: |
           {
             echo 'summary<<EOF'
-            for dir in apps/gateway apps/orders apps/billing e2e .; do
+            for dir in apps/gateway apps/orders apps/billing e2e; do
               listed() { composer --working-dir=$dir show --locked --format=json | jq -r '.locked[] | "\(.name) \(.version)"' | sort; }
               before=$(listed)
-              composer --working-dir=$dir update --no-interaction --no-scripts --no-progress
+              composer --working-dir=$dir update 'msstc4symfony/*' 'symfony/*' --with-dependencies --no-interaction --no-scripts --no-progress
               after=$(listed)
               diff <(echo "$before") <(echo "$after") | sed -n "s|^> |- $dir: |p"
             done
@@ -49,15 +54,17 @@ jobs:
           } >> "$GITHUB_OUTPUT"
       - name: Commit to the bundle-updates branch
         id: commit
+        env:
+          TOKEN: ${{ github.token }}
         run: |
           if git diff --quiet; then
-            echo 'No dependency releases since the last update.'
+            echo 'No bundle or Symfony releases since the last update.'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -qam 'Update dependencies'
-          git push --force origin HEAD:refs/heads/bundle-updates
+          git commit -qam 'Update msstc4symfony bundles and Symfony'
+          git push --force "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:refs/heads/bundle-updates
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
   quality:

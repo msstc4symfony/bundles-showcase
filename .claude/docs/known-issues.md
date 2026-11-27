@@ -671,7 +671,10 @@
   (symfony 2026-10-15, php 8.6.0RC2 2026-10-22, doctrine-bundle 3.3.3 2026-10-28, composer 2.11.0), и в main ничего
   не попадало. `dependabot.yml` удалён, ветки удалены; Dependabot alerts включены (`PUT …/vulnerability-alerts`) во всех
   репозиториях организации.
-- `bundle-updates` теперь делает полный `composer update` в `apps/*`, `e2e` и корне — отсюда и CVE-фиксы Symfony;
-  2026-11-26 run упал на `composer audit` (e2e: symfony/http-client), то есть без этого конвейер вставал.
+- `bundle-updates` обновляет `msstc4symfony/*` и `symfony/*` (`--with-dependencies`) в `apps/*` и `e2e` — отсюда CVE-фиксы
+  Symfony; 2026-11-26 run упал на `composer audit` (e2e: symfony/http-client), то есть без этого конвейер вставал. Полный
+  `composer update` был отклонён ревью безопасности: сторонние релизы шли бы в main без человека. Checkout без
+  `persist-credentials`, токен — только в шаге push. `--no-plugins` нельзя: без Flex пропадает `extra.symfony.require`,
+  транзитивные `symfony/*` уехали бы на следующий минор; плагины и так ограничены `allow-plugins`.
   `bump-after-update` двигает нижние границы в composer.json — это ожидаемая часть коммита.
 - Образы Docker и actions — вручную: 2026-11-27 подняты `php:8.5.13-cli` и `composer:2.11.3`.

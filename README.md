@@ -206,12 +206,13 @@ ticket resolves once `rate6h` no longer sees the history.
 ## How bundle releases flow
 
 1. A bundle tags a release (`vX.Y.Z`).
-2. The `bundle-updates` workflow (daily at 06:00 UTC, or run by hand) runs `composer update` in every Composer
-   project (the three apps, `e2e`, the root tools) and commits the result to the `bundle-updates` branch: bundle
-   releases, Symfony patch and security releases and every other dependency, within the constraints. Dependabot
-   is not used: it does not see releases of packages installed from `vcs` repositories, and it may not open pull
-   requests here. Docker images (`docker/php/Dockerfile`, `compose.yaml`, checked by `make image-pins`) and the
-   actions are bumped by hand; Dependabot alerts are on and name a vulnerable dependency.
+2. The `bundle-updates` workflow (daily at 06:00 UTC, or run by hand) runs `composer update 'msstc4symfony/*'
+   'symfony/*' --with-dependencies` in the three apps and in `e2e` (bundle releases, Symfony patch and security
+   releases, within the constraints) and commits the result to the `bundle-updates` branch. Other vendors are left
+   out on purpose: they would reach `main` without anyone reviewing them; update them by hand. Dependabot is not
+   used: it does not see releases of packages installed from `vcs` repositories, and it may not open pull requests
+   here. Docker images (`docker/php/Dockerfile`, `compose.yaml`, checked by `make image-pins`) and the actions are
+   bumped by hand; Dependabot alerts are on and name a vulnerable dependency.
 3. The same run gates that commit with `quality` (PHPStan and PHPUnit per app) and `e2e` (the full stack plus
    Behat, chaos included), called as reusable workflows.
 4. When both pass, the run fast-forwards `main` to the commit and deletes the branch. Otherwise the branch stays
